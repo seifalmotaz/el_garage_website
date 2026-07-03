@@ -1,12 +1,10 @@
 "use client";
 
-import React, { useState, useMemo, use } from "react";
+import { useState, useMemo, use } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import Header from "../../components/Header";
-import Footer from "../../components/Footer";
-import DownloadApp from "../../components/DownloadApp";
-import CarCard from "../../components/CarCard";
+import DownloadApp from "../../../components/DownloadApp";
+import CarCard from "../../../components/CarCard";
 
 // Mock car database
 const carsData: Record<string, any> = {
@@ -35,10 +33,18 @@ const carsData: Record<string, any> = {
       "/assets/car_placeholder.png",
       "/assets/why_cars.png",
       "/assets/car_placeholder.png",
-      "/assets/why_cars.png"
+      "/assets/why_cars.png",
     ],
-    features: ["فتحة سقف بانوراما", "شاشة تعمل باللمس", "حساسات ركن", "كاميرا 360", "مثبت سرعة ذكي", "فرش جلد فاخر"],
-    description: "بي إم دبليو X5 موديل 2023 فئة Highline بحالة المصنع بالكامل. صيانة دورية بالتوكيل، بدون رش أو دهانات تجميلية. تأتي بمحرك 3.0 لتر تيربو بقوة 335 حصان وتكييف هواء رباعي المناطق."
+    features: [
+      "فتحة سقف بانوراما",
+      "شاشة تعمل باللمس",
+      "حساسات ركن",
+      "كاميرا 360",
+      "مثبت سرعة ذكي",
+      "فرش جلد فاخر",
+    ],
+    description:
+      "بي إم دبليو X5 موديل 2023 فئة Highline بحالة المصنع بالكامل. صيانة دورية بالتوكيل، بدون رش أو دهانات تجميلية. تأتي بمحرك 3.0 لتر تيربو بقوة 335 حصان وتكييف هواء رباعي المناطق.",
   },
   "range-rover": {
     brand: "لاند روفر",
@@ -61,10 +67,18 @@ const carsData: Record<string, any> = {
     images: [
       "/assets/car_placeholder.png",
       "/assets/why_cars.png",
-      "/assets/car_placeholder.png"
+      "/assets/car_placeholder.png",
     ],
-    features: ["نظام دفع رباعي", "تعليق هوائي", "فتحة سقف بانوراما", "مقاعد مساج كهربائية", "أبواب شفط", "نظام صوتي ميريديان"],
-    description: "لاند روفر رينج روفر فوج اس اي بحالة ممتازة وصيانات توكيل منتظمة. السيارة فابريكا بالكامل وخالية من أي خدوش."
+    features: [
+      "نظام دفع رباعي",
+      "تعليق هوائي",
+      "فتحة سقف بانوراما",
+      "مقاعد مساج كهربائية",
+      "أبواب شفط",
+      "نظام صوتي ميريديان",
+    ],
+    description:
+      "لاند روفر رينج روفر فوج اس اي بحالة ممتازة وصيانات توكيل منتظمة. السيارة فابريكا بالكامل وخالية من أي خدوش.",
   },
   "mercedes-c200": {
     brand: "مرسيدس بنز",
@@ -82,27 +96,79 @@ const carsData: Record<string, any> = {
     hp: "204",
     engineSize: "1500 سي سي",
     tankCapacity: "66 لتر",
-    images: [
-      "/assets/car_placeholder.png",
-      "/assets/why_cars.png"
+    images: ["/assets/car_placeholder.png", "/assets/why_cars.png"],
+    features: [
+      "كت AMG رياضي",
+      "إضاءة داخلية Ambient Light",
+      "شاشة MBUX العملاقة",
+      "شاحن لاسلكي",
+      "سقف بانوراما",
     ],
-    features: ["كت AMG رياضي", "إضاءة داخلية Ambient Light", "شاشة MBUX العملاقة", "شاحن لاسلكي", "سقف بانوراما"],
-    description: "مرسيدس بنز C200 AMG Line بحالة الزيرو تماماً، صيانة توكيل بالكامل، فابريكا بالكامل بدون أي ملاحظات."
-  }
+    description:
+      "مرسيدس بنز C200 AMG Line بحالة الزيرو تماماً، صيانة توكيل بالكامل، فابريكا بالكامل بدون أي ملاحظات.",
+  },
 };
 
 const initialCars = [
-  { id: "range-rover", brand: "لاند روفر", model: "رينج روفر فوج اس اي", price: "6,200,000", installment: "124,444", year: "2020", mileage: "45,000 كم", trim: "Highline", location: "الاسكندرية", isFeatured: true, isCertified: true },
-  { id: "mercedes-c200", brand: "مرسيدس بنز", model: "C200 AMG Line", price: "3,850,000", installment: "78,500", year: "2022", mileage: "28,000 كم", trim: "AMG", location: "القاهرة", isFeatured: true, isCertified: true },
-  { id: "toyota-corolla", brand: "تويوتا", model: "كورولا هايلاند", price: "1,250,000", installment: "24,000", year: "2021", mileage: "62,000 كم", trim: "Luxury", location: "الجيزة", isFeatured: false, isCertified: true },
-  { id: "bmw-320i", brand: "بي إم دبليو", model: "320i M Sport", price: "3,100,000", installment: "62,000", year: "2020", mileage: "54,000 كم", trim: "M Sport", location: "القاهرة", isFeatured: true, isCertified: true }
+  {
+    id: "range-rover",
+    brand: "لاند روفر",
+    model: "رينج روفر فوج اس اي",
+    price: "6,200,000",
+    installment: "124,444",
+    year: "2020",
+    mileage: "45,000 كم",
+    trim: "Highline",
+    location: "الاسكندرية",
+    isFeatured: true,
+    isCertified: true,
+  },
+  {
+    id: "mercedes-c200",
+    brand: "مرسيدس بنز",
+    model: "C200 AMG Line",
+    price: "3,850,000",
+    installment: "78,500",
+    year: "2022",
+    mileage: "28,000 كم",
+    trim: "AMG",
+    location: "القاهرة",
+    isFeatured: true,
+    isCertified: true,
+  },
+  {
+    id: "toyota-corolla",
+    brand: "تويوتا",
+    model: "كورولا هايلاند",
+    price: "1,250,000",
+    installment: "24,000",
+    year: "2021",
+    mileage: "62,000 كم",
+    trim: "Luxury",
+    location: "الجيزة",
+    isFeatured: false,
+    isCertified: true,
+  },
+  {
+    id: "bmw-320i",
+    brand: "بي إم دبليو",
+    model: "320i M Sport",
+    price: "3,100,000",
+    installment: "62,000",
+    year: "2020",
+    mileage: "54,000 كم",
+    trim: "M Sport",
+    location: "القاهرة",
+    isFeatured: true,
+    isCertified: true,
+  },
 ];
 
 const getCarData = (id: string) => {
   if (carsData[id]) return carsData[id];
-  
+
   // Dynamic lookup fallback
-  const carFromList = initialCars.find(c => c.id === id);
+  const carFromList = initialCars.find((c) => c.id === id);
   if (carFromList) {
     return {
       brand: carFromList.brand,
@@ -120,58 +186,60 @@ const getCarData = (id: string) => {
       hp: "180",
       engineSize: "1600 سي سي",
       tankCapacity: "60 لتر",
-      images: [
-        "/assets/car_placeholder.png",
-        "/assets/why_cars.png"
-      ],
+      images: ["/assets/car_placeholder.png", "/assets/why_cars.png"],
       features: ["شاشة تعمل باللمس", "حساسات ركن", "مثبت سرعة", "كاميرا خلفية"],
-      description: `${carFromList.brand} ${carFromList.model} موديل ${carFromList.year} بحالة ممتازة وخاضعة لفحص الجراج الاحترافي.`
+      description: `${carFromList.brand} ${carFromList.model} موديل ${carFromList.year} بحالة ممتازة وخاضعة لفحص الجراج الاحترافي.`,
     };
   }
-  
+
   // Default to BMW X5
   return carsData["bmw-x5"];
 };
 
-export default function CarDetailPage({ params }: { params: Promise<{ id: string }> }) {
+export default function CarDetailPage({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}) {
   const resolvedParams = use(params);
   const id = resolvedParams.id;
   const car = useMemo(() => getCarData(id), [id]);
 
   // States
   const [activeImageIdx, setActiveImageIdx] = useState(0);
-  const [activeTab, setActiveTab] = useState<"specs" | "features" | "description">("specs");
+  const [activeTab, setActiveTab] = useState<
+    "specs" | "features" | "description"
+  >("specs");
   const [isLiked, setIsLiked] = useState(false);
   const [showOfferModal, setShowOfferModal] = useState(false);
   const [offerPrice, setOfferPrice] = useState("");
 
   // Sidebar Accordion states
-  const [openAccordions, setOpenAccordions] = useState<Record<string, boolean>>({
-    body: true,
-    engine: false,
-    electronic: false,
-    brakes: false,
-    road: false,
-    defects: false
-  });
+  const [openAccordions, setOpenAccordions] = useState<Record<string, boolean>>(
+    {
+      body: true,
+      engine: false,
+      electronic: false,
+      brakes: false,
+      road: false,
+      defects: false,
+    },
+  );
 
   const toggleAccordion = (name: string) => {
-    setOpenAccordions(prev => ({
+    setOpenAccordions((prev) => ({
       ...prev,
-      [name]: !prev[name]
+      [name]: !prev[name],
     }));
   };
 
   // Filter similar/recommended cars
   const recommendedCars = useMemo(() => {
-    return initialCars.filter(c => c.id !== id).slice(0, 3);
+    return initialCars.filter((c) => c.id !== id).slice(0, 3);
   }, [id]);
 
   return (
     <div className="relative flex flex-col min-h-screen bg-gray-50">
-      {/* Absolute Navbar Overlay */}
-      <Header activeHref="/cars" variant="dark" />
-
       {/* Page Title Hero Banner */}
       <div className="relative w-full h-[240px] md:h-[320px] overflow-hidden flex flex-col justify-end md:justify-center items-center text-center pb-8 md:pb-0">
         {/* Background Image */}
@@ -191,30 +259,37 @@ export default function CarDetailPage({ params }: { params: Promise<{ id: string
             تفاصيل السيارة
           </h1>
           <div className="flex items-center justify-center gap-2 text-xs md:text-sm text-gray-300 font-medium font-sans">
-            <Link href="/" className="hover:text-white transition-colors">الصفحة الرئيسية</Link>
+            <Link href="/" className="hover:text-white transition-colors">
+              الصفحة الرئيسية
+            </Link>
             <span className="text-gray-500">/</span>
-            <Link href="/cars" className="hover:text-white transition-colors">تصفح السيارات</Link>
+            <Link href="/cars" className="hover:text-white transition-colors">
+              تصفح السيارات
+            </Link>
             <span className="text-gray-500">/</span>
-            <span className="text-primary-400 font-bold">{car.brand} {car.model}</span>
+            <span className="text-primary-400 font-bold">
+              {car.brand} {car.model}
+            </span>
           </div>
         </div>
       </div>
 
       {/* Main Container */}
       <main className="flex-1 py-12 flex flex-col items-center">
-        <div 
+        <div
           className="w-full max-w-[1336px] mx-auto px-6 md:px-12 flex flex-col lg:flex-row gap-8 items-start"
           dir="rtl"
         >
           {/* Right Column in RTL: Main Car Panel */}
           <div className="flex-1 w-full flex flex-col gap-6">
-            
             {/* Gallery Wrapper */}
             <div className="flex flex-col gap-4 w-full">
               {/* Main Image Preview */}
               <div className="relative aspect-[730/452] w-full rounded-[24px] overflow-hidden bg-white border border-gray-200/60 group shadow-xs">
                 <Image
-                  src={car.images[activeImageIdx] || "/assets/car_placeholder.png"}
+                  src={
+                    car.images[activeImageIdx] || "/assets/car_placeholder.png"
+                  }
                   alt={`${car.brand} ${car.model}`}
                   fill
                   className="object-cover transition-all duration-300"
@@ -222,7 +297,7 @@ export default function CarDetailPage({ params }: { params: Promise<{ id: string
                 />
 
                 {/* Floating Action Buttons: Visually on the RIGHT */}
-                <div 
+                <div
                   className="absolute top-4 z-10 flex flex-col gap-3"
                   style={{ right: "16px", left: "auto" }}
                 >
@@ -250,7 +325,7 @@ export default function CarDetailPage({ params }: { params: Promise<{ id: string
                 </div>
 
                 {/* Floating Condition Badge: Visually on the LEFT */}
-                <div 
+                <div
                   className="absolute top-4 bg-yellow-100/90 backdrop-blur-xs text-yellow-700 text-sm font-semibold px-4 py-1.5 rounded-full shadow-xs border border-yellow-200/40"
                   style={{ left: "16px", right: "auto" }}
                 >
@@ -258,7 +333,10 @@ export default function CarDetailPage({ params }: { params: Promise<{ id: string
                 </div>
 
                 {/* Bottom Gallery Utilities Overlay */}
-                <div className="absolute bottom-4 left-4 right-4 flex items-center justify-between pointer-events-none z-10" dir="rtl">
+                <div
+                  className="absolute bottom-4 left-4 right-4 flex items-center justify-between pointer-events-none z-10"
+                  dir="rtl"
+                >
                   {/* Images Count Indicator: Visually on the RIGHT (DOM 1st child) */}
                   <div className="pointer-events-auto bg-black/45 backdrop-blur-md text-white font-medium text-sm px-4 py-2 rounded-full flex items-center gap-2 shadow-sm border border-white/10">
                     <span className="font-mono">{car.images.length}</span>
@@ -295,7 +373,9 @@ export default function CarDetailPage({ params }: { params: Promise<{ id: string
                       key={idx}
                       onClick={() => setActiveImageIdx(idx)}
                       className={`relative w-[89px] h-[73px] rounded-xl overflow-hidden shrink-0 border-2 transition-all cursor-pointer ${
-                        isActive ? "border-primary-500 scale-95 shadow-sm" : "border-gray-100 hover:border-gray-300"
+                        isActive
+                          ? "border-primary-500 scale-95 shadow-sm"
+                          : "border-gray-100 hover:border-gray-300"
                       }`}
                     >
                       <Image
@@ -328,14 +408,20 @@ export default function CarDetailPage({ params }: { params: Promise<{ id: string
                       {car.brand} {car.model} {car.year}
                     </h1>
                   </div>
-                  <p className="text-gray-500 text-sm font-medium">{car.trim}</p>
+                  <p className="text-gray-500 text-sm font-medium">
+                    {car.trim}
+                  </p>
                 </div>
 
                 {/* Pricing Area */}
                 <div className="flex flex-col gap-2 items-start md:items-end text-start shrink-0">
                   <div className="flex items-baseline gap-1.5 justify-start md:justify-end w-full">
-                    <span className="text-sm font-semibold text-primary-400">ج.م</span>
-                    <span className="text-3xl font-extrabold font-mono text-primary-500">{car.price}</span>
+                    <span className="text-sm font-semibold text-primary-400">
+                      ج.م
+                    </span>
+                    <span className="text-3xl font-extrabold font-mono text-primary-500">
+                      {car.price}
+                    </span>
                     {car.discountText && (
                       <span className="text-xs text-gray-400 line-through font-semibold ms-2 self-center">
                         {car.originalPrice || car.price}
@@ -356,45 +442,101 @@ export default function CarDetailPage({ params }: { params: Promise<{ id: string
               {/* Specs Grid */}
               <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 md:gap-6 text-start w-full">
                 <div className="flex items-center gap-2 md:gap-3 justify-start bg-gray-50/50 p-2.5 md:p-3 rounded-xl border border-gray-100/50">
-                  <Image src="/assets/car_specs_icon.svg" alt="trim" width={20} height={20} className="w-4.5 h-4.5 md:w-5 md:h-5 opacity-70 shrink-0" />
+                  <Image
+                    src="/assets/car_specs_icon.svg"
+                    alt="trim"
+                    width={20}
+                    height={20}
+                    className="w-4.5 h-4.5 md:w-5 md:h-5 opacity-70 shrink-0"
+                  />
                   <div className="flex flex-col gap-0.5 min-w-0">
                     <span className="text-[11px] text-gray-400">الفئة</span>
-                    <span className="text-xs font-semibold text-gray-700 truncate">{car.trim}</span>
+                    <span className="text-xs font-semibold text-gray-700 truncate">
+                      {car.trim}
+                    </span>
                   </div>
                 </div>
                 <div className="flex items-center gap-2 md:gap-3 justify-start bg-gray-50/50 p-2.5 md:p-3 rounded-xl border border-gray-100/50">
-                  <Image src="/assets/spedometer_specs.svg" alt="mileage" width={20} height={20} className="w-4.5 h-4.5 md:w-5 md:h-5 opacity-70 shrink-0" />
+                  <Image
+                    src="/assets/spedometer_specs.svg"
+                    alt="mileage"
+                    width={20}
+                    height={20}
+                    className="w-4.5 h-4.5 md:w-5 md:h-5 opacity-70 shrink-0"
+                  />
                   <div className="flex flex-col gap-0.5 min-w-0">
-                    <span className="text-[11px] text-gray-400">المسافة المقطوعة</span>
-                    <span className="text-xs font-semibold text-gray-700 truncate font-mono">{car.mileage}</span>
+                    <span className="text-[11px] text-gray-400">
+                      المسافة المقطوعة
+                    </span>
+                    <span className="text-xs font-semibold text-gray-700 truncate font-mono">
+                      {car.mileage}
+                    </span>
                   </div>
                 </div>
                 <div className="flex items-center gap-2 md:gap-3 justify-start bg-gray-50/50 p-2.5 md:p-3 rounded-xl border border-gray-100/50">
-                  <Image src="/assets/calendar_specs.svg" alt="year" width={20} height={20} className="w-4.5 h-4.5 md:w-5 md:h-5 opacity-70 shrink-0" />
+                  <Image
+                    src="/assets/calendar_specs.svg"
+                    alt="year"
+                    width={20}
+                    height={20}
+                    className="w-4.5 h-4.5 md:w-5 md:h-5 opacity-70 shrink-0"
+                  />
                   <div className="flex flex-col gap-0.5 min-w-0">
-                    <span className="text-[11px] text-gray-400">سنة الموديل</span>
-                    <span className="text-xs font-semibold text-gray-700 truncate font-mono">{car.year}</span>
+                    <span className="text-[11px] text-gray-400">
+                      سنة الموديل
+                    </span>
+                    <span className="text-xs font-semibold text-gray-700 truncate font-mono">
+                      {car.year}
+                    </span>
                   </div>
                 </div>
                 <div className="flex items-center gap-2 md:gap-3 justify-start bg-gray-50/50 p-2.5 md:p-3 rounded-xl border border-gray-100/50">
-                  <Image src="/assets/services_device_3.svg" alt="fuel" width={20} height={20} className="w-4.5 h-4.5 md:w-5 md:h-5 opacity-70 shrink-0" />
+                  <Image
+                    src="/assets/services_device_3.svg"
+                    alt="fuel"
+                    width={20}
+                    height={20}
+                    className="w-4.5 h-4.5 md:w-5 md:h-5 opacity-70 shrink-0"
+                  />
                   <div className="flex flex-col gap-0.5 min-w-0">
-                    <span className="text-[11px] text-gray-400">نوع الوقود</span>
-                    <span className="text-xs font-semibold text-gray-700 truncate">{car.fuelType}</span>
+                    <span className="text-[11px] text-gray-400">
+                      نوع الوقود
+                    </span>
+                    <span className="text-xs font-semibold text-gray-700 truncate">
+                      {car.fuelType}
+                    </span>
                   </div>
                 </div>
                 <div className="flex items-center gap-2 md:gap-3 justify-start bg-gray-50/50 p-2.5 md:p-3 rounded-xl border border-gray-100/50">
-                  <Image src="/assets/location_specs.svg" alt="location" width={20} height={20} className="w-4.5 h-4.5 md:w-5 md:h-5 opacity-70 shrink-0" />
+                  <Image
+                    src="/assets/location_specs.svg"
+                    alt="location"
+                    width={20}
+                    height={20}
+                    className="w-4.5 h-4.5 md:w-5 md:h-5 opacity-70 shrink-0"
+                  />
                   <div className="flex flex-col gap-0.5 min-w-0">
                     <span className="text-[11px] text-gray-400">المحافظة</span>
-                    <span className="text-xs font-semibold text-gray-700 truncate">{car.location}</span>
+                    <span className="text-xs font-semibold text-gray-700 truncate">
+                      {car.location}
+                    </span>
                   </div>
                 </div>
                 <div className="flex items-center gap-2 md:gap-3 justify-start bg-gray-50/50 p-2.5 md:p-3 rounded-xl border border-gray-100/50">
-                  <Image src="/assets/services_car_1.svg" alt="transmission" width={20} height={20} className="w-4.5 h-4.5 md:w-5 md:h-5 opacity-70 shrink-0" />
+                  <Image
+                    src="/assets/services_car_1.svg"
+                    alt="transmission"
+                    width={20}
+                    height={20}
+                    className="w-4.5 h-4.5 md:w-5 md:h-5 opacity-70 shrink-0"
+                  />
                   <div className="flex flex-col gap-0.5 min-w-0">
-                    <span className="text-[11px] text-gray-400">ناقل الحركة</span>
-                    <span className="text-xs font-semibold text-gray-700 truncate">{car.transmission}</span>
+                    <span className="text-[11px] text-gray-400">
+                      ناقل الحركة
+                    </span>
+                    <span className="text-xs font-semibold text-gray-700 truncate">
+                      {car.transmission}
+                    </span>
                   </div>
                 </div>
               </div>
@@ -407,8 +549,8 @@ export default function CarDetailPage({ params }: { params: Promise<{ id: string
                 <button
                   onClick={() => setActiveTab("specs")}
                   className={`px-4 md:px-6 py-3.5 md:py-4.5 font-bold text-sm border-b-2 transition-all cursor-pointer ${
-                    activeTab === "specs" 
-                      ? "border-primary-500 text-primary-500" 
+                    activeTab === "specs"
+                      ? "border-primary-500 text-primary-500"
                       : "border-transparent text-gray-400 hover:text-gray-600"
                   }`}
                 >
@@ -417,8 +559,8 @@ export default function CarDetailPage({ params }: { params: Promise<{ id: string
                 <button
                   onClick={() => setActiveTab("features")}
                   className={`px-4 md:px-6 py-3.5 md:py-4.5 font-bold text-sm border-b-2 transition-all cursor-pointer ${
-                    activeTab === "features" 
-                      ? "border-primary-500 text-primary-500" 
+                    activeTab === "features"
+                      ? "border-primary-500 text-primary-500"
                       : "border-transparent text-gray-400 hover:text-gray-600"
                   }`}
                 >
@@ -427,8 +569,8 @@ export default function CarDetailPage({ params }: { params: Promise<{ id: string
                 <button
                   onClick={() => setActiveTab("description")}
                   className={`px-4 md:px-6 py-3.5 md:py-4.5 font-bold text-sm border-b-2 transition-all cursor-pointer ${
-                    activeTab === "description" 
-                      ? "border-primary-500 text-primary-500" 
+                    activeTab === "description"
+                      ? "border-primary-500 text-primary-500"
                       : "border-transparent text-gray-400 hover:text-gray-600"
                   }`}
                 >
@@ -442,39 +584,65 @@ export default function CarDetailPage({ params }: { params: Promise<{ id: string
                   <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 md:gap-4">
                     <div className="bg-gray-50 border border-gray-100 rounded-xl p-3 md:p-4 flex flex-col gap-1">
                       <span className="text-[11px] text-gray-400">الوقود</span>
-                      <span className="text-sm font-semibold text-gray-800">{car.fuelType}</span>
+                      <span className="text-sm font-semibold text-gray-800">
+                        {car.fuelType}
+                      </span>
                     </div>
                     <div className="bg-gray-50 border border-gray-100 rounded-xl p-3 md:p-4 flex flex-col gap-1">
                       <span className="text-[11px] text-gray-400">اللون</span>
-                      <span className="text-sm font-semibold text-gray-800">{car.color || "أسود"}</span>
+                      <span className="text-sm font-semibold text-gray-800">
+                        {car.color || "أسود"}
+                      </span>
                     </div>
                     <div className="bg-gray-50 border border-gray-100 rounded-xl p-3 md:p-4 flex flex-col gap-1">
                       <span className="text-[11px] text-gray-400">الحالة</span>
-                      <span className="text-sm font-semibold text-gray-800">{car.condition}</span>
+                      <span className="text-sm font-semibold text-gray-800">
+                        {car.condition}
+                      </span>
                     </div>
                     <div className="bg-gray-50 border border-gray-100 rounded-xl p-3 md:p-4 flex flex-col gap-1">
                       <span className="text-[11px] text-gray-400">الموديل</span>
-                      <span className="text-sm font-semibold text-gray-800 font-mono">{car.year}</span>
+                      <span className="text-sm font-semibold text-gray-800 font-mono">
+                        {car.year}
+                      </span>
                     </div>
                     <div className="bg-gray-50 border border-gray-100 rounded-xl p-3 md:p-4 flex flex-col gap-1">
-                      <span className="text-[11px] text-gray-400">ناقل الحركة</span>
-                      <span className="text-sm font-semibold text-gray-800">{car.transmission}</span>
+                      <span className="text-[11px] text-gray-400">
+                        ناقل الحركة
+                      </span>
+                      <span className="text-sm font-semibold text-gray-800">
+                        {car.transmission}
+                      </span>
                     </div>
                     <div className="bg-gray-50 border border-gray-100 rounded-xl p-3 md:p-4 flex flex-col gap-1">
-                      <span className="text-[11px] text-gray-400">الكيلومترات</span>
-                      <span className="text-sm font-semibold text-gray-800 font-mono">{car.mileage}</span>
+                      <span className="text-[11px] text-gray-400">
+                        الكيلومترات
+                      </span>
+                      <span className="text-sm font-semibold text-gray-800 font-mono">
+                        {car.mileage}
+                      </span>
                     </div>
                     <div className="bg-gray-50 border border-gray-100 rounded-xl p-3 md:p-4 flex flex-col gap-1">
-                      <span className="text-[11px] text-gray-400">سعة الخزان</span>
-                      <span className="text-sm font-semibold text-gray-800 font-mono">{car.tankCapacity || "70 لتر"}</span>
+                      <span className="text-[11px] text-gray-400">
+                        سعة الخزان
+                      </span>
+                      <span className="text-sm font-semibold text-gray-800 font-mono">
+                        {car.tankCapacity || "70 لتر"}
+                      </span>
                     </div>
                     <div className="bg-gray-50 border border-gray-100 rounded-xl p-3 md:p-4 flex flex-col gap-1">
                       <span className="text-[11px] text-gray-400">قوة HP</span>
-                      <span className="text-sm font-semibold text-gray-800 font-mono">{car.hp || "180"}</span>
+                      <span className="text-sm font-semibold text-gray-800 font-mono">
+                        {car.hp || "180"}
+                      </span>
                     </div>
                     <div className="bg-gray-50 border border-gray-100 rounded-xl p-3 md:p-4 flex flex-col gap-1">
-                      <span className="text-[11px] text-gray-400">سعة المحرك</span>
-                      <span className="text-sm font-semibold text-gray-800 font-mono">{car.engineSize || "1600 سي سي"}</span>
+                      <span className="text-[11px] text-gray-400">
+                        سعة المحرك
+                      </span>
+                      <span className="text-sm font-semibold text-gray-800 font-mono">
+                        {car.engineSize || "1600 سي سي"}
+                      </span>
                     </div>
                   </div>
                 )}
@@ -503,7 +671,7 @@ export default function CarDetailPage({ params }: { params: Promise<{ id: string
 
             {/* Certification Footer Banner */}
             <div className="bg-gradient-to-r from-primary-500 to-[#00165b] text-white rounded-2xl py-4 px-6 flex items-center justify-between shadow-md">
-              <Link 
+              <Link
                 href="/inspection-report"
                 className="flex items-center gap-2 hover:opacity-85 transition-opacity cursor-pointer"
               >
@@ -516,11 +684,15 @@ export default function CarDetailPage({ params }: { params: Promise<{ id: string
                     className="w-3.5 h-3.5 rotate-45"
                   />
                 </div>
-                <span className="text-xs md:text-sm font-semibold">معلومات عن الفحص</span>
+                <span className="text-xs md:text-sm font-semibold">
+                  معلومات عن الفحص
+                </span>
               </Link>
 
               <div className="flex items-center gap-2.5">
-                <span className="text-xs md:text-sm font-bold">معتمدة من جراج</span>
+                <span className="text-xs md:text-sm font-bold">
+                  معتمدة من جراج
+                </span>
                 <div className="relative w-5 h-5">
                   <Image
                     src="/assets/certified_shield.svg"
@@ -531,12 +703,10 @@ export default function CarDetailPage({ params }: { params: Promise<{ id: string
                 </div>
               </div>
             </div>
-
           </div>
 
           {/* Left Column in RTL: Sidebar */}
           <div className="w-full lg:w-[322px] shrink-0 flex flex-col gap-6">
-            
             {/* Sidebar Actions Card */}
             <div className="bg-white border border-gray-100 rounded-[20px] p-5 flex flex-col gap-4 w-full shadow-2xs">
               {/* Send Offer Button */}
@@ -593,26 +763,33 @@ export default function CarDetailPage({ params }: { params: Promise<{ id: string
                     height={18}
                     className="w-4.5 h-4.5"
                   />
-                  <span className="font-bold text-base text-gray-900">تقرير الفحص</span>
+                  <span className="font-bold text-base text-gray-900">
+                    تقرير الفحص
+                  </span>
                 </div>
-                <span className="text-xs text-gray-500 font-medium font-mono">(14 Jan, 2025)</span>
+                <span className="text-xs text-gray-500 font-medium font-mono">
+                  (14 Jan, 2025)
+                </span>
               </div>
 
               {/* Legends */}
               <div className="px-5 py-3 border-b border-gray-100 flex items-center justify-between text-xs text-gray-400 select-none">
                 <div className="flex items-center gap-1.5">
                   <span>عيب او خلل</span>
-                  <span className="w-4 h-4 rounded-full bg-orange-100 text-orange-600 flex items-center justify-center text-[10px] font-bold text-center">!</span>
+                  <span className="w-4 h-4 rounded-full bg-orange-100 text-orange-600 flex items-center justify-center text-[10px] font-bold text-center">
+                    !
+                  </span>
                 </div>
                 <div className="flex items-center gap-1.5">
                   <span>فحص ناجح</span>
-                  <span className="w-4 h-4 rounded-full bg-green-100 text-green-700 flex items-center justify-center text-[10px] font-bold text-center">✓</span>
+                  <span className="w-4 h-4 rounded-full bg-green-100 text-green-700 flex items-center justify-center text-[10px] font-bold text-center">
+                    ✓
+                  </span>
                 </div>
               </div>
 
               {/* Inspected Accordions List */}
               <div className="p-4 flex flex-col gap-3">
-                
                 {/* 1. Body structure accordion */}
                 <div className="border border-gray-100 rounded-xl overflow-hidden shadow-3xs">
                   <button
@@ -620,30 +797,54 @@ export default function CarDetailPage({ params }: { params: Promise<{ id: string
                     className="w-full bg-gray-50/50 hover:bg-gray-50 px-4 py-3 flex items-center justify-between text-sm text-gray-700 font-bold transition-colors cursor-pointer"
                   >
                     <div className="flex items-center gap-2">
-                      <Image src="/assets/car_specs_icon.svg" alt="body" width={18} height={18} className="w-4.5 h-4.5 opacity-60" />
+                      <Image
+                        src="/assets/car_specs_icon.svg"
+                        alt="body"
+                        width={18}
+                        height={18}
+                        className="w-4.5 h-4.5 opacity-60"
+                      />
                       <span>هيكل السيارة</span>
                     </div>
                     <div className="flex gap-2 items-center">
                       <div className="flex gap-1.5">
-                        <span className="flex items-center justify-center bg-green-50 text-green-700 px-1.5 py-0.5 rounded text-[9px] font-bold border border-green-100/50">02 ✓</span>
-                        <span className="flex items-center justify-center bg-orange-50 text-orange-600 px-1.5 py-0.5 rounded text-[9px] font-bold border border-orange-100/50">01 !</span>
+                        <span className="flex items-center justify-center bg-green-50 text-green-700 px-1.5 py-0.5 rounded text-[9px] font-bold border border-green-100/50">
+                          02 ✓
+                        </span>
+                        <span className="flex items-center justify-center bg-orange-50 text-orange-600 px-1.5 py-0.5 rounded text-[9px] font-bold border border-orange-100/50">
+                          01 !
+                        </span>
                       </div>
-                      <span className="text-[10px] text-gray-400 font-mono">{openAccordions.body ? "▲" : "▼"}</span>
+                      <span className="text-[10px] text-gray-400 font-mono">
+                        {openAccordions.body ? "▲" : "▼"}
+                      </span>
                     </div>
                   </button>
                   {openAccordions.body && (
                     <div className="p-3 bg-white border-t border-gray-50 flex flex-col gap-2.5 animate-slide-down">
                       <div className="flex items-start text-xs text-gray-500 gap-2.5">
-                        <span className="w-4.5 h-4.5 rounded-full bg-green-100 text-green-700 flex items-center justify-center text-[10px] font-bold shrink-0 text-center">✓</span>
-                        <p className="text-start flex-1">جميع ألواح السيارة متناسقة ومطلية</p>
+                        <span className="w-4.5 h-4.5 rounded-full bg-green-100 text-green-700 flex items-center justify-center text-[10px] font-bold shrink-0 text-center">
+                          ✓
+                        </span>
+                        <p className="text-start flex-1">
+                          جميع ألواح السيارة متناسقة ومطلية
+                        </p>
                       </div>
                       <div className="flex items-start text-xs text-gray-500 gap-2.5">
-                        <span className="w-4.5 h-4.5 rounded-full bg-green-100 text-green-700 flex items-center justify-center text-[10px] font-bold shrink-0 text-center">✓</span>
-                        <p className="text-start flex-1">المرايا الجانبية والخلفية خالية من الخدوش</p>
+                        <span className="w-4.5 h-4.5 rounded-full bg-green-100 text-green-700 flex items-center justify-center text-[10px] font-bold shrink-0 text-center">
+                          ✓
+                        </span>
+                        <p className="text-start flex-1">
+                          المرايا الجانبية والخلفية خالية من الخدوش
+                        </p>
                       </div>
                       <div className="flex items-start text-xs text-gray-500 gap-2.5">
-                        <span className="w-4.5 h-4.5 rounded-full bg-orange-100 text-orange-700 flex items-center justify-center text-[10px] font-bold shrink-0 text-center font-mono">!</span>
-                        <p className="text-start flex-1">خدش بسيط في الباب الخلفي</p>
+                        <span className="w-4.5 h-4.5 rounded-full bg-orange-100 text-orange-700 flex items-center justify-center text-[10px] font-bold shrink-0 text-center font-mono">
+                          !
+                        </span>
+                        <p className="text-start flex-1">
+                          خدش بسيط في الباب الخلفي
+                        </p>
                       </div>
                     </div>
                   )}
@@ -656,33 +857,59 @@ export default function CarDetailPage({ params }: { params: Promise<{ id: string
                     className="w-full bg-gray-50/50 hover:bg-gray-50 px-4 py-3 flex items-center justify-between text-sm text-gray-700 font-bold transition-colors cursor-pointer"
                   >
                     <div className="flex items-center gap-2">
-                      <Image src="/assets/services_car_1.svg" alt="engine" width={18} height={18} className="w-4.5 h-4.5 opacity-60" />
+                      <Image
+                        src="/assets/services_car_1.svg"
+                        alt="engine"
+                        width={18}
+                        height={18}
+                        className="w-4.5 h-4.5 opacity-60"
+                      />
                       <span>المحرك وناقل الحركة</span>
                     </div>
                     <div className="flex gap-2 items-center">
                       <div className="flex gap-1.5">
-                        <span className="flex items-center justify-center bg-green-50 text-green-700 px-1.5 py-0.5 rounded text-[9px] font-bold border border-green-100/50">04 ✓</span>
+                        <span className="flex items-center justify-center bg-green-50 text-green-700 px-1.5 py-0.5 rounded text-[9px] font-bold border border-green-100/50">
+                          04 ✓
+                        </span>
                       </div>
-                      <span className="text-[10px] text-gray-400 font-mono">{openAccordions.engine ? "▲" : "▼"}</span>
+                      <span className="text-[10px] text-gray-400 font-mono">
+                        {openAccordions.engine ? "▲" : "▼"}
+                      </span>
                     </div>
                   </button>
                   {openAccordions.engine && (
                     <div className="p-3 bg-white border-t border-gray-50 flex flex-col gap-2.5 animate-slide-down">
                       <div className="flex items-start text-xs text-gray-500 gap-2.5">
-                        <span className="w-4.5 h-4.5 rounded-full bg-green-100 text-green-700 flex items-center justify-center text-[10px] font-bold shrink-0 text-center">✓</span>
-                        <p className="text-start flex-1">أداء وسحب المحرك ممتاز وفي الحدود الطبيعية</p>
+                        <span className="w-4.5 h-4.5 rounded-full bg-green-100 text-green-700 flex items-center justify-center text-[10px] font-bold shrink-0 text-center">
+                          ✓
+                        </span>
+                        <p className="text-start flex-1">
+                          أداء وسحب المحرك ممتاز وفي الحدود الطبيعية
+                        </p>
                       </div>
                       <div className="flex items-start text-xs text-gray-500 gap-2.5">
-                        <span className="w-4.5 h-4.5 rounded-full bg-green-100 text-green-700 flex items-center justify-center text-[10px] font-bold shrink-0 text-center">✓</span>
-                        <p className="text-start flex-1">ناقل الحركة يعمل بسلاسة ونعومة</p>
+                        <span className="w-4.5 h-4.5 rounded-full bg-green-100 text-green-700 flex items-center justify-center text-[10px] font-bold shrink-0 text-center">
+                          ✓
+                        </span>
+                        <p className="text-start flex-1">
+                          ناقل الحركة يعمل بسلاسة ونعومة
+                        </p>
                       </div>
                       <div className="flex items-start text-xs text-gray-500 gap-2.5">
-                        <span className="w-4.5 h-4.5 rounded-full bg-green-100 text-green-700 flex items-center justify-center text-[10px] font-bold shrink-0 text-center">✓</span>
-                        <p className="text-start flex-1">لا توجد آثار تسريب زيوت أو سوائل تبريد</p>
+                        <span className="w-4.5 h-4.5 rounded-full bg-green-100 text-green-700 flex items-center justify-center text-[10px] font-bold shrink-0 text-center">
+                          ✓
+                        </span>
+                        <p className="text-start flex-1">
+                          لا توجد آثار تسريب زيوت أو سوائل تبريد
+                        </p>
                       </div>
                       <div className="flex items-start text-xs text-gray-500 gap-2.5">
-                        <span className="w-4.5 h-4.5 rounded-full bg-green-100 text-green-700 flex items-center justify-center text-[10px] font-bold shrink-0 text-center">✓</span>
-                        <p className="text-start flex-1">شمعات الاحتراق والوصلات الكهربائية سليمة</p>
+                        <span className="w-4.5 h-4.5 rounded-full bg-green-100 text-green-700 flex items-center justify-center text-[10px] font-bold shrink-0 text-center">
+                          ✓
+                        </span>
+                        <p className="text-start flex-1">
+                          شمعات الاحتراق والوصلات الكهربائية سليمة
+                        </p>
                       </div>
                     </div>
                   )}
@@ -695,30 +922,54 @@ export default function CarDetailPage({ params }: { params: Promise<{ id: string
                     className="w-full bg-gray-50/50 hover:bg-gray-50 px-4 py-3 flex items-center justify-between text-sm text-gray-700 font-bold transition-colors cursor-pointer"
                   >
                     <div className="flex items-center gap-2">
-                      <Image src="/assets/services_phone_2.svg" alt="electronic" width={18} height={18} className="w-4.5 h-4.5 opacity-60" />
+                      <Image
+                        src="/assets/services_phone_2.svg"
+                        alt="electronic"
+                        width={18}
+                        height={18}
+                        className="w-4.5 h-4.5 opacity-60"
+                      />
                       <span>الفحص الإلكتروني</span>
                     </div>
                     <div className="flex gap-2 items-center">
                       <div className="flex gap-1.5">
-                        <span className="flex items-center justify-center bg-green-50 text-green-700 px-1.5 py-0.5 rounded text-[9px] font-bold border border-green-100/50">02 ✓</span>
-                        <span className="flex items-center justify-center bg-orange-50 text-orange-600 px-1.5 py-0.5 rounded text-[9px] font-bold border border-orange-100/50">01 !</span>
+                        <span className="flex items-center justify-center bg-green-50 text-green-700 px-1.5 py-0.5 rounded text-[9px] font-bold border border-green-100/50">
+                          02 ✓
+                        </span>
+                        <span className="flex items-center justify-center bg-orange-50 text-orange-600 px-1.5 py-0.5 rounded text-[9px] font-bold border border-orange-100/50">
+                          01 !
+                        </span>
                       </div>
-                      <span className="text-[10px] text-gray-400 font-mono">{openAccordions.electronic ? "▲" : "▼"}</span>
+                      <span className="text-[10px] text-gray-400 font-mono">
+                        {openAccordions.electronic ? "▲" : "▼"}
+                      </span>
                     </div>
                   </button>
                   {openAccordions.electronic && (
                     <div className="p-3 bg-white border-t border-gray-50 flex flex-col gap-2.5 animate-slide-down">
                       <div className="flex items-start text-xs text-gray-500 gap-2.5">
-                        <span className="w-4.5 h-4.5 rounded-full bg-green-100 text-green-700 flex items-center justify-center text-[10px] font-bold shrink-0 text-center">✓</span>
-                        <p className="text-start flex-1">فحص كمبيوتر الأعطال (OBD) - خالي من المشاكل</p>
+                        <span className="w-4.5 h-4.5 rounded-full bg-green-100 text-green-700 flex items-center justify-center text-[10px] font-bold shrink-0 text-center">
+                          ✓
+                        </span>
+                        <p className="text-start flex-1">
+                          فحص كمبيوتر الأعطال (OBD) - خالي من المشاكل
+                        </p>
                       </div>
                       <div className="flex items-start text-xs text-gray-500 gap-2.5">
-                        <span className="w-4.5 h-4.5 rounded-full bg-green-100 text-green-700 flex items-center justify-center text-[10px] font-bold shrink-0 text-center">✓</span>
-                        <p className="text-start flex-1">سلامة البطارية ونظام شحن الدينامو</p>
+                        <span className="w-4.5 h-4.5 rounded-full bg-green-100 text-green-700 flex items-center justify-center text-[10px] font-bold shrink-0 text-center">
+                          ✓
+                        </span>
+                        <p className="text-start flex-1">
+                          سلامة البطارية ونظام شحن الدينامو
+                        </p>
                       </div>
                       <div className="flex items-start text-xs text-gray-500 gap-2.5">
-                        <span className="w-4.5 h-4.5 rounded-full bg-orange-100 text-orange-700 flex items-center justify-center text-[10px] font-bold shrink-0 text-center font-mono">!</span>
-                        <p className="text-start flex-1">تحديث برمجي مطلوب لوحدة الشاشة الترفيهية</p>
+                        <span className="w-4.5 h-4.5 rounded-full bg-orange-100 text-orange-700 flex items-center justify-center text-[10px] font-bold shrink-0 text-center font-mono">
+                          !
+                        </span>
+                        <p className="text-start flex-1">
+                          تحديث برمجي مطلوب لوحدة الشاشة الترفيهية
+                        </p>
                       </div>
                     </div>
                   )}
@@ -731,30 +982,54 @@ export default function CarDetailPage({ params }: { params: Promise<{ id: string
                     className="w-full bg-gray-50/50 hover:bg-gray-50 px-4 py-3 flex items-center justify-between text-sm text-gray-700 font-bold transition-colors cursor-pointer"
                   >
                     <div className="flex items-center gap-2">
-                      <Image src="/assets/spedometer_specs.svg" alt="brakes" width={18} height={18} className="w-4.5 h-4.5 opacity-60" />
+                      <Image
+                        src="/assets/spedometer_specs.svg"
+                        alt="brakes"
+                        width={18}
+                        height={18}
+                        className="w-4.5 h-4.5 opacity-60"
+                      />
                       <span>الإطارات والفرامل</span>
                     </div>
                     <div className="flex gap-2 items-center">
                       <div className="flex gap-1.5">
-                        <span className="flex items-center justify-center bg-green-50 text-green-700 px-1.5 py-0.5 rounded text-[9px] font-bold border border-green-100/50">02 ✓</span>
-                        <span className="flex items-center justify-center bg-orange-50 text-orange-600 px-1.5 py-0.5 rounded text-[9px] font-bold border border-orange-100/50">01 !</span>
+                        <span className="flex items-center justify-center bg-green-50 text-green-700 px-1.5 py-0.5 rounded text-[9px] font-bold border border-green-100/50">
+                          02 ✓
+                        </span>
+                        <span className="flex items-center justify-center bg-orange-50 text-orange-600 px-1.5 py-0.5 rounded text-[9px] font-bold border border-orange-100/50">
+                          01 !
+                        </span>
                       </div>
-                      <span className="text-[10px] text-gray-400 font-mono">{openAccordions.brakes ? "▲" : "▼"}</span>
+                      <span className="text-[10px] text-gray-400 font-mono">
+                        {openAccordions.brakes ? "▲" : "▼"}
+                      </span>
                     </div>
                   </button>
                   {openAccordions.brakes && (
                     <div className="p-3 bg-white border-t border-gray-50 flex flex-col gap-2.5 animate-slide-down">
                       <div className="flex items-start text-xs text-gray-500 gap-2.5">
-                        <span className="w-4.5 h-4.5 rounded-full bg-green-100 text-green-700 flex items-center justify-center text-[10px] font-bold shrink-0 text-center">✓</span>
-                        <p className="text-start flex-1">سمك تيل الفرامل الخلفي بنسبة 70%</p>
+                        <span className="w-4.5 h-4.5 rounded-full bg-green-100 text-green-700 flex items-center justify-center text-[10px] font-bold shrink-0 text-center">
+                          ✓
+                        </span>
+                        <p className="text-start flex-1">
+                          سمك تيل الفرامل الخلفي بنسبة 70%
+                        </p>
                       </div>
                       <div className="flex items-start text-xs text-gray-500 gap-2.5">
-                        <span className="w-4.5 h-4.5 rounded-full bg-green-100 text-green-700 flex items-center justify-center text-[10px] font-bold shrink-0 text-center">✓</span>
-                        <p className="text-start flex-1">نقشة وحالة الإطارات الأربعة بحالة جيدة</p>
+                        <span className="w-4.5 h-4.5 rounded-full bg-green-100 text-green-700 flex items-center justify-center text-[10px] font-bold shrink-0 text-center">
+                          ✓
+                        </span>
+                        <p className="text-start flex-1">
+                          نقشة وحالة الإطارات الأربعة بحالة جيدة
+                        </p>
                       </div>
                       <div className="flex items-start text-xs text-gray-500 gap-2.5">
-                        <span className="w-4.5 h-4.5 rounded-full bg-orange-100 text-orange-700 flex items-center justify-center text-[10px] font-bold shrink-0 text-center font-mono">!</span>
-                        <p className="text-start flex-1">تيل الفرامل الأمامي يحتاج لتغيير بعد 5,000 كم</p>
+                        <span className="w-4.5 h-4.5 rounded-full bg-orange-100 text-orange-700 flex items-center justify-center text-[10px] font-bold shrink-0 text-center font-mono">
+                          !
+                        </span>
+                        <p className="text-start flex-1">
+                          تيل الفرامل الأمامي يحتاج لتغيير بعد 5,000 كم
+                        </p>
                       </div>
                     </div>
                   )}
@@ -767,30 +1042,54 @@ export default function CarDetailPage({ params }: { params: Promise<{ id: string
                     className="w-full bg-gray-50/50 hover:bg-gray-50 px-4 py-3 flex items-center justify-between text-sm text-gray-700 font-bold transition-colors cursor-pointer"
                   >
                     <div className="flex items-center gap-2">
-                      <Image src="/assets/services_car_2.svg" alt="road test" width={18} height={18} className="w-4.5 h-4.5 opacity-60" />
+                      <Image
+                        src="/assets/services_car_2.svg"
+                        alt="road test"
+                        width={18}
+                        height={18}
+                        className="w-4.5 h-4.5 opacity-60"
+                      />
                       <span>اختبار الطريق</span>
                     </div>
                     <div className="flex gap-2 items-center">
                       <div className="flex gap-1.5">
-                        <span className="flex items-center justify-center bg-green-50 text-green-700 px-1.5 py-0.5 rounded text-[9px] font-bold border border-green-100/50">02 ✓</span>
-                        <span className="flex items-center justify-center bg-orange-50 text-orange-600 px-1.5 py-0.5 rounded text-[9px] font-bold border border-orange-100/50">01 !</span>
+                        <span className="flex items-center justify-center bg-green-50 text-green-700 px-1.5 py-0.5 rounded text-[9px] font-bold border border-green-100/50">
+                          02 ✓
+                        </span>
+                        <span className="flex items-center justify-center bg-orange-50 text-orange-600 px-1.5 py-0.5 rounded text-[9px] font-bold border border-orange-100/50">
+                          01 !
+                        </span>
                       </div>
-                      <span className="text-[10px] text-gray-400 font-mono">{openAccordions.road ? "▲" : "▼"}</span>
+                      <span className="text-[10px] text-gray-400 font-mono">
+                        {openAccordions.road ? "▲" : "▼"}
+                      </span>
                     </div>
                   </button>
                   {openAccordions.road && (
                     <div className="p-3 bg-white border-t border-gray-50 flex flex-col gap-2.5 animate-slide-down">
                       <div className="flex items-start text-xs text-gray-500 gap-2.5">
-                        <span className="w-4.5 h-4.5 rounded-full bg-green-100 text-green-700 flex items-center justify-center text-[10px] font-bold shrink-0 text-center">✓</span>
-                        <p className="text-start flex-1">توجيه وثبات السيارة على السرعات ممتاز</p>
+                        <span className="w-4.5 h-4.5 rounded-full bg-green-100 text-green-700 flex items-center justify-center text-[10px] font-bold shrink-0 text-center">
+                          ✓
+                        </span>
+                        <p className="text-start flex-1">
+                          توجيه وثبات السيارة على السرعات ممتاز
+                        </p>
                       </div>
                       <div className="flex items-start text-xs text-gray-500 gap-2.5">
-                        <span className="w-4.5 h-4.5 rounded-full bg-green-100 text-green-700 flex items-center justify-center text-[10px] font-bold shrink-0 text-center">✓</span>
-                        <p className="text-start flex-1">استجابة الفرامل الفورية أثناء الطوارئ</p>
+                        <span className="w-4.5 h-4.5 rounded-full bg-green-100 text-green-700 flex items-center justify-center text-[10px] font-bold shrink-0 text-center">
+                          ✓
+                        </span>
+                        <p className="text-start flex-1">
+                          استجابة الفرامل الفورية أثناء الطوارئ
+                        </p>
                       </div>
                       <div className="flex items-start text-xs text-gray-500 gap-2.5">
-                        <span className="w-4.5 h-4.5 rounded-full bg-orange-100 text-orange-700 flex items-center justify-center text-[10px] font-bold shrink-0 text-center font-mono">!</span>
-                        <p className="text-start flex-1">صوت خفيف من المساعد الأمامي عند المنحنيات القوية</p>
+                        <span className="w-4.5 h-4.5 rounded-full bg-orange-100 text-orange-700 flex items-center justify-center text-[10px] font-bold shrink-0 text-center font-mono">
+                          !
+                        </span>
+                        <p className="text-start flex-1">
+                          صوت خفيف من المساعد الأمامي عند المنحنيات القوية
+                        </p>
                       </div>
                     </div>
                   )}
@@ -803,35 +1102,58 @@ export default function CarDetailPage({ params }: { params: Promise<{ id: string
                     className="w-full bg-gray-50/50 hover:bg-gray-50 px-4 py-3 flex items-center justify-between text-sm text-gray-700 font-bold transition-colors cursor-pointer"
                   >
                     <div className="flex items-center gap-2">
-                      <Image src="/assets/services_trash_3.svg" alt="defects" width={18} height={18} className="w-4.5 h-4.5 opacity-60" />
+                      <Image
+                        src="/assets/services_trash_3.svg"
+                        alt="defects"
+                        width={18}
+                        height={18}
+                        className="w-4.5 h-4.5 opacity-60"
+                      />
                       <span>الخدوش والعيوب</span>
                     </div>
                     <div className="flex gap-2 items-center">
                       <div className="flex gap-1.5">
-                        <span className="flex items-center justify-center bg-green-50 text-green-700 px-1.5 py-0.5 rounded text-[9px] font-bold border border-green-100/50">02 ✓</span>
-                        <span className="flex items-center justify-center bg-orange-50 text-orange-600 px-1.5 py-0.5 rounded text-[9px] font-bold border border-orange-100/50">01 !</span>
+                        <span className="flex items-center justify-center bg-green-50 text-green-700 px-1.5 py-0.5 rounded text-[9px] font-bold border border-green-100/50">
+                          02 ✓
+                        </span>
+                        <span className="flex items-center justify-center bg-orange-50 text-orange-600 px-1.5 py-0.5 rounded text-[9px] font-bold border border-orange-100/50">
+                          01 !
+                        </span>
                       </div>
-                      <span className="text-[10px] text-gray-400 font-mono">{openAccordions.defects ? "▲" : "▼"}</span>
+                      <span className="text-[10px] text-gray-400 font-mono">
+                        {openAccordions.defects ? "▲" : "▼"}
+                      </span>
                     </div>
                   </button>
                   {openAccordions.defects && (
                     <div className="p-3 bg-white border-t border-gray-50 flex flex-col gap-2.5 animate-slide-down">
                       <div className="flex items-start text-xs text-gray-500 gap-2.5">
-                        <span className="w-4.5 h-4.5 rounded-full bg-green-100 text-green-700 flex items-center justify-center text-[10px] font-bold shrink-0 text-center">✓</span>
-                        <p className="text-start flex-1">الزجاج الأمامي والخلفي أصلي وخالي من الشروخ</p>
+                        <span className="w-4.5 h-4.5 rounded-full bg-green-100 text-green-700 flex items-center justify-center text-[10px] font-bold shrink-0 text-center">
+                          ✓
+                        </span>
+                        <p className="text-start flex-1">
+                          الزجاج الأمامي والخلفي أصلي وخالي من الشروخ
+                        </p>
                       </div>
                       <div className="flex items-start text-xs text-gray-500 gap-2.5">
-                        <span className="w-4.5 h-4.5 rounded-full bg-green-100 text-green-700 flex items-center justify-center text-[10px] font-bold shrink-0 text-center">✓</span>
-                        <p className="text-start flex-1">الفرش الداخلي للسيارة بحالة الوكالة</p>
+                        <span className="w-4.5 h-4.5 rounded-full bg-green-100 text-green-700 flex items-center justify-center text-[10px] font-bold shrink-0 text-center">
+                          ✓
+                        </span>
+                        <p className="text-start flex-1">
+                          الفرش الداخلي للسيارة بحالة الوكالة
+                        </p>
                       </div>
                       <div className="flex items-start text-xs text-gray-500 gap-2.5">
-                        <span className="w-4.5 h-4.5 rounded-full bg-orange-100 text-orange-700 flex items-center justify-center text-[10px] font-bold shrink-0 text-center font-mono">!</span>
-                        <p className="text-start flex-1">خدش سطحية خفيفة في الجانب الأيسر للصدام الخلفي</p>
+                        <span className="w-4.5 h-4.5 rounded-full bg-orange-100 text-orange-700 flex items-center justify-center text-[10px] font-bold shrink-0 text-center font-mono">
+                          !
+                        </span>
+                        <p className="text-start flex-1">
+                          خدش سطحية خفيفة في الجانب الأيسر للصدام الخلفي
+                        </p>
                       </div>
                     </div>
                   )}
                 </div>
-
               </div>
 
               {/* View full report link */}
@@ -845,26 +1167,37 @@ export default function CarDetailPage({ params }: { params: Promise<{ id: string
                 </Link>
               </div>
             </div>
-
           </div>
         </div>
 
         {/* Similar Cars Section */}
-        <div className="w-full max-w-[1336px] mx-auto px-6 md:px-12 mt-16 flex flex-col gap-6" dir="rtl">
+        <div
+          className="w-full max-w-[1336px] mx-auto px-6 md:px-12 mt-16 flex flex-col gap-6"
+          dir="rtl"
+        >
           <div className="flex items-center justify-between border-b border-gray-200/50 pb-4">
             <h3 className="text-gray-900 font-bold text-xl md:text-2xl">
               سيارات مشابهة
             </h3>
-            <Link href="/cars" className="text-primary-500 font-bold text-xs hover:underline flex items-center gap-1">
+            <Link
+              href="/cars"
+              className="text-primary-500 font-bold text-xs hover:underline flex items-center gap-1"
+            >
               <span>عرض المزيد</span>
               <span>←</span>
             </Link>
           </div>
 
           {/* Mobile swipeable horizontal container, hidden on medium and above */}
-          <div className="flex md:hidden w-full overflow-x-auto pb-4 gap-4 scrollbar-none snap-x snap-mandatory" dir="rtl">
+          <div
+            className="flex md:hidden w-full overflow-x-auto pb-4 gap-4 scrollbar-none snap-x snap-mandatory"
+            dir="rtl"
+          >
             {recommendedCars.map((similarCar) => (
-              <div key={similarCar.id} className="w-[280px] shrink-0 snap-start">
+              <div
+                key={similarCar.id}
+                className="w-[280px] shrink-0 snap-start"
+              >
                 <CarCard
                   id={similarCar.id}
                   brand={similarCar.brand}
@@ -909,32 +1242,35 @@ export default function CarDetailPage({ params }: { params: Promise<{ id: string
         </div>
       </main>
 
-      {/* Footer component */}
-      <Footer />
-
       {/* Offer Modal */}
       {showOfferModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-xs p-4 animate-fade-in">
-          <div 
+          <div
             className="bg-white rounded-3xl p-6 md:p-8 max-w-md w-full flex flex-col gap-5 text-start border border-gray-100 shadow-xl"
             dir="rtl"
           >
             <div className="flex items-center justify-between border-b border-gray-100 pb-3">
-              <h3 className="text-lg font-bold text-[#002853]">ارسال عرض سعر</h3>
-              <button 
+              <h3 className="text-lg font-bold text-[#002853]">
+                ارسال عرض سعر
+              </h3>
+              <button
                 onClick={() => setShowOfferModal(false)}
                 className="text-gray-400 hover:text-gray-600 font-mono text-xl cursor-pointer"
               >
                 ✕
               </button>
             </div>
-            
+
             <p className="text-xs text-gray-500 leading-relaxed">
-              ادخل عرض السعر الذي ترغب بتقديمه لشراء هذه السيارة ({car.brand} {car.model}). سيقوم ممثل من الجراج بمراجعة طلبك والتواصل معك في أقرب وقت.
+              ادخل عرض السعر الذي ترغب بتقديمه لشراء هذه السيارة ({car.brand}{" "}
+              {car.model}). سيقوم ممثل من الجراج بمراجعة طلبك والتواصل معك في
+              أقرب وقت.
             </p>
 
             <div className="flex flex-col gap-1.5">
-              <label className="text-gray-700 text-xs font-semibold">عرض السعر المقترح</label>
+              <label className="text-gray-700 text-xs font-semibold">
+                عرض السعر المقترح
+              </label>
               <div className="relative border border-gray-200 focus-within:border-primary-500 rounded-2xl flex items-center gap-2 px-4 h-12 bg-gray-50">
                 <span className="text-gray-400 text-sm font-semibold">ج.م</span>
                 <input
@@ -961,7 +1297,9 @@ export default function CarDetailPage({ params }: { params: Promise<{ id: string
                     return;
                   }
                   setShowOfferModal(false);
-                  alert(`تم إرسال عرضك بقيمة ${offerPrice} ج.م بنجاح! سنتواصل معك في غضون 24 ساعة.`);
+                  alert(
+                    `تم إرسال عرضك بقيمة ${offerPrice} ج.م بنجاح! سنتواصل معك في غضون 24 ساعة.`,
+                  );
                   setOfferPrice("");
                 }}
                 className="px-6 py-2.5 rounded-xl bg-primary-500 hover:bg-primary-600 text-white text-sm font-semibold cursor-pointer shadow-md"

@@ -3,9 +3,7 @@
 import { useState, useMemo } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import Header from "../components/Header";
-import Footer from "../components/Footer";
-import DownloadApp from "../components/DownloadApp";
+import DownloadApp from "../../components/DownloadApp";
 
 // Mock articles data
 const initialArticles = [
@@ -14,7 +12,8 @@ const initialArticles = [
     title: "إزاي تفحص سيارة مستعملة قبل الشراء؟",
     date: "9 أغسطس 2025",
     timestamp: 1754697600, // For sorting
-    excerpt: "شراء سيارة مستعملة مغامرة تحتاج حذر شديد، لأن 70% من العربيات المستعملة في مصر بتحمل عيوب مخفية زي تصليح إطار، غرق، أو عداد معدل. التشيك ليست دي هتخليك تكشف العيوب بدري قبل ما تدفع فلوسك—من فحص الهيكل والدهان اللي بيظهر الحوادث...",
+    excerpt:
+      "شراء سيارة مستعملة مغامرة تحتاج حذر شديد، لأن 70% من العربيات المستعملة في مصر بتحمل عيوب مخفية زي تصليح إطار، غرق، أو عداد معدل. التشيك ليست دي هتخليك تكشف العيوب بدري قبل ما تدفع فلوسك—من فحص الهيكل والدهان اللي بيظهر الحوادث...",
     image: "/assets/blog_placeholder.png",
   },
   {
@@ -22,7 +21,8 @@ const initialArticles = [
     title: "أهم 10 أسئلة لازم تسألهم قبل شراء عربية مستعملة",
     date: "8 أغسطس 2025",
     timestamp: 1754611200,
-    excerpt: "أسئلة بتفلتر أي مخاطرة قبل ما تشتري: تاريخ الصيانة والحوادث، أسباب البيع، حالة الكيلومترات، وتكاليف الإصلاح المتوقعة—عشان قرارك يبقى مبني على معلومات مش انطباع.",
+    excerpt:
+      "أسئلة بتفلتر أي مخاطرة قبل ما تشتري: تاريخ الصيانة والحوادث، أسباب البيع، حالة الكيلومترات، وتكاليف الإصلاح المتوقعة—عشان قرارك يبقى مبني على معلومات مش انطباع.",
     image: "/assets/blog_placeholder.png",
   },
   {
@@ -30,7 +30,8 @@ const initialArticles = [
     title: "كيف تبيع سيارتك المستعملة بسرعة وبأعلى سعر",
     date: "7 أغسطس 2025",
     timestamp: 1754524800,
-    excerpt: "خطة بيع عملية من غير لف: تجهيز العربية وتصويرها صح، تسعير واقعي، كتابة إعلان مقنع، والرد على المشترين بذكاء—علشان تبيع أسرع وبسعر أفضل وبأقل مجهود.",
+    excerpt:
+      "خطة بيع عملية من غير لف: تجهيز العربية وتصويرها صح، تسعير واقعي، كتابة إعلان مقنع، والرد على المشترين بذكاء—علشان تبيع أسرع وبسعر أفضل وبأقل مجهود.",
     image: "/assets/blog_placeholder.png",
   },
   {
@@ -38,7 +39,8 @@ const initialArticles = [
     title: "أفضل السيارات المستعملة في مصر تحت سعر 300 ألف جنيه",
     date: "6 أغسطس 2025",
     timestamp: 1754438400,
-    excerpt: "تبحث عن سيارة اقتصادية وموثوقة بسعر مناسب؟ جمعنا لك قائمة بأفضل السيارات المستعملة في السوق المصري تحت 300 ألف جنيه مع استهلاك بنزين موفر وتوافر قطع الغيار.",
+    excerpt:
+      "تبحث عن سيارة اقتصادية وموثوقة بسعر مناسب؟ جمعنا لك قائمة بأفضل السيارات المستعملة في السوق المصري تحت 300 ألف جنيه مع استهلاك بنزين موفر وتوافر قطع الغيار.",
     image: "/assets/blog_placeholder.png",
   },
   {
@@ -46,7 +48,8 @@ const initialArticles = [
     title: "كيف تكشف تلاعب عداد الكيلومترات في السيارات المستعملة؟",
     date: "5 أغسطس 2025",
     timestamp: 1754352000,
-    excerpt: "عداد المسافات هو أول ما ينظر إليه المشتري، لكنه للأسف الأكثر عرضة للتلاعب. إليك طرق كشف عداد السيارة الحقيقي وفحص علامات التلف داخل المقصورة.",
+    excerpt:
+      "عداد المسافات هو أول ما ينظر إليه المشتري، لكنه للأسف الأكثر عرضة للتلاعب. إليك طرق كشف عداد السيارة الحقيقي وفحص علامات التلف داخل المقصورة.",
     image: "/assets/blog_placeholder.png",
   },
   {
@@ -54,7 +57,8 @@ const initialArticles = [
     title: "مقارنة بين ناقل الحركة الأوتوماتيك والمانيوال: أيهما أفضل لك؟",
     date: "4 أغسطس 2025",
     timestamp: 1754265600,
-    excerpt: "بين راحة الأوتوماتيك في الزحام وتوفير المانيوال في الوقود وصيانته السهلة، أيهما يناسب قيادتك وميزانيتك؟ قمنا بتحليل الفروق لمساعدتك في اتخاذ القرار.",
+    excerpt:
+      "بين راحة الأوتوماتيك في الزحام وتوفير المانيوال في الوقود وصيانته السهلة، أيهما يناسب قيادتك وميزانيتك؟ قمنا بتحليل الفروق لمساعدتك في اتخاذ القرار.",
     image: "/assets/blog_placeholder.png",
   },
   {
@@ -62,7 +66,8 @@ const initialArticles = [
     title: "علامات تلف مساعدين السيارة وكيفية فحصها بنفسك",
     date: "3 أغسطس 2025",
     timestamp: 1754179200,
-    excerpt: "المساعدين هم المسؤولون عن ثبات السيارة وراحتها على الطريق. تعرف على أهم علامات التلف مثل تسريب الزيت أو تأرجح السيارة وطريقة فحصها البسيطة.",
+    excerpt:
+      "المساعدين هم المسؤولون عن ثبات السيارة وراحتها على الطريق. تعرف على أهم علامات التلف مثل تسريب الزيت أو تأرجح السيارة وطريقة فحصها البسيطة.",
     image: "/assets/blog_placeholder.png",
   },
   {
@@ -70,7 +75,8 @@ const initialArticles = [
     title: "كيف تشتري سيارة مستعملة بالتقسيط في مصر؟",
     date: "2 أغسطس 2025",
     timestamp: 1754092800,
-    excerpt: "دليلك الشامل لخطوات وشروط تقسيط السيارات المستعملة في البنوك والشركات المصرية، مع نصائح لحساب الفائدة والمصاريف الإدارية وتجنب التعثر.",
+    excerpt:
+      "دليلك الشامل لخطوات وشروط تقسيط السيارات المستعملة في البنوك والشركات المصرية، مع نصائح لحساب الفائدة والمصاريف الإدارية وتجنب التعثر.",
     image: "/assets/blog_placeholder.png",
   },
   {
@@ -78,7 +84,8 @@ const initialArticles = [
     title: "أهم النصائح للحفاظ على موتور سيارتك في الصيف",
     date: "1 أغسطس 2025",
     timestamp: 1754006400,
-    excerpt: "درجات الحرارة المرتفعة هي العدو الأول لمحرك السيارة. نصائح أساسية لفحص دورة التبريد، واختيار لزوجة الزيت المناسبة لحماية المحرك من السخونة.",
+    excerpt:
+      "درجات الحرارة المرتفعة هي العدو الأول لمحرك السيارة. نصائح أساسية لفحص دورة التبريد، واختيار لزوجة الزيت المناسبة لحماية المحرك من السخونة.",
     image: "/assets/blog_placeholder.png",
   },
   {
@@ -86,7 +93,8 @@ const initialArticles = [
     title: "جدول الصيانات الدورية للسيارات: متى تغير الزيت والسيور؟",
     date: "30 يوليو 2025",
     timestamp: 1753833600,
-    excerpt: "دليل الصيانات الوقائية لسيارتك من تغيير زيت المحرك والفرامل، وفحص سيور الكاتينة والمجموعة، إلى صيانة التكييف لضمان أطول عمر افتراضي لسيارتك.",
+    excerpt:
+      "دليل الصيانات الوقائية لسيارتك من تغيير زيت المحرك والفرامل، وفحص سيور الكاتينة والمجموعة، إلى صيانة التكييف لضمان أطول عمر افتراضي لسيارتك.",
     image: "/assets/blog_placeholder.png",
   },
 ];
@@ -115,7 +123,7 @@ export default function BlogPage() {
       result = result.filter(
         (article) =>
           article.title.toLowerCase().includes(q) ||
-          article.excerpt.toLowerCase().includes(q)
+          article.excerpt.toLowerCase().includes(q),
       );
     }
 
@@ -152,9 +160,6 @@ export default function BlogPage() {
 
   return (
     <div className="relative flex flex-col min-h-screen bg-white">
-      {/* Navbar overlay */}
-      <Header activeHref="/blog" variant="dark" />
-
       {/* Hero Banner Section */}
       <section className="relative w-full h-[380px] flex flex-col items-center justify-end pb-16 px-4 overflow-hidden">
         {/* Background Images and Gradients */}
@@ -176,7 +181,7 @@ export default function BlogPage() {
           <h1 className="text-3xl md:text-4xl font-bold text-white leading-tight">
             المقالات
           </h1>
-          
+
           {/* Breadcrumbs (RTL natural alignment) */}
           <div className="flex items-center gap-1.5 text-sm text-white/70">
             <svg
@@ -191,7 +196,10 @@ export default function BlogPage() {
               <path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
               <polyline points="9 22 9 12 15 12 15 22" />
             </svg>
-            <Link href="/" className="hover:text-white transition-colors duration-200">
+            <Link
+              href="/"
+              className="hover:text-white transition-colors duration-200"
+            >
               الصفحة الرئيسية
             </Link>
             <span className="opacity-50">/</span>
@@ -202,11 +210,9 @@ export default function BlogPage() {
 
       {/* Main Articles Container */}
       <main className="flex-1 w-full bg-white py-12 md:py-16">
-        
         {/* Featured Article Section */}
         <div className="max-w-[1336px] mx-auto px-6 md:px-12 mb-16">
           <div className="bg-white border border-gray-100 rounded-3xl overflow-hidden shadow-sm hover:shadow-md transition-all duration-300 flex flex-col lg:flex-row items-stretch gap-6 lg:gap-12 p-6">
-            
             {/* Featured Image */}
             <div className="flex-1 relative min-h-[260px] md:min-h-[360px] rounded-2xl overflow-hidden group">
               <Image
@@ -220,7 +226,6 @@ export default function BlogPage() {
 
             {/* Featured Content (Right column in RTL) */}
             <div className="flex-1 flex flex-col justify-center items-start text-right gap-4 py-2">
-              
               {/* Date */}
               <div className="flex items-center gap-1.5 text-gray-500 text-sm">
                 <Image
@@ -248,7 +253,9 @@ export default function BlogPage() {
                 href="#"
                 className="flex items-center gap-2 text-gray-700 hover:text-primary-500 font-semibold text-sm transition-all duration-200 mt-2 group"
               >
-                <span className="underline underline-offset-4">اقراء المزيد</span>
+                <span className="underline underline-offset-4">
+                  اقراء المزيد
+                </span>
                 <Image
                   src="/assets/arrow_left_blue.svg"
                   alt="read more"
@@ -258,17 +265,21 @@ export default function BlogPage() {
                 />
               </Link>
             </div>
-
           </div>
         </div>
 
         {/* Filter and Search Bar Section */}
-        <section id="articles-section" className="max-w-[1336px] mx-auto px-6 md:px-12 mb-10">
+        <section
+          id="articles-section"
+          className="max-w-[1336px] mx-auto px-6 md:px-12 mb-10"
+        >
           <div className="bg-gray-50 border border-gray-100 rounded-2xl p-6 flex flex-col md:flex-row items-stretch md:items-end justify-between gap-6">
-            
             {/* Sort Dropdown (Right side in RTL) */}
             <div className="flex flex-col gap-2 text-right">
-              <label htmlFor="sort" className="text-gray-700 text-sm font-semibold px-1">
+              <label
+                htmlFor="sort"
+                className="text-gray-700 text-sm font-semibold px-1"
+              >
                 ترتيب حسب
               </label>
               <div className="relative min-w-[200px]">
@@ -297,8 +308,14 @@ export default function BlogPage() {
             </div>
 
             {/* Search Input (Left side in RTL) */}
-            <form onSubmit={handleSearchSubmit} className="flex-1 max-w-md flex flex-col gap-2 text-right">
-              <label htmlFor="search" className="text-gray-700 text-sm font-semibold px-1">
+            <form
+              onSubmit={handleSearchSubmit}
+              className="flex-1 max-w-md flex flex-col gap-2 text-right"
+            >
+              <label
+                htmlFor="search"
+                className="text-gray-700 text-sm font-semibold px-1"
+              >
                 البحث
               </label>
               <div className="flex gap-2.5">
@@ -329,7 +346,6 @@ export default function BlogPage() {
                 </button>
               </div>
             </form>
-
           </div>
         </section>
 
@@ -350,7 +366,7 @@ export default function BlogPage() {
                       fill
                       className="object-cover group-hover:scale-102 transition-transform duration-300"
                     />
-                    
+
                     {/* Shadow overlay for contrast */}
                     <div className="absolute inset-0 bg-gradient-to-t from-[#06142d] via-[#06142d]/60 to-transparent z-10" />
                   </div>
@@ -384,7 +400,9 @@ export default function BlogPage() {
             </div>
           ) : (
             <div className="w-full text-center py-16 border border-dashed border-gray-200 rounded-2xl">
-              <p className="text-gray-400 text-lg">لم يتم العثور على أي مقالات تطابق بحثك.</p>
+              <p className="text-gray-400 text-lg">
+                لم يتم العثور على أي مقالات تطابق بحثك.
+              </p>
               {searchQuery && (
                 <button
                   onClick={() => {
@@ -404,7 +422,6 @@ export default function BlogPage() {
         {totalPages > 1 && (
           <section className="max-w-[1336px] mx-auto px-6 md:px-12 flex justify-center mt-12">
             <div className="flex items-center gap-3 select-none">
-              
               {/* Next Page Arrow (RTL direction - so left arrow is next) */}
               <button
                 onClick={() => handlePageChange(currentPage + 1)}
@@ -422,22 +439,24 @@ export default function BlogPage() {
 
               {/* Numbers */}
               <div className="flex items-center gap-2">
-                {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => {
-                  const isActive = currentPage === page;
-                  return (
-                    <button
-                      key={page}
-                      onClick={() => handlePageChange(page)}
-                      className={`w-8 h-8 rounded-full flex items-center justify-center font-medium text-sm transition-all duration-200 cursor-pointer ${
-                        isActive
-                          ? "bg-primary-500 text-white shadow-md"
-                          : "bg-white text-gray-500 border border-gray-200 hover:bg-gray-50"
-                      }`}
-                    >
-                      {page}
-                    </button>
-                  );
-                })}
+                {Array.from({ length: totalPages }, (_, i) => i + 1).map(
+                  (page) => {
+                    const isActive = currentPage === page;
+                    return (
+                      <button
+                        key={page}
+                        onClick={() => handlePageChange(page)}
+                        className={`w-8 h-8 rounded-full flex items-center justify-center font-medium text-sm transition-all duration-200 cursor-pointer ${
+                          isActive
+                            ? "bg-primary-500 text-white shadow-md"
+                            : "bg-white text-gray-500 border border-gray-200 hover:bg-gray-50"
+                        }`}
+                      >
+                        {page}
+                      </button>
+                    );
+                  },
+                )}
               </div>
 
               {/* Previous Page Arrow (RTL direction - so right arrow is prev) */}
@@ -454,18 +473,13 @@ export default function BlogPage() {
                   className="w-4 h-4 rotate-180"
                 />
               </button>
-
             </div>
           </section>
         )}
-
       </main>
 
       {/* Download App Banner */}
       <DownloadApp />
-
-      {/* Footer */}
-      <Footer />
     </div>
   );
 }

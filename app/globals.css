@@ -4,19 +4,19 @@
   --background: #ffffff;
   --foreground: #1a1a1a;
 }
-
+/* =============== variables =============== */
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-cairo), sans-serif;
-  --font-mono: var(--font-outfit), sans-serif;
-  
+  /* --font-sans: var(--font-cairo), sans-serif; */
+  /* --font-mono: var(--font-outfit), sans-serif; */
+
   --color-primary-50: #e9f0fc;
   --color-primary-400: #4b84e7;
   --color-primary-500: #002ec1;
   --color-primary-600: #1851b4;
   --color-primary-800: #0c295a;
-  
+
   --color-gray-50: #f9fafb;
   --color-gray-100: #f3f4f6;
   --color-gray-200: #e5e7eb;
@@ -25,10 +25,46 @@
   --color-gray-600: #4b5563;
   --color-gray-800: #1f2937;
   --color-gray-900: #111827;
-}
 
+  /* colors */
+  /* --primary: #002ec1; */
+  /* test */
+
+  /* transition duration */
+}
+/* =============== variables =============== */
+/*
+*/
+/*
+*/
+/* =============== global rules =============== */
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: var(--font-cairo), sans-serif;
+  /* font-family: var(--font-cairo), sans-serif; */
+  font-family: var(--madani-arabic), sans-serif;
 }
+/* =============== global rules =============== */
+
+/* spinner animation */
+.rotation {
+  animation: rotation linear infinite 40s;
+}
+
+@keyframes rotation {
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+.spinner {
+  width: 22px;
+  height: 22px;
+  border: 3px solid white;
+  border-bottom-color: transparent;
+  border-radius: 50%;
+  display: inline-block;
+  box-sizing: border-box;
+  animation: rotation 1s linear infinite;
+}
+/* spinner animation */

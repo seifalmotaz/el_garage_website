@@ -3,58 +3,154 @@
 import { useState, useRef, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import Header from "../components/Header";
-import Footer from "../components/Footer";
-import DownloadApp from "../components/DownloadApp";
+import DownloadApp from "../../components/DownloadApp";
 
 // Custom Inline SVG Icons matching the Figma nodes
 const HomeIcon = () => (
-  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+  <svg
+    className="w-5 h-5"
+    fill="none"
+    stroke="currentColor"
+    viewBox="0 0 24 24"
+    xmlns="http://www.w3.org/2000/svg"
+  >
+    <path
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      strokeWidth="2"
+      d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"
+    />
   </svg>
 );
 
 const CarIcon = ({ className = "w-5 h-5" }) => (
-  <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 17a2 2 0 11-4 0 2 2 0 014 0zM19 17a2 2 0 11-4 0 2 2 0 014 0z" />
-    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 17h10M19 17h1a1 1 0 001-1v-3.5a1 1 0 00-1-1h-1.5l-2.23-4.46A1 1 0 0015.38 6H8.62a1 1 0 00-.89.54L5.5 11H4a1 1 0 00-1 1v4a1 1 0 001 1h1" />
+  <svg
+    className={className}
+    fill="none"
+    stroke="currentColor"
+    viewBox="0 0 24 24"
+    xmlns="http://www.w3.org/2000/svg"
+  >
+    <path
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      strokeWidth="2"
+      d="M9 17a2 2 0 11-4 0 2 2 0 014 0zM19 17a2 2 0 11-4 0 2 2 0 014 0z"
+    />
+    <path
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      strokeWidth="2"
+      d="M5 17h10M19 17h1a1 1 0 001-1v-3.5a1 1 0 00-1-1h-1.5l-2.23-4.46A1 1 0 0015.38 6H8.62a1 1 0 00-.89.54L5.5 11H4a1 1 0 00-1 1v4a1 1 0 001 1h1"
+    />
   </svg>
 );
 
 const LocationIcon = ({ className = "w-5 h-5" }) => (
-  <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+  <svg
+    className={className}
+    fill="none"
+    stroke="currentColor"
+    viewBox="0 0 24 24"
+    xmlns="http://www.w3.org/2000/svg"
+  >
+    <path
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      strokeWidth="2"
+      d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"
+    />
+    <path
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      strokeWidth="2"
+      d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"
+    />
   </svg>
 );
 
 const CalendarIcon = ({ className = "w-5 h-5" }) => (
-  <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 7V3m8 3V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+  <svg
+    className={className}
+    fill="none"
+    stroke="currentColor"
+    viewBox="0 0 24 24"
+    xmlns="http://www.w3.org/2000/svg"
+  >
+    <path
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      strokeWidth="2"
+      d="M8 7V3m8 3V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
+    />
   </svg>
 );
 
 const ClipboardIcon = ({ className = "w-5 h-5" }) => (
-  <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 002 2h2a2 2 0 002-2" />
+  <svg
+    className={className}
+    fill="none"
+    stroke="currentColor"
+    viewBox="0 0 24 24"
+    xmlns="http://www.w3.org/2000/svg"
+  >
+    <path
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      strokeWidth="2"
+      d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 002 2h2a2 2 0 002-2"
+    />
   </svg>
 );
 
 const CompassIcon = () => (
-  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
+  <svg
+    className="w-5 h-5"
+    fill="none"
+    stroke="currentColor"
+    viewBox="0 0 24 24"
+    xmlns="http://www.w3.org/2000/svg"
+  >
+    <path
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      strokeWidth="2"
+      d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"
+    />
   </svg>
 );
 
 const EditIcon = () => (
-  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+  <svg
+    className="w-4 h-4"
+    fill="none"
+    stroke="currentColor"
+    viewBox="0 0 24 24"
+    xmlns="http://www.w3.org/2000/svg"
+  >
+    <path
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      strokeWidth="2"
+      d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
+    />
   </svg>
 );
 
 const ChevronDownIcon = () => (
-  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
+  <svg
+    className="w-4 h-4"
+    fill="none"
+    stroke="currentColor"
+    viewBox="0 0 24 24"
+    xmlns="http://www.w3.org/2000/svg"
+  >
+    <path
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      strokeWidth="2"
+      d="M19 9l-7 7-7-7"
+    />
   </svg>
 );
 
@@ -70,21 +166,21 @@ const brands = [
   { ar: "هوندا", en: "Honda" },
   { ar: "لاند روفر", en: "Land Rover" },
   { ar: "شيري", en: "Chery" },
-  { ar: "ميني كوبر", en: "Mini Cooper" }
+  { ar: "ميني كوبر", en: "Mini Cooper" },
 ];
 
 const brandModels: Record<string, string[]> = {
-  "تويوتا": ["كورولا هايلاند", "ياريس", "لاند كروزر", "كامري"],
+  تويوتا: ["كورولا هايلاند", "ياريس", "لاند كروزر", "كامري"],
   "بي إم دبليو": ["320i M Sport", "X5", "520i", "740i"],
   "مرسيدس بنز": ["C200 AMG Line", "E300 AMG", "S500", "A200"],
-  "بورش": ["كايين كابريو", "باناميرا", "911 كاريرا"],
-  "أودي": ["A4 Highline", "Q8 Sportback", "A6"],
-  "هيونداي": ["توسان Smart Plus", "إلنترا CN7", "أكسنت HCI"],
-  "كيا": ["سبورتاج Topline", "سيراتو", "سورينتو"],
-  "هوندا": ["سيفيك الرياضية", "أكورد e:HEV", "CR-V"],
+  بورش: ["كايين كابريو", "باناميرا", "911 كاريرا"],
+  أودي: ["A4 Highline", "Q8 Sportback", "A6"],
+  هيونداي: ["توسان Smart Plus", "إلنترا CN7", "أكسنت HCI"],
+  كيا: ["سبورتاج Topline", "سيراتو", "سورينتو"],
+  هوندا: ["سيفيك الرياضية", "أكورد e:HEV", "CR-V"],
   "لاند روفر": ["رينج روفر فوج اس اي", "رينج روفر سبورت", "ديفندر"],
-  "شيري": ["تيجو 8 برو", "تيجو 7", "أريزو 5"],
-  "ميني كوبر": ["S Countryman", "hatch 3 doors"]
+  شيري: ["تيجو 8 برو", "تيجو 7", "أريزو 5"],
+  "ميني كوبر": ["S Countryman", "hatch 3 doors"],
 };
 
 const years = Array.from({ length: 37 }, (_, i) => String(2026 - i));
@@ -98,24 +194,42 @@ const timeSlots = [
   "05:00 PM",
   "12:00 PM",
   "01:00 PM",
-  "02:00 PM"
+  "02:00 PM",
 ];
 
 // Helper to generate next 14 days
 const generateInspectionDates = () => {
   const dates = [];
   const start = new Date();
-  
-  const arabicDays = ["الأحد", "الأثنين", "الثلاثاء", "الأربعاء", "الخميس", "الجمعة", "السبت"];
+
+  const arabicDays = [
+    "الأحد",
+    "الأثنين",
+    "الثلاثاء",
+    "الأربعاء",
+    "الخميس",
+    "الجمعة",
+    "السبت",
+  ];
   const arabicMonths = [
-    "يناير", "فبراير", "مارس", "أبريل", "مايو", "يونيو", 
-    "يوليو", "أغسطس", "سبتمبر", "أكتوبر", "نوفمبر", "ديسمبر"
+    "يناير",
+    "فبراير",
+    "مارس",
+    "أبريل",
+    "مايو",
+    "يونيو",
+    "يوليو",
+    "أغسطس",
+    "سبتمبر",
+    "أكتوبر",
+    "نوفمبر",
+    "ديسمبر",
   ];
 
   for (let i = 1; i <= 14; i++) {
     const nextDate = new Date(start);
     nextDate.setDate(start.getDate() + i);
-    
+
     dates.push({
       id: nextDate.toISOString().split("T")[0],
       dayName: arabicDays[nextDate.getDay()],
@@ -123,7 +237,7 @@ const generateInspectionDates = () => {
       monthName: arabicMonths[nextDate.getMonth()],
       year: nextDate.getFullYear(),
       isWeekend: nextDate.getDay() === 5, // Disable Friday (الجمعة) as in Egypt weekends/inspectors rest
-      rawDate: nextDate
+      rawDate: nextDate,
     });
   }
   return dates;
@@ -152,7 +266,7 @@ export default function SellCarPage() {
     useRef<HTMLInputElement>(null),
     useRef<HTMLInputElement>(null),
     useRef<HTMLInputElement>(null),
-    useRef<HTMLInputElement>(null)
+    useRef<HTMLInputElement>(null),
   ];
 
   const datesList = generateInspectionDates();
@@ -166,7 +280,7 @@ export default function SellCarPage() {
   const handleVinChange = (index: number, val: string) => {
     const maxChars = index === 3 ? 5 : 4;
     const cleanVal = val.toUpperCase().replace(/[^A-Z0-9]/g, "");
-    
+
     const newVin = [...vin];
     newVin[index] = cleanVal.slice(0, maxChars);
     setVin(newVin);
@@ -177,7 +291,10 @@ export default function SellCarPage() {
     }
   };
 
-  const handleVinKeyDown = (index: number, e: React.KeyboardEvent<HTMLInputElement>) => {
+  const handleVinKeyDown = (
+    index: number,
+    e: React.KeyboardEvent<HTMLInputElement>,
+  ) => {
     // Backspace empty field focuses previous field
     if (e.key === "Backspace" && vin[index] === "" && index > 0) {
       vinRefs[index - 1].current?.focus();
@@ -190,7 +307,9 @@ export default function SellCarPage() {
     setLocationPulse(false);
     setTimeout(() => {
       setIsLocating(false);
-      setAddress("جمهورية مصر العربية، محافظة القاهرة، مصر الجديدة، شارع الثورة، مبنى 108");
+      setAddress(
+        "جمهورية مصر العربية، محافظة القاهرة، مصر الجديدة، شارع الثورة، مبنى 108",
+      );
       setLocationPulse(true);
     }, 1000);
   };
@@ -240,13 +359,12 @@ export default function SellCarPage() {
     }
   };
 
-  const currentSelectedDateObj = datesList.find(d => d.id === selectedDate);
+  const currentSelectedDateObj = datesList.find((d) => d.id === selectedDate);
 
   return (
     <div className="relative flex flex-col min-h-screen bg-[#F9FAFB]" dir="rtl">
-      
       {/* Absolute Navbar Overlay */}
-      <Header activeHref="/sell" variant="dark" />
+      {/* <Header activeHref="/sell" variant="dark" /> */}
 
       {/* Hero Header Area with Image and Deep Gradients matching Figma */}
       <section className="relative w-full h-[320px] md:h-[427px] flex items-center justify-center overflow-hidden z-0">
@@ -261,7 +379,13 @@ export default function SellCarPage() {
 
         {/* Gradient Overlays matching Figma values */}
         <div className="absolute inset-0 bg-gradient-to-t from-[#002853]/95 to-[#002ec1]/80 mix-blend-multiply z-10" />
-        <div className="absolute inset-0 z-10" style={{ backgroundImage: "linear-gradient(1.40863deg, rgba(0, 16, 69, 0.95) 9.2144%, rgba(0, 22, 91, 0.447) 67.797%, rgba(0, 0, 0, 0) 96.227%)" }} />
+        <div
+          className="absolute inset-0 z-10"
+          style={{
+            backgroundImage:
+              "linear-gradient(1.40863deg, rgba(0, 16, 69, 0.95) 9.2144%, rgba(0, 22, 91, 0.447) 67.797%, rgba(0, 0, 0, 0) 96.227%)",
+          }}
+        />
 
         {/* Banner Details */}
         <div className="relative z-20 w-full max-w-[1336px] mx-auto px-6 md:px-12 flex flex-col items-center justify-end h-full pb-20 md:pb-24 text-center">
@@ -269,7 +393,10 @@ export default function SellCarPage() {
             بيع سيارة
           </h1>
           <nav className="flex items-center justify-center gap-2 text-sm md:text-base text-gray-300 font-medium">
-            <Link href="/" className="hover:text-white transition-colors flex items-center gap-1.5">
+            <Link
+              href="/"
+              className="hover:text-white transition-colors flex items-center gap-1.5"
+            >
               <HomeIcon />
               <span>الصفحة الرئيسية</span>
             </Link>
@@ -284,24 +411,47 @@ export default function SellCarPage() {
         /* SUCCESS PAGE - Centered Visual Flow Layout */
         <main className="flex-1 w-full max-w-[1336px] mx-auto px-6 md:px-12 relative z-20 mt-[-80px] md:mt-[-100px] pb-24 flex flex-col items-center justify-center">
           <div className="bg-white border border-gray-100/80 rounded-2xl py-12 px-6 md:px-12 w-full max-w-[495px] flex flex-col items-center justify-center text-center shadow-xl">
-            
             {/* Success Confetti Circle Illustration */}
             <div className="relative w-32 h-32 flex items-center justify-center mb-8">
               {/* Confetti lines */}
               <div className="absolute inset-0 bg-[#eef8f4] rounded-full scale-75 z-0" />
               <div className="absolute inset-0 rounded-full border border-emerald-100 scale-95 z-0 animate-pulse" />
               {/* Confetti vectors */}
-              <svg className="absolute w-full h-full text-emerald-500/20" viewBox="0 0 100 100">
+              <svg
+                className="absolute w-full h-full text-emerald-500/20"
+                viewBox="0 0 100 100"
+              >
                 <circle cx="15" cy="40" r="3" fill="currentColor" />
                 <circle cx="85" cy="30" r="3" fill="currentColor" />
                 <circle cx="75" cy="80" r="4" fill="currentColor" />
-                <path d="M 20 70 L 30 75" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-                <path d="M 80 60 L 90 55" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+                <path
+                  d="M 20 70 L 30 75"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                />
+                <path
+                  d="M 80 60 L 90 55"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                />
               </svg>
               {/* Checkmark in circle */}
               <div className="relative z-10 w-20 h-20 rounded-full bg-emerald-500 text-white flex items-center justify-center shadow-md">
-                <svg className="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3.5" d="M5 13l4 4L19 7" />
+                <svg
+                  className="w-10 h-10"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth="3.5"
+                    d="M5 13l4 4L19 7"
+                  />
                 </svg>
               </div>
             </div>
@@ -322,16 +472,13 @@ export default function SellCarPage() {
             >
               العودة للرئيسية
             </Link>
-
           </div>
         </main>
       ) : (
         /* WIZARD STEPS FORM */
         <main className="flex-1 w-full max-w-[1336px] mx-auto px-6 md:px-12 relative z-20 mt-[-80px] md:mt-[-100px] pb-24">
-          
           {/* Outer Gray Layout Container */}
           <div className="bg-[#f3f4f6] rounded-[32px] p-6 md:p-[52px] shadow-md flex flex-col gap-6">
-            
             {/* Title at the Top-Right */}
             <div className="w-full text-right">
               <h2 className="font-bold text-xl md:text-2xl text-gray-900">
@@ -341,7 +488,6 @@ export default function SellCarPage() {
 
             {/* Horizontal White Banner with Current Step Details */}
             <div className="bg-white border border-gray-150 rounded-2xl p-4 flex items-center justify-between shadow-xs w-full">
-              
               {/* Right Side: Circular Progress Ring (First in DOM -> Renders on the Right) */}
               <div className="flex items-center justify-center shrink-0">
                 <div className="relative w-11 h-11 flex items-center justify-center">
@@ -383,7 +529,6 @@ export default function SellCarPage() {
                   {step === 4 && <ClipboardIcon />}
                 </div>
               </div>
-
             </div>
 
             {/* Validation Alert Box */}
@@ -396,11 +541,9 @@ export default function SellCarPage() {
 
             {/* Main White Card for Forms */}
             <div className="bg-white rounded-2xl border border-gray-100 p-6 md:p-8 flex flex-col gap-8 shadow-sm">
-              
               {/* STEP 0: INTRO SCREEN (Vertical List of Steps matching Figma layout) */}
               {step === 0 && (
                 <div className="flex flex-col gap-6 py-2">
-                  
                   {/* Card Title & Step count */}
                   <div className="text-right">
                     <h3 className="font-bold text-base md:text-lg text-gray-900 inline-block">
@@ -413,7 +556,6 @@ export default function SellCarPage() {
 
                   {/* Vertical steps column */}
                   <div className="flex flex-col gap-4">
-                    
                     {/* Row 1: Data Entry */}
                     <div className="flex flex-col sm:flex-row items-center justify-between border border-gray-100 hover:border-primary-100 bg-[#FAFBFD] p-5 rounded-2xl gap-4 text-right transition-all duration-200 hover:shadow-xs group">
                       {/* Right: Illustration icon (First in DOM -> Renders on the Right) */}
@@ -428,9 +570,12 @@ export default function SellCarPage() {
                       </div>
                       {/* Left: Text details (Second in DOM -> Renders on the Left) */}
                       <div className="flex-1">
-                        <h4 className="font-bold text-base text-gray-900 mb-1">1- إدخال البيانات</h4>
+                        <h4 className="font-bold text-base text-gray-900 mb-1">
+                          1- إدخال البيانات
+                        </h4>
                         <p className="text-sm text-gray-500 leading-relaxed max-w-4xl">
-                          يدخل المستخدم بياناته الاساسية ومعلومات السيارة بدقة وشفافيى لضمان أفضل تقييم
+                          يدخل المستخدم بياناته الاساسية ومعلومات السيارة بدقة
+                          وشفافيى لضمان أفضل تقييم
                         </p>
                       </div>
                     </div>
@@ -449,9 +594,12 @@ export default function SellCarPage() {
                       </div>
                       {/* Left: Text details (Second in DOM -> Renders on the Left) */}
                       <div className="flex-1">
-                        <h4 className="font-bold text-base text-gray-900 mb-1">2- التنسيق والموعد</h4>
+                        <h4 className="font-bold text-base text-gray-900 mb-1">
+                          2- التنسيق والموعد
+                        </h4>
                         <p className="text-sm text-gray-500 leading-relaxed max-w-4xl">
-                          بتواصل فريقنا مع المستخدم لتأكيد التفاصيل وتحديد موعد مناسب للمعاينة
+                          بتواصل فريقنا مع المستخدم لتأكيد التفاصيل وتحديد موعد
+                          مناسب للمعاينة
                         </p>
                       </div>
                     </div>
@@ -470,13 +618,15 @@ export default function SellCarPage() {
                       </div>
                       {/* Left: Text details (Second in DOM -> Renders on the Left) */}
                       <div className="flex-1">
-                        <h4 className="font-bold text-base text-gray-900 mb-1">3- المعاينة والدفع</h4>
+                        <h4 className="font-bold text-base text-gray-900 mb-1">
+                          3- المعاينة والدفع
+                        </h4>
                         <p className="text-sm text-gray-500 leading-relaxed max-w-4xl">
-                          تتم المقابلة والمعاينة الواقعية للسيارة ثم تحصيل المبلغ المتفق عليه
+                          تتم المقابلة والمعاينة الواقعية للسيارة ثم تحصيل
+                          المبلغ المتفق عليه
                         </p>
                       </div>
                     </div>
-
                   </div>
 
                   {/* Actions Row (Right-aligned matching Figma button) */}
@@ -488,22 +638,24 @@ export default function SellCarPage() {
                       متابعة
                     </button>
                   </div>
-
                 </div>
               )}
 
               {/* STEP 1: CAR DETAILS */}
               {step === 1 && (
                 <div className="flex flex-col gap-6">
-                  
                   <div className="text-right border-b border-gray-100 pb-2">
-                    <h3 className="font-bold text-[16px] text-gray-900">1-بيانات السيارة</h3>
+                    <h3 className="font-bold text-[16px] text-gray-900">
+                      1-بيانات السيارة
+                    </h3>
                   </div>
 
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                     {/* Brand select */}
                     <div className="flex flex-col gap-2 text-right relative">
-                      <label className="text-sm font-semibold text-gray-800">الماركة</label>
+                      <label className="text-sm font-semibold text-gray-800">
+                        الماركة
+                      </label>
                       <div className="relative">
                         <select
                           value={brand}
@@ -512,7 +664,9 @@ export default function SellCarPage() {
                         >
                           <option value="">اختر الماركة</option>
                           {brands.map((b) => (
-                            <option key={b.en} value={b.ar}>{b.ar}</option>
+                            <option key={b.en} value={b.ar}>
+                              {b.ar}
+                            </option>
                           ))}
                         </select>
                         <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none">
@@ -523,7 +677,9 @@ export default function SellCarPage() {
 
                     {/* Model select */}
                     <div className="flex flex-col gap-2 text-right relative">
-                      <label className="text-sm font-semibold text-gray-800">الموديل</label>
+                      <label className="text-sm font-semibold text-gray-800">
+                        الموديل
+                      </label>
                       <div className="relative">
                         <select
                           value={model}
@@ -532,9 +688,12 @@ export default function SellCarPage() {
                           className="w-full h-[50px] pr-4 pl-10 bg-white border border-gray-200 rounded-2xl text-xs font-semibold focus:outline-hidden focus:border-primary-500 disabled:bg-gray-50 disabled:text-gray-400 text-gray-800 appearance-none"
                         >
                           <option value="">اختر الموديل</option>
-                          {brand && brandModels[brand]?.map((mod) => (
-                            <option key={mod} value={mod}>{mod}</option>
-                          ))}
+                          {brand &&
+                            brandModels[brand]?.map((mod) => (
+                              <option key={mod} value={mod}>
+                                {mod}
+                              </option>
+                            ))}
                         </select>
                         <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none">
                           <ChevronDownIcon />
@@ -544,7 +703,9 @@ export default function SellCarPage() {
 
                     {/* Year select */}
                     <div className="flex flex-col gap-2 text-right relative">
-                      <label className="text-sm font-semibold text-gray-800">سنة الصنع</label>
+                      <label className="text-sm font-semibold text-gray-800">
+                        سنة الصنع
+                      </label>
                       <div className="relative">
                         <select
                           value={year}
@@ -553,7 +714,9 @@ export default function SellCarPage() {
                         >
                           <option value="">اختر سنة الصنع</option>
                           {years.map((y) => (
-                            <option key={y} value={y}>{y}</option>
+                            <option key={y} value={y}>
+                              {y}
+                            </option>
                           ))}
                         </select>
                         <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none">
@@ -565,7 +728,9 @@ export default function SellCarPage() {
 
                   {/* Mileage input */}
                   <div className="flex flex-col gap-2 text-right max-w-md relative">
-                    <label className="text-sm font-semibold text-gray-800">الكيلومترات</label>
+                    <label className="text-sm font-semibold text-gray-800">
+                      الكيلومترات
+                    </label>
                     <div className="relative">
                       <input
                         type="number"
@@ -575,17 +740,21 @@ export default function SellCarPage() {
                         className="w-full h-[50px] pr-4 pl-12 bg-white border border-gray-200 rounded-2xl text-xs font-semibold focus:outline-hidden focus:border-primary-500 text-gray-800"
                       />
                       <span className="absolute left-4 top-1/2 -translate-y-1/2 flex flex-col items-center text-gray-400 scale-75 select-none pointer-events-none">
-                        ▲
-                        ▼
+                        ▲ ▼
                       </span>
                     </div>
                   </div>
 
                   {/* Chassis VIN (Egyptian 17 Chars) */}
                   <div className="flex flex-col gap-3 text-right border-t border-gray-100 pt-6">
-                    <label className="text-sm font-semibold text-gray-800">رقم الشاسيه</label>
-                    
-                    <div className="flex items-center gap-3 max-w-lg mt-1" dir="ltr">
+                    <label className="text-sm font-semibold text-gray-800">
+                      رقم الشاسيه
+                    </label>
+
+                    <div
+                      className="flex items-center gap-3 max-w-lg mt-1"
+                      dir="ltr"
+                    >
                       {vin.map((val, idx) => (
                         <input
                           key={idx}
@@ -617,27 +786,26 @@ export default function SellCarPage() {
                       السابق
                     </button>
                   </div>
-
                 </div>
               )}
 
               {/* STEP 2: LOCATION */}
               {step === 2 && (
                 <div className="flex flex-col gap-6">
-                  
                   <div className="text-right border-b border-gray-100 pb-2">
-                    <h3 className="font-bold text-[16px] text-gray-900">2-الموقع</h3>
+                    <h3 className="font-bold text-[16px] text-gray-900">
+                      2-الموقع
+                    </h3>
                   </div>
 
                   {/* Interactive Map Layout matching Figma screenshots */}
                   <div className="relative w-full h-[236px] rounded-2xl overflow-hidden bg-[#e0ecfc] border border-blue-150 flex items-center justify-center select-none shadow-xs">
-                    
                     {/* Simulating figma style maps with real outline assets or CSS grids */}
                     <div className="absolute inset-0 bg-[#e8f1fc] [background-image:linear-gradient(rgba(255,255,255,0.85)_1px,_transparent_1px),_linear-gradient(90deg,_rgba(255,255,255,0.85)_1px,_transparent_1px)] [background-size:40px_40px]"></div>
                     <div className="absolute top-12 left-10 w-[300px] h-[3px] bg-white rotate-12 blur-[0.5px]"></div>
                     <div className="absolute top-24 right-20 w-[400px] h-[3px] bg-white -rotate-6 blur-[0.5px]"></div>
                     <div className="absolute top-4 bottom-4 left-1/3 w-[4px] bg-white blur-[0.5px]"></div>
-                    
+
                     {/* Simulated Location Dot / Pin Marker */}
                     <div className="absolute top-1/2 left-[30%] -translate-y-1/2 flex items-center justify-center">
                       <span className="absolute w-12 h-12 bg-primary-500/25 rounded-full animate-ping"></span>
@@ -650,7 +818,6 @@ export default function SellCarPage() {
                         المنصورة، مصر
                       </span>
                     </div>
-
                   </div>
 
                   {/* Geolocation Button */}
@@ -666,7 +833,9 @@ export default function SellCarPage() {
 
                   {/* Address input */}
                   <div className="flex flex-col gap-2 text-right">
-                    <label className="text-sm font-semibold text-gray-800">العنوان</label>
+                    <label className="text-sm font-semibold text-gray-800">
+                      العنوان
+                    </label>
                     <textarea
                       rows={3}
                       placeholder="ادخل عنوانك"
@@ -691,28 +860,33 @@ export default function SellCarPage() {
                       السابق
                     </button>
                   </div>
-
                 </div>
               )}
 
               {/* STEP 3: SCHEDULE */}
               {step === 3 && (
                 <div className="flex flex-col gap-6">
-                  
                   <div className="text-right border-b border-gray-100 pb-2">
-                    <h3 className="font-bold text-[16px] text-gray-900">جدولة الفحص</h3>
+                    <h3 className="font-bold text-[16px] text-gray-900">
+                      جدولة الفحص
+                    </h3>
                   </div>
 
                   {/* Month Selection with Chevron & Small Arrow Buttons */}
                   <div className="flex flex-col gap-4 text-right">
                     <div className="flex items-center justify-between border-b border-gray-100 pb-3">
-                      
                       {/* Left: Left/Right navigators */}
                       <div className="flex items-center gap-1">
-                        <button type="button" className="w-8 h-8 rounded-lg border border-gray-100 bg-white hover:bg-gray-50 flex items-center justify-center text-primary-500 font-bold transition-colors">
+                        <button
+                          type="button"
+                          className="w-8 h-8 rounded-lg border border-gray-100 bg-white hover:bg-gray-50 flex items-center justify-center text-primary-500 font-bold transition-colors"
+                        >
                           &lt;
                         </button>
-                        <button type="button" className="w-8 h-8 rounded-lg border border-gray-100 bg-white hover:bg-gray-50 flex items-center justify-center text-primary-500 font-bold transition-colors">
+                        <button
+                          type="button"
+                          className="w-8 h-8 rounded-lg border border-gray-100 bg-white hover:bg-gray-50 flex items-center justify-center text-primary-500 font-bold transition-colors"
+                        >
                           &gt;
                         </button>
                       </div>
@@ -723,9 +897,10 @@ export default function SellCarPage() {
                           <ChevronDownIcon />
                           <span>أبريل 2025</span>
                         </div>
-                        <span className="text-xs font-bold text-gray-800">حدد التاريخ</span>
+                        <span className="text-xs font-bold text-gray-800">
+                          حدد التاريخ
+                        </span>
                       </div>
-
                     </div>
 
                     {/* Date Scroll Cards Carousel */}
@@ -738,9 +913,15 @@ export default function SellCarPage() {
                               key={d.id}
                               className="flex-none w-[62px] py-2 bg-gray-100 border border-gray-200/50 rounded-lg text-center flex flex-col gap-0.5 opacity-55 cursor-not-allowed select-none text-[#999]"
                             >
-                              <span className="text-[12px] font-medium">{d.dayName}</span>
-                              <span className="text-[18px] font-bold">{d.dayNumber}</span>
-                              <span className="text-[12px] font-medium">{d.monthName}</span>
+                              <span className="text-[12px] font-medium">
+                                {d.dayName}
+                              </span>
+                              <span className="text-[18px] font-bold">
+                                {d.dayNumber}
+                              </span>
+                              <span className="text-[12px] font-medium">
+                                {d.monthName}
+                              </span>
                             </div>
                           );
                         }
@@ -756,9 +937,15 @@ export default function SellCarPage() {
                                 : "bg-white border border-gray-200 text-gray-600 hover:border-gray-300"
                             }`}
                           >
-                            <span className="text-[12px] font-medium">{d.dayName}</span>
-                            <span className="text-[18px] font-bold">{d.dayNumber}</span>
-                            <span className="text-[12px] font-medium">{d.monthName}</span>
+                            <span className="text-[12px] font-medium">
+                              {d.dayName}
+                            </span>
+                            <span className="text-[18px] font-bold">
+                              {d.dayNumber}
+                            </span>
+                            <span className="text-[12px] font-medium">
+                              {d.monthName}
+                            </span>
                           </button>
                         );
                       })}
@@ -767,9 +954,14 @@ export default function SellCarPage() {
 
                   {/* Time Slots Grid */}
                   <div className="flex flex-col gap-3 text-right">
-                    <h3 className="text-xs font-bold text-gray-800">حدد الميعاد</h3>
-                    
-                    <div className="flex flex-wrap items-center justify-end gap-3 w-full" dir="ltr">
+                    <h3 className="text-xs font-bold text-gray-800">
+                      حدد الميعاد
+                    </h3>
+
+                    <div
+                      className="flex flex-wrap items-center justify-end gap-3 w-full"
+                      dir="ltr"
+                    >
                       {timeSlots.map((time) => {
                         const isSelected = selectedTimeSlot === time;
                         return (
@@ -805,22 +997,21 @@ export default function SellCarPage() {
                       السابق
                     </button>
                   </div>
-
                 </div>
               )}
 
               {/* STEP 4: REVIEW REQUEST */}
               {step === 4 && (
                 <div className="flex flex-col gap-6">
-                  
                   <div className="text-right border-b border-gray-100 pb-2">
-                    <h3 className="font-bold text-[16px] text-gray-900">مراجعة الطلب</h3>
+                    <h3 className="font-bold text-[16px] text-gray-900">
+                      مراجعة الطلب
+                    </h3>
                   </div>
 
                   <div className="flex flex-col gap-4">
                     {/* Box 1: Car Details Recap */}
                     <div className="border border-gray-200 rounded-2xl p-4 bg-white flex flex-col gap-3 text-right">
-                      
                       {/* Box Header */}
                       <div className="border-b border-gray-100 pb-2 flex items-center justify-between">
                         <button
@@ -839,19 +1030,27 @@ export default function SellCarPage() {
                       {/* Box Items */}
                       <div className="flex flex-col gap-2.5 text-xs">
                         <div className="flex justify-between items-center">
-                          <span className="font-bold text-gray-900">{brand}</span>
+                          <span className="font-bold text-gray-900">
+                            {brand}
+                          </span>
                           <span className="text-gray-500">الماركة</span>
                         </div>
                         <div className="flex justify-between items-center">
-                          <span className="font-bold text-gray-900">{model}</span>
+                          <span className="font-bold text-gray-900">
+                            {model}
+                          </span>
                           <span className="text-gray-500">الموديل</span>
                         </div>
                         <div className="flex justify-between items-center">
-                          <span className="font-bold text-gray-900">{year}</span>
+                          <span className="font-bold text-gray-900">
+                            {year}
+                          </span>
                           <span className="text-gray-500">السنة</span>
                         </div>
                         <div className="flex justify-between items-center">
-                          <span className="font-bold text-gray-900">{mileage} كم</span>
+                          <span className="font-bold text-gray-900">
+                            {mileage} كم
+                          </span>
                           <span className="text-gray-500">الكيلو مترات</span>
                         </div>
                         <div className="flex justify-between items-center border-t border-gray-50 pt-2.5">
@@ -861,12 +1060,10 @@ export default function SellCarPage() {
                           <span className="text-gray-500">رقم الشاسيه</span>
                         </div>
                       </div>
-
                     </div>
 
                     {/* Box 2: Location Recap */}
                     <div className="border border-gray-200 rounded-2xl p-4 bg-white flex flex-col gap-3 text-right">
-                      
                       {/* Box Header */}
                       <div className="border-b border-gray-100 pb-2 flex items-center justify-between">
                         <button
@@ -888,12 +1085,10 @@ export default function SellCarPage() {
                           {address}
                         </p>
                       </div>
-
                     </div>
 
                     {/* Box 3: Schedule Recap */}
                     <div className="border border-gray-200 rounded-2xl p-4 bg-white flex flex-col gap-3 text-right">
-                      
                       {/* Box Header */}
                       <div className="border-b border-gray-100 pb-2 flex items-center justify-between">
                         <button
@@ -920,11 +1115,12 @@ export default function SellCarPage() {
                           <span className="text-gray-500">التاريخ</span>
                         </div>
                         <div className="flex justify-between items-center">
-                          <span className="font-bold text-gray-900">{selectedTimeSlot}</span>
+                          <span className="font-bold text-gray-900">
+                            {selectedTimeSlot}
+                          </span>
                           <span className="text-gray-500">الوقت</span>
                         </div>
                       </div>
-
                     </div>
                   </div>
 
@@ -943,23 +1139,15 @@ export default function SellCarPage() {
                       السابق
                     </button>
                   </div>
-
                 </div>
               )}
-
             </div>
-
           </div>
-
         </main>
       )}
 
       {/* QR Code / App Download Section */}
       <DownloadApp />
-
-      {/* Footer */}
-      <Footer />
-
     </div>
   );
 }

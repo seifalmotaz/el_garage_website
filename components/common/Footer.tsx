@@ -1,5 +1,8 @@
+"use client";
 import Image from "next/image";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
+import { useEffect, useState } from "react";
 
 const legalLinks = [
   { label: "الشروط و الأحكام", href: "#" },
@@ -23,9 +26,21 @@ const socialIcons = [
 ];
 
 export default function Footer() {
-  return (
-    <footer id="footer" className="relative bg-gradient-to-t from-[#002853] to-[#002ec1] text-white select-none overflow-hidden">
+  const [showFooter, setShowFooter] = useState(false);
 
+  const pathname = usePathname();
+
+  useEffect(() => {
+    if (!pathname.startsWith("/auth/")) setShowFooter(true);
+  }, [pathname]);
+
+  return !showFooter ? (
+    <></>
+  ) : (
+    <footer
+      id="footer"
+      className="relative bg-gradient-to-t from-[#002853] to-[#002ec1] text-white select-none overflow-hidden"
+    >
       {/* Background mechanic image */}
       <Image
         className="absolute top-0 bottom-0 left-[-358px] w-[808px] h-full object-cover shrink-0 pointer-events-none z-0 hidden lg:block"
@@ -37,7 +52,6 @@ export default function Footer() {
 
       {/* Main Content Container (Responsive flow layout) */}
       <div className="relative max-w-[1336px] mx-auto px-6 md:px-12 lg:px-16 pt-16 pb-20 z-10 flex flex-col items-start gap-12 w-full">
-
         {/* Top Row: Logo & Tagline */}
         <div className="w-full max-w-[347px] flex flex-col items-start gap-6">
           <Image
@@ -48,18 +62,21 @@ export default function Footer() {
             className="object-contain"
           />
           <p className="text-base leading-relaxed opacity-95">
-            منصة الجراج — الوجهة الأولى لبيع وشراء السيارات المستعملة في مصر بضمان الفحص الاحترافي.
+            منصة الجراج — الوجهة الأولى لبيع وشراء السيارات المستعملة في مصر
+            بضمان الفحص الاحترافي.
           </p>
         </div>
 
         {/* Columns Row */}
         <div className="w-full flex flex-col md:flex-row items-start justify-start gap-10 md:gap-16 lg:gap-[120px] pt-4 flex-wrap">
-
           {/* Column C: Contact */}
           <div className="flex flex-col items-start gap-4 min-w-[234px] order-3 md:order-none">
             <h3 className="text-xl font-bold leading-normal">تواصل معنا</h3>
             <div className="flex flex-col items-start gap-3 text-sm">
-              <a href="tel:19900" className="flex items-center gap-2 hover:text-white/80 transition-colors">
+              <a
+                href="tel:19900"
+                className="flex items-center gap-2 hover:text-white/80 transition-colors"
+              >
                 <Image
                   src="/assets/mobile_footer.svg"
                   width={32}
@@ -68,7 +85,10 @@ export default function Footer() {
                 />
                 <span className="font-mono">19900</span>
               </a>
-              <a href="mailto:info@elgarage.eg" className="flex items-center gap-2 hover:text-white/80 transition-colors">
+              <a
+                href="mailto:info@elgarage.eg"
+                className="flex items-center gap-2 hover:text-white/80 transition-colors"
+              >
                 <Image
                   src="/assets/sms_footer.svg"
                   width={32}
@@ -134,9 +154,7 @@ export default function Footer() {
               ))}
             </div>
           </div>
-
         </div>
-
       </div>
 
       {/* Bottom Bar: Copyright & Socials */}
@@ -164,7 +182,6 @@ export default function Footer() {
           </div>
         </div>
       </div>
-
     </footer>
   );
 }

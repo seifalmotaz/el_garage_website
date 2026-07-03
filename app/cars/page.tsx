@@ -3,10 +3,8 @@
 import { useState, useMemo } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import Header from "../components/Header";
-import Footer from "../components/Footer";
-import DownloadApp from "../components/DownloadApp";
-import CarCard from "../components/CarCard";
+import DownloadApp from "../../components/DownloadApp";
+import CarCard from "../../components/CarCard";
 
 const AdBannerCard = () => (
   <div className="relative rounded-2xl overflow-hidden w-full h-[157px] select-none shadow-xs shrink-0 border border-gray-100/10">
@@ -21,7 +19,10 @@ const AdBannerCard = () => (
     <div className="absolute inset-0 bg-gradient-to-b from-transparent to-black/85 z-10" />
 
     {/* Content Container (RTL) */}
-    <div className="absolute inset-0 z-20 flex flex-col justify-between p-4 text-white text-right" dir="rtl">
+    <div
+      className="absolute inset-0 z-20 flex flex-col justify-between p-4 text-white text-right"
+      dir="rtl"
+    >
       {/* Top row: Logo */}
       <div className="flex items-center justify-start gap-1.5 opacity-95">
         <div className="relative w-5 h-5">
@@ -44,10 +45,8 @@ const AdBannerCard = () => (
 
       {/* Bottom row: Text & Steps */}
       <div className="flex flex-col gap-2">
-        <h3 className="font-bold text-lg text-white">
-          محتاج عربية ؟
-        </h3>
-        
+        <h3 className="font-bold text-lg text-white">محتاج عربية ؟</h3>
+
         {/* Steps Grid */}
         <div className="flex items-center justify-start gap-8 text-[11px] text-gray-200 font-medium">
           {/* Column 1 (Steps 1 & 3 - right side in RTL flow) */}
@@ -84,7 +83,7 @@ const initialCars = [
     image: "/assets/car_placeholder.png",
     condition: "مستعملة",
     transmission: "أوتوماتيك",
-    fuelType: "بنزين"
+    fuelType: "بنزين",
   },
   {
     id: "mercedes-c200",
@@ -101,7 +100,7 @@ const initialCars = [
     image: "/assets/car_placeholder.png",
     condition: "مستعملة",
     transmission: "أوتوماتيك",
-    fuelType: "بنزين"
+    fuelType: "بنزين",
   },
   {
     id: "toyota-corolla",
@@ -119,7 +118,7 @@ const initialCars = [
     image: "/assets/car_placeholder.png",
     condition: "مستعملة",
     transmission: "أوتوماتيك",
-    fuelType: "هجين"
+    fuelType: "هجين",
   },
   {
     id: "bmw-320i",
@@ -136,7 +135,7 @@ const initialCars = [
     image: "/assets/car_placeholder.png",
     condition: "مستعملة",
     transmission: "أوتوماتيك",
-    fuelType: "بنزين"
+    fuelType: "بنزين",
   },
   {
     id: "hyundai-tucson",
@@ -153,7 +152,7 @@ const initialCars = [
     image: "/assets/car_placeholder.png",
     condition: "مستعملة",
     transmission: "أوتوماتيك",
-    fuelType: "بنزين"
+    fuelType: "بنزين",
   },
   {
     id: "kia-sportage",
@@ -171,7 +170,7 @@ const initialCars = [
     image: "/assets/car_placeholder.png",
     condition: "مستعملة",
     transmission: "أوتوماتيك",
-    fuelType: "بنزين"
+    fuelType: "بنزين",
   },
   {
     id: "chery-tiggo",
@@ -188,7 +187,7 @@ const initialCars = [
     image: "/assets/car_placeholder.png",
     condition: "مستعملة",
     transmission: "أوتوماتيك",
-    fuelType: "بنزين"
+    fuelType: "بنزين",
   },
   {
     id: "mini-cooper",
@@ -205,7 +204,7 @@ const initialCars = [
     image: "/assets/car_placeholder.png",
     condition: "مستعملة",
     transmission: "أوتوماتيك",
-    fuelType: "بنزين"
+    fuelType: "بنزين",
   },
   {
     id: "porsche-cayenne",
@@ -222,7 +221,7 @@ const initialCars = [
     image: "/assets/car_placeholder.png",
     condition: "مستعملة",
     transmission: "أوتوماتيك",
-    fuelType: "بنزين"
+    fuelType: "بنزين",
   },
   {
     id: "audi-a4",
@@ -239,7 +238,7 @@ const initialCars = [
     image: "/assets/car_placeholder.png",
     condition: "مستعملة",
     transmission: "أوتوماتيك",
-    fuelType: "بنزين"
+    fuelType: "بنزين",
   },
   {
     id: "honda-civic",
@@ -256,7 +255,7 @@ const initialCars = [
     image: "/assets/car_placeholder.png",
     condition: "مستعملة",
     transmission: "أوتوماتيك",
-    fuelType: "بنزين"
+    fuelType: "بنزين",
   },
   {
     id: "honda-accord",
@@ -273,7 +272,7 @@ const initialCars = [
     image: "/assets/car_placeholder.png",
     condition: "جديد",
     transmission: "أوتوماتيك",
-    fuelType: "هجين"
+    fuelType: "هجين",
   },
   {
     id: "bmw-x5",
@@ -291,8 +290,8 @@ const initialCars = [
     image: "/assets/why_cars.png",
     condition: "مستعملة",
     transmission: "أوتوماتيك",
-    fuelType: "بنزين"
-  }
+    fuelType: "بنزين",
+  },
 ];
 
 const brands = [
@@ -306,7 +305,7 @@ const brands = [
   { ar: "هوندا", en: "Honda" },
   { ar: "لاند روفر", en: "Land Rover" },
   { ar: "شيري", en: "Chery" },
-  { ar: "ميني كوبر", en: "Mini Cooper" }
+  { ar: "ميني كوبر", en: "Mini Cooper" },
 ];
 
 export default function CarsBrowsePage() {
@@ -319,7 +318,9 @@ export default function CarsBrowsePage() {
   const [maxPrice, setMaxPrice] = useState("");
   const [maxMileage, setMaxMileage] = useState(150000);
   const [selectedConditions, setSelectedConditions] = useState<string[]>([]);
-  const [selectedTransmissions, setSelectedTransmissions] = useState<string[]>([]);
+  const [selectedTransmissions, setSelectedTransmissions] = useState<string[]>(
+    [],
+  );
   const [selectedFuelTypes, setSelectedFuelTypes] = useState<string[]>([]);
   const [showMobileFilters, setShowMobileFilters] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
@@ -340,73 +341,95 @@ export default function CarsBrowsePage() {
 
   // Filter and sort the cars list dynamically based on active filter state
   const filteredCars = useMemo(() => {
-    return initialCars.filter((car) => {
-      // Search input (brand, model, or trim)
-      if (searchTerm.trim() !== "") {
-        const query = searchTerm.toLowerCase();
-        const match =
-          car.brand.toLowerCase().includes(query) ||
-          car.model.toLowerCase().includes(query) ||
-          car.trim.toLowerCase().includes(query);
-        if (!match) return false;
-      }
+    return initialCars
+      .filter((car) => {
+        // Search input (brand, model, or trim)
+        if (searchTerm.trim() !== "") {
+          const query = searchTerm.toLowerCase();
+          const match =
+            car.brand.toLowerCase().includes(query) ||
+            car.model.toLowerCase().includes(query) ||
+            car.trim.toLowerCase().includes(query);
+          if (!match) return false;
+        }
 
-      // Brand checkboxes
-      if (selectedBrands.length > 0 && !selectedBrands.includes(car.brand)) {
-        return false;
-      }
+        // Brand checkboxes
+        if (selectedBrands.length > 0 && !selectedBrands.includes(car.brand)) {
+          return false;
+        }
 
-      // Model select (mobile dropdown)
-      if (selectedModel !== "" && car.model !== selectedModel) {
-        return false;
-      }
+        // Model select (mobile dropdown)
+        if (selectedModel !== "" && car.model !== selectedModel) {
+          return false;
+        }
 
-      // Price range min
-      const priceNum = parseFloat(car.price.replace(/,/g, ""));
-      if (minPrice !== "" && priceNum < parseFloat(minPrice)) {
-        return false;
-      }
+        // Price range min
+        const priceNum = parseFloat(car.price.replace(/,/g, ""));
+        if (minPrice !== "" && priceNum < parseFloat(minPrice)) {
+          return false;
+        }
 
-      // Price range max
-      if (maxPrice !== "" && priceNum > parseFloat(maxPrice)) {
-        return false;
-      }
+        // Price range max
+        if (maxPrice !== "" && priceNum > parseFloat(maxPrice)) {
+          return false;
+        }
 
-      // Mileage range
-      const mileageNum = parseInt(car.mileage.replace(/[^0-9]/g, "")) || 0;
-      if (mileageNum > maxMileage) {
-        return false;
-      }
+        // Mileage range
+        const mileageNum = parseInt(car.mileage.replace(/[^0-9]/g, "")) || 0;
+        if (mileageNum > maxMileage) {
+          return false;
+        }
 
-      // Condition checkboxes
-      if (selectedConditions.length > 0 && !selectedConditions.includes(car.condition)) {
-        return false;
-      }
+        // Condition checkboxes
+        if (
+          selectedConditions.length > 0 &&
+          !selectedConditions.includes(car.condition)
+        ) {
+          return false;
+        }
 
-      // Transmission checkboxes
-      if (selectedTransmissions.length > 0 && !selectedTransmissions.includes(car.transmission)) {
-        return false;
-      }
+        // Transmission checkboxes
+        if (
+          selectedTransmissions.length > 0 &&
+          !selectedTransmissions.includes(car.transmission)
+        ) {
+          return false;
+        }
 
-      // Fuel type toggles
-      if (selectedFuelTypes.length > 0 && !selectedFuelTypes.includes(car.fuelType)) {
-        return false;
-      }
+        // Fuel type toggles
+        if (
+          selectedFuelTypes.length > 0 &&
+          !selectedFuelTypes.includes(car.fuelType)
+        ) {
+          return false;
+        }
 
-      return true;
-    }).sort((a, b) => {
-      const priceA = parseFloat(a.price.replace(/,/g, ""));
-      const priceB = parseFloat(b.price.replace(/,/g, ""));
-      const yearA = parseInt(a.year);
-      const yearB = parseInt(b.year);
+        return true;
+      })
+      .sort((a, b) => {
+        const priceA = parseFloat(a.price.replace(/,/g, ""));
+        const priceB = parseFloat(b.price.replace(/,/g, ""));
+        const yearA = parseInt(a.year);
+        const yearB = parseInt(b.year);
 
-      if (sortBy === "high-to-low") return priceB - priceA;
-      if (sortBy === "low-to-high") return priceA - priceB;
-      if (sortBy === "newest") return yearB - yearA;
-      if (sortBy === "oldest") return yearA - yearB;
-      return 0;
-    });
-  }, [searchTerm, selectedBrands, minPrice, maxPrice, maxMileage, selectedConditions, selectedTransmissions, selectedFuelTypes, sortBy, selectedModel]);
+        if (sortBy === "high-to-low") return priceB - priceA;
+        if (sortBy === "low-to-high") return priceA - priceB;
+        if (sortBy === "newest") return yearB - yearA;
+        if (sortBy === "oldest") return yearA - yearB;
+        return 0;
+      });
+  }, [
+    searchTerm,
+    selectedBrands,
+    minPrice,
+    maxPrice,
+    maxMileage,
+    selectedConditions,
+    selectedTransmissions,
+    selectedFuelTypes,
+    sortBy,
+    selectedModel,
+  ]);
 
   // Calculate pagination variables
   const totalPages = Math.ceil(filteredCars.length / carsPerPage) || 1;
@@ -419,28 +442,30 @@ export default function CarsBrowsePage() {
 
   const handleBrandToggle = (brandAr: string) => {
     setSelectedBrands((prev) =>
-      prev.includes(brandAr) ? prev.filter((b) => b !== brandAr) : [...prev, brandAr]
+      prev.includes(brandAr)
+        ? prev.filter((b) => b !== brandAr)
+        : [...prev, brandAr],
     );
     setCurrentPage(1);
   };
 
   const handleConditionToggle = (cond: string) => {
     setSelectedConditions((prev) =>
-      prev.includes(cond) ? prev.filter((c) => c !== cond) : [...prev, cond]
+      prev.includes(cond) ? prev.filter((c) => c !== cond) : [...prev, cond],
     );
     setCurrentPage(1);
   };
 
   const handleTransmissionToggle = (trans: string) => {
     setSelectedTransmissions((prev) =>
-      prev.includes(trans) ? prev.filter((t) => t !== trans) : [...prev, trans]
+      prev.includes(trans) ? prev.filter((t) => t !== trans) : [...prev, trans],
     );
     setCurrentPage(1);
   };
 
   const handleFuelToggle = (fuel: string) => {
     setSelectedFuelTypes((prev) =>
-      prev.includes(fuel) ? prev.filter((f) => f !== fuel) : [...prev, fuel]
+      prev.includes(fuel) ? prev.filter((f) => f !== fuel) : [...prev, fuel],
     );
     setCurrentPage(1);
   };
@@ -472,14 +497,12 @@ export default function CarsBrowsePage() {
     return brands.filter(
       (b) =>
         b.ar.includes(brandSearch) ||
-        b.en.toLowerCase().includes(brandSearch.toLowerCase())
+        b.en.toLowerCase().includes(brandSearch.toLowerCase()),
     );
   }, [brandSearch]);
 
   return (
     <div className="relative flex flex-col min-h-screen bg-gray-50/50">
-      <Header activeHref="/cars" variant="dark" />
-
       {/* Hero Banner Section */}
       <div className="relative w-full h-[264px] md:h-[427px] flex flex-col items-center justify-center overflow-hidden select-none">
         {/* Background Image from Figma */}
@@ -490,13 +513,14 @@ export default function CarsBrowsePage() {
           className="object-cover pointer-events-none"
           priority
         />
-        
+
         {/* Exact Dark Blue Gradients Overlay from Figma */}
         <div className="absolute inset-0 bg-gradient-to-t from-[#002853] to-[#002ec1] opacity-30 mix-blend-multiply pointer-events-none z-10" />
         <div
           className="absolute inset-0 pointer-events-none z-10"
           style={{
-            backgroundImage: "linear-gradient(1.40863deg, rgba(0, 16, 69, 0.95) 9.2144%, rgba(0, 22, 91, 0.447) 67.797%, rgba(0, 0, 0, 0) 96.227%)"
+            backgroundImage:
+              "linear-gradient(1.40863deg, rgba(0, 16, 69, 0.95) 9.2144%, rgba(0, 22, 91, 0.447) 67.797%, rgba(0, 0, 0, 0) 96.227%)",
           }}
         />
 
@@ -532,7 +556,6 @@ export default function CarsBrowsePage() {
       </div>
 
       <main className="flex-1 w-full max-w-[1336px] mx-auto px-6 md:px-12 py-10 flex flex-col gap-6 font-sans">
-
         {/* Mobile Page Title */}
         <h2 className="lg:hidden text-right text-[#1A1A1A] font-bold text-2xl mb-1">
           تصفح السيارات
@@ -543,15 +566,27 @@ export default function CarsBrowsePage() {
           onClick={() => setShowMobileFilters(true)}
           className="lg:hidden w-full bg-white border border-[#F2F2F2] h-[50px] px-4 rounded-[16px] flex items-center justify-start gap-2.5 text-sm font-bold text-gray-900 shadow-xs transition-colors cursor-pointer"
         >
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" className="text-gray-900">
-            <path d="M19 22V11M19 7V2M12 22V17M12 13V2M5 22V14M5 10V2M3 14H7M10 13H14M17 7H21" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+          <svg
+            width="20"
+            height="20"
+            viewBox="0 0 24 24"
+            fill="none"
+            xmlns="http://www.w3.org/2000/svg"
+            className="text-gray-900"
+          >
+            <path
+              d="M19 22V11M19 7V2M12 22V17M12 13V2M5 22V14M5 10V2M3 14H7M10 13H14M17 7H21"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
           </svg>
           <span>الفلترة</span>
         </button>
 
         {/* Two-Column Responsive Layout */}
         <div className="flex flex-col lg:flex-row gap-8 items-start w-full relative">
-          
           {/* Right Column: Filters Sidebar (Renders first in DOM for RTL float order) */}
           <aside
             className={`
@@ -581,7 +616,9 @@ export default function CarsBrowsePage() {
 
               {/* Brand Filter */}
               <div className="flex flex-col gap-3">
-                <label className="text-gray-900 text-sm font-semibold text-right">الماركة</label>
+                <label className="text-gray-900 text-sm font-semibold text-right">
+                  الماركة
+                </label>
                 <div className="relative bg-gray-50 border border-gray-200 rounded-xl h-10 flex items-center justify-between px-3">
                   <input
                     type="text"
@@ -608,7 +645,9 @@ export default function CarsBrowsePage() {
                           key={brand.ar}
                           className="flex items-center justify-between text-sm text-gray-700 hover:text-gray-900 cursor-pointer select-none py-0.5"
                         >
-                          <span className="font-semibold text-gray-800 text-right w-full">{brand.ar}</span>
+                          <span className="font-semibold text-gray-800 text-right w-full">
+                            {brand.ar}
+                          </span>
                           <input
                             type="checkbox"
                             checked={isChecked}
@@ -619,7 +658,9 @@ export default function CarsBrowsePage() {
                       );
                     })
                   ) : (
-                    <span className="text-xs text-gray-400 text-center py-2">لا توجد ماركات مطابقة</span>
+                    <span className="text-xs text-gray-400 text-center py-2">
+                      لا توجد ماركات مطابقة
+                    </span>
                   )}
                 </div>
               </div>
@@ -628,7 +669,9 @@ export default function CarsBrowsePage() {
 
               {/* Price Range Filter */}
               <div className="flex flex-col gap-3">
-                <label className="text-gray-900 text-sm font-semibold text-right">نطاق السعر</label>
+                <label className="text-gray-900 text-sm font-semibold text-right">
+                  نطاق السعر
+                </label>
                 <div className="flex items-center gap-2 w-full">
                   <div className="flex-1">
                     <input
@@ -662,7 +705,9 @@ export default function CarsBrowsePage() {
 
               {/* Mileage Filter */}
               <div className="flex flex-col gap-3">
-                <label className="text-gray-900 text-sm font-semibold text-right">الكيلومترات</label>
+                <label className="text-gray-900 text-sm font-semibold text-right">
+                  الكيلومترات
+                </label>
                 <input
                   type="range"
                   min="0"
@@ -675,7 +720,10 @@ export default function CarsBrowsePage() {
                   }}
                   className="w-full accent-primary-500 h-1.5 bg-gray-200 rounded-lg appearance-none cursor-pointer"
                 />
-                <div className="flex items-center justify-between text-xs text-gray-500" dir="rtl">
+                <div
+                  className="flex items-center justify-between text-xs text-gray-500"
+                  dir="rtl"
+                >
                   <span>0 كم</span>
                   <span className="font-semibold text-primary-600 bg-primary-50 px-2.5 py-0.5 rounded-full font-mono">
                     حتى {maxMileage.toLocaleString()} كم
@@ -688,7 +736,9 @@ export default function CarsBrowsePage() {
 
               {/* Condition Filter */}
               <div className="flex flex-col gap-3">
-                <label className="text-gray-900 text-sm font-semibold text-right">الحالة</label>
+                <label className="text-gray-900 text-sm font-semibold text-right">
+                  الحالة
+                </label>
                 <div className="flex flex-col gap-2">
                   {["جديد", "مستعملة"].map((cond) => {
                     const isChecked = selectedConditions.includes(cond);
@@ -697,7 +747,9 @@ export default function CarsBrowsePage() {
                         key={cond}
                         className="flex items-center justify-between text-sm text-gray-700 hover:text-gray-900 cursor-pointer select-none py-0.5"
                       >
-                        <span className="font-semibold text-gray-800 text-right w-full">{cond}</span>
+                        <span className="font-semibold text-gray-800 text-right w-full">
+                          {cond}
+                        </span>
                         <input
                           type="checkbox"
                           checked={isChecked}
@@ -714,7 +766,9 @@ export default function CarsBrowsePage() {
 
               {/* Transmission Filter */}
               <div className="flex flex-col gap-3">
-                <label className="text-gray-900 text-sm font-semibold text-right">ناقل الحركة</label>
+                <label className="text-gray-900 text-sm font-semibold text-right">
+                  ناقل الحركة
+                </label>
                 <div className="flex flex-col gap-2">
                   {["أوتوماتيك", "مانيوال"].map((trans) => {
                     const isChecked = selectedTransmissions.includes(trans);
@@ -723,7 +777,9 @@ export default function CarsBrowsePage() {
                         key={trans}
                         className="flex items-center justify-between text-sm text-gray-700 hover:text-gray-900 cursor-pointer select-none py-0.5"
                       >
-                        <span className="font-semibold text-gray-800 text-right w-full">{trans}</span>
+                        <span className="font-semibold text-gray-800 text-right w-full">
+                          {trans}
+                        </span>
                         <input
                           type="checkbox"
                           checked={isChecked}
@@ -740,7 +796,9 @@ export default function CarsBrowsePage() {
 
               {/* Fuel Type Filter */}
               <div className="flex flex-col gap-3">
-                <label className="text-gray-900 text-sm font-semibold text-right">نوع الوقود</label>
+                <label className="text-gray-900 text-sm font-semibold text-right">
+                  نوع الوقود
+                </label>
                 <div className="grid grid-cols-2 gap-2 w-full">
                   {["بنزين", "ديزل", "كهرباء", "هجين"].map((fuel) => {
                     const isActive = selectedFuelTypes.includes(fuel);
@@ -750,9 +808,10 @@ export default function CarsBrowsePage() {
                         type="button"
                         onClick={() => handleFuelToggle(fuel)}
                         className={`h-10 rounded-xl text-xs font-semibold border transition-all cursor-pointer flex items-center justify-center
-                          ${isActive 
-                            ? "bg-primary-500 border-primary-500 text-white shadow-sm" 
-                            : "bg-white border-gray-200 text-gray-700 hover:bg-gray-50 hover:text-gray-900"
+                          ${
+                            isActive
+                              ? "bg-primary-500 border-primary-500 text-white shadow-sm"
+                              : "bg-white border-gray-200 text-gray-700 hover:bg-gray-50 hover:text-gray-900"
                           }`}
                       >
                         {fuel}
@@ -777,7 +836,6 @@ export default function CarsBrowsePage() {
 
           {/* Left Column: Search Bar & Grid & Pagination */}
           <div className="flex-1 flex flex-col gap-6 w-full lg:max-w-[calc(100%-344px)]">
-            
             {/* Mobile Search Toolbar */}
             <form
               onSubmit={handleSearchSubmit}
@@ -785,10 +843,11 @@ export default function CarsBrowsePage() {
             >
               {/* Row 1: Model dropdown & Sorting dropdown side-by-side */}
               <div className="flex items-center gap-3 w-full">
-                
                 {/* Sorting options (Left side in RTL) */}
                 <div className="flex-1 flex flex-col gap-1.5 text-right w-[50%]">
-                  <label className="text-gray-900 text-xs font-semibold px-1">ترتيب حسب</label>
+                  <label className="text-gray-900 text-xs font-semibold px-1">
+                    ترتيب حسب
+                  </label>
                   <div className="relative bg-gray-50 border border-gray-200 rounded-xl h-[44px] flex items-center justify-between px-3 cursor-pointer group">
                     <Image
                       src="/assets/arrow_down_gray.svg"
@@ -804,8 +863,12 @@ export default function CarsBrowsePage() {
                       }}
                       className="absolute inset-0 opacity-0 w-full h-full cursor-pointer"
                     >
-                      <option value="high-to-low">السعر - من الاعلى الي الاقل</option>
-                      <option value="low-to-high">السعر - من الاقل الي الاعلى</option>
+                      <option value="high-to-low">
+                        السعر - من الاعلى الي الاقل
+                      </option>
+                      <option value="low-to-high">
+                        السعر - من الاقل الي الاعلى
+                      </option>
                       <option value="newest">الموديل - الأحدث أولاً</option>
                       <option value="oldest">الموديل - الأقدم أولاً</option>
                     </select>
@@ -820,7 +883,9 @@ export default function CarsBrowsePage() {
 
                 {/* Model options (Right side in RTL) */}
                 <div className="flex-1 flex flex-col gap-1.5 text-right w-[50%]">
-                  <label className="text-gray-900 text-xs font-semibold px-1">الموديل</label>
+                  <label className="text-gray-900 text-xs font-semibold px-1">
+                    الموديل
+                  </label>
                   <div className="relative bg-gray-50 border border-gray-200 rounded-xl h-[44px] flex items-center justify-between px-3 cursor-pointer group">
                     <Image
                       src="/assets/arrow_down_gray.svg"
@@ -848,12 +913,13 @@ export default function CarsBrowsePage() {
                     </span>
                   </div>
                 </div>
-
               </div>
 
               {/* Row 2: Search input & search button */}
               <div className="flex flex-col gap-1.5 text-right w-full">
-                <label className="text-gray-900 text-xs font-semibold px-1">البحث</label>
+                <label className="text-gray-900 text-xs font-semibold px-1">
+                  البحث
+                </label>
                 <div className="flex gap-2.5 w-full">
                   <div className="relative flex-grow bg-gray-50 border border-gray-200 rounded-xl h-[44px] flex items-center justify-between px-3">
                     <input
@@ -888,7 +954,9 @@ export default function CarsBrowsePage() {
             >
               {/* Search input (Right side in RTL) */}
               <div className="flex flex-col gap-1.5 text-right w-full md:flex-grow">
-                <label className="text-gray-900 text-xs font-semibold px-1">البحث</label>
+                <label className="text-gray-900 text-xs font-semibold px-1">
+                  البحث
+                </label>
                 <div className="flex gap-2 w-full">
                   <div className="relative flex-grow bg-gray-50 border border-gray-200 rounded-xl h-[44px] flex items-center justify-between px-3">
                     <input
@@ -917,7 +985,9 @@ export default function CarsBrowsePage() {
 
               {/* Sorting options (Left side in RTL) */}
               <div className="flex flex-col gap-1.5 text-right w-full md:w-[220px]">
-                <label className="text-gray-900 text-xs font-semibold px-1">ترتيب حسب</label>
+                <label className="text-gray-900 text-xs font-semibold px-1">
+                  ترتيب حسب
+                </label>
                 <div className="relative bg-gray-50 border border-gray-200 rounded-xl h-[44px] flex items-center justify-between px-3 cursor-pointer group">
                   <Image
                     src="/assets/arrow_down_gray.svg"
@@ -933,8 +1003,12 @@ export default function CarsBrowsePage() {
                     }}
                     className="absolute inset-0 opacity-0 w-full h-full cursor-pointer"
                   >
-                    <option value="high-to-low">السعر - من الاعلى الي الاقل</option>
-                    <option value="low-to-high">السعر - من الاقل الي الاعلى</option>
+                    <option value="high-to-low">
+                      السعر - من الاعلى الي الاقل
+                    </option>
+                    <option value="low-to-high">
+                      السعر - من الاقل الي الاعلى
+                    </option>
                     <option value="newest">الموديل - الأحدث أولاً</option>
                     <option value="oldest">الموديل - الأقدم أولاً</option>
                   </select>
@@ -983,9 +1057,12 @@ export default function CarsBrowsePage() {
                   height={48}
                   className="opacity-20"
                 />
-                <h3 className="text-lg font-bold text-gray-800">لا توجد نتائج مطابقة</h3>
+                <h3 className="text-lg font-bold text-gray-800">
+                  لا توجد نتائج مطابقة
+                </h3>
                 <p className="text-sm text-gray-400 max-w-[320px]">
-                  جرب تغيير فلاتر البحث أو إعادة تعيين الكل لرؤية جميع السيارات المتاحة
+                  جرب تغيير فلاتر البحث أو إعادة تعيين الكل لرؤية جميع السيارات
+                  المتاحة
                 </p>
                 <button
                   onClick={handleResetAll}
@@ -1001,7 +1078,9 @@ export default function CarsBrowsePage() {
               <div className="flex items-center justify-center gap-2 mt-8 select-none">
                 {/* Arrow Left (Next page in RTL / Left direction) */}
                 <button
-                  onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
+                  onClick={() =>
+                    setCurrentPage((prev) => Math.min(prev + 1, totalPages))
+                  }
                   disabled={activePage === totalPages}
                   className="w-10 h-10 rounded-xl bg-white border border-gray-200 flex items-center justify-center text-gray-500 hover:border-primary-500 hover:text-primary-500 transition-colors disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
                 >
@@ -1015,27 +1094,32 @@ export default function CarsBrowsePage() {
 
                 {/* Page numbers (LTR ordered for correct rendering layout) */}
                 <div className="flex items-center gap-1.5" dir="ltr">
-                  {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => {
-                    const isActive = page === activePage;
-                    return (
-                      <button
-                        key={page}
-                        onClick={() => setCurrentPage(page)}
-                        className={`w-10 h-10 rounded-xl font-medium text-sm transition-colors cursor-pointer flex items-center justify-center
-                          ${isActive
-                            ? "bg-primary-500 border border-primary-500 text-white shadow-sm"
-                            : "bg-white border border-gray-200 text-gray-700 hover:border-primary-500 hover:text-primary-500"
+                  {Array.from({ length: totalPages }, (_, i) => i + 1).map(
+                    (page) => {
+                      const isActive = page === activePage;
+                      return (
+                        <button
+                          key={page}
+                          onClick={() => setCurrentPage(page)}
+                          className={`w-10 h-10 rounded-xl font-medium text-sm transition-colors cursor-pointer flex items-center justify-center
+                          ${
+                            isActive
+                              ? "bg-primary-500 border border-primary-500 text-white shadow-sm"
+                              : "bg-white border border-gray-200 text-gray-700 hover:border-primary-500 hover:text-primary-500"
                           }`}
-                      >
-                        {page}
-                      </button>
-                    );
-                  })}
+                        >
+                          {page}
+                        </button>
+                      );
+                    },
+                  )}
                 </div>
 
                 {/* Arrow Right (Prev page in RTL / Right direction) */}
                 <button
-                  onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+                  onClick={() =>
+                    setCurrentPage((prev) => Math.max(prev - 1, 1))
+                  }
                   disabled={activePage === 1}
                   className="w-10 h-10 rounded-xl bg-white border border-gray-200 flex items-center justify-center text-gray-500 hover:border-primary-500 hover:text-primary-500 transition-colors disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
                 >
@@ -1049,23 +1133,28 @@ export default function CarsBrowsePage() {
                 </button>
               </div>
             )}
-
           </div>
-
         </div>
       </main>
 
       {/* Mobile-Only Similar Cars Section */}
       <div className="w-full bg-white py-8 border-t border-[#F2F2F2] flex flex-col gap-6 lg:hidden">
-        <div className="flex items-center justify-between px-6 select-none" dir="rtl">
-          <h3 className="text-gray-900 font-bold text-[18px]">
-            سيارات مشابهة
-          </h3>
-          <Link href="/cars" className="text-primary-500 font-bold text-xs hover:underline">
+        <div
+          className="flex items-center justify-between px-6 select-none"
+          dir="rtl"
+        >
+          <h3 className="text-gray-900 font-bold text-[18px]">سيارات مشابهة</h3>
+          <Link
+            href="/cars"
+            className="text-primary-500 font-bold text-xs hover:underline"
+          >
             عرض المزيد
           </Link>
         </div>
-        <div className="w-full overflow-x-auto pb-4 px-6 flex gap-4 scrollbar-none" dir="rtl">
+        <div
+          className="w-full overflow-x-auto pb-4 px-6 flex gap-4 scrollbar-none"
+          dir="rtl"
+        >
           {similarCars.map((car, idx) => (
             <div key={idx} className="w-[280px] shrink-0">
               <CarCard
@@ -1089,7 +1178,6 @@ export default function CarsBrowsePage() {
       </div>
 
       <DownloadApp />
-      <Footer />
     </div>
   );
 }
