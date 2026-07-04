@@ -18,6 +18,7 @@ import { signupSchema, SignupSchemaType } from "@/shared/schemas";
 import { fakePromise } from "@/lib/utils";
 import LeftSideHero from "@/components/form/LeftSideHero";
 import Logo from "@/components/form/Logo";
+import Spinner from "@/components/common/Spinner";
 
 export default function SignupPage() {
   const [showPassword, setShowPassword] = useState(false);
@@ -186,11 +187,7 @@ export default function SignupPage() {
                   className="bg-foreground text-white rounded-2xl min-h-[48px] font-semibold text-sm w-full transition-opacity hover:opacity-90 cursor-pointer"
                   disabled={isPending}
                 >
-                  {isPending ? (
-                    <span className="spinner"></span>
-                  ) : (
-                    "انشاء الحساب"
-                  )}
+                  {isPending ? <Spinner /> : "انشاء الحساب"}
                 </button>
                 <Link
                   href="/auth/login"

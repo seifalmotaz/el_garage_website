@@ -1,20 +1,67 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useTransition } from "react";
 import Image from "next/image";
 import MaxWidthWrapper from "./common/MaxWidthWrapper";
+import Dropdown from "./common/Dropdown";
+import { filterFields } from "@/constants/car-filters";
+import { cn, fakePromise } from "@/lib/utils";
+import Spinner from "./common/Spinner";
+
+const CarCardType = ({
+  variant = "blurry",
+}: {
+  variant?: "white" | "blurry";
+}) => {
+  return (
+    <button
+      className={cn(
+        " p-[30px] rounded-2xl flex flex-col gap-1 items-center",
+        variant === "blurry" ? "bg-black/30 backdrop-blur-lg" : "bg-[#eee]",
+      )}
+    >
+      <div className="">
+        <Image src={"/car-type.svg"} alt="car type" width={38} height={38} />
+      </div>
+      <h3
+        className={cn(
+          "text-sm",
+          variant === "blurry" ? " text-white" : "text-black",
+        )}
+      >
+        مرسيدس
+      </h3>
+    </button>
+  );
+};
 
 export default function Hero() {
-  const [activeTab, setActiveTab] = useState<"buy" | "sell">("buy");
+  const [searchByTab, setSearchByTab] = useState<"type" | "details">("details");
 
-  const filterFields = [
-    { label: "الحالة", placeholder: "جديد / مستعمل" },
-    { label: "الماركة", placeholder: "حدد الماركة" },
-    { label: "الموديل", placeholder: "حدد الموديل" },
-    { label: "الإصدار", placeholder: "منذ سنة" },
-    { label: "ناقل الحركة", placeholder: "أوتوماتيك / مانيوال" },
-    { label: "الكيلومتر(كم)", placeholder: "منذ سنة" },
-  ];
+  const [isPending, startTransition] = useTransition();
+
+  const [filters, setFilters] = useState({
+    transmission: "",
+    kilometer: "",
+    model: "",
+    condition: "",
+    release: "",
+    brand: "",
+  });
+
+  const handleFilterChange = (key: string, value: string) => {
+    setFilters((prev) => ({
+      ...prev,
+      [key]: value,
+    }));
+  };
+
+  const showResultsHandler = () => {
+    console.log(filters);
+    startTransition(async () => {
+      await fakePromise();
+    });
+  };
 
   return (
     <section className="relative w-full min-h-[820px] flex flex-col items-center justify-center pt-28 lg:pt-32 pb-16 overflow-hidden bg-white lg:bg-transparent">
@@ -44,7 +91,7 @@ export default function Hero() {
           </div>
 
           {/* Mobile Standalone Image Card */}
-          <div className="relative w-full max-w-[335px] aspect-[335/148] rounded-[24px] overflow-hidden lg:hidden shadow-sm">
+          <div className="relative w-full aspect-[335/148] rounded-[24px] overflow-hidden lg:hidden shadow-sm">
             <Image
               src="/assets/hero_bg_decor2.png"
               alt="elGARAGE Handshake"
@@ -57,62 +104,96 @@ export default function Hero() {
           {/* Filter Card Container */}
           <div className="w-full flex flex-col items-center gap-6">
             {/* Search Type Row (البحث حسب) */}
-            <div className="w-full flex flex-col lg:flex-row items-center justify-center lg:justify-start gap-3 lg:gap-4 text-gray-900 lg:text-white bg-white lg:bg-transparent p-4 lg:p-0 rounded-[20px] shadow-sm lg:shadow-none border border-gray-100 lg:border-none w-full max-w-[335px] lg:max-w-none">
+            <div className="w-full flex flex-col lg:flex-row items-center justify-center lg:justify-start gap-3 lg:gap-4 text-gray-900 lg:text-white bg-white lg:bg-transparent p-4 lg:p-0 rounded-[20px] shadow-sm lg:shadow-none border border-gray-100 lg:border-none w-full">
               <span className="text-sm font-bold lg:font-medium text-right w-full lg:w-auto">
                 البحث حسب :
               </span>
               <div className="bg-[#FAFAFA] lg:backdrop-blur-md lg:bg-black/25 border border-gray-200/50 lg:border-white/10 rounded-2xl p-1 flex gap-2 w-full lg:w-[320px]">
                 <button
-                  onClick={() => setActiveTab("buy")}
-                  className={`flex-1 text-center py-2.5 lg:py-2 rounded-xl text-xs font-semibold transition-all duration-200 cursor-pointer ${
-                    activeTab === "buy"
-                      ? "bg-white text-primary-500 shadow-sm font-bold"
-                      : "text-gray-500 lg:text-gray-200 hover:text-gray-800 lg:hover:text-white"
-                  }`}
-                >
-                  نوع السيارة
-                </button>
-                <button
-                  onClick={() => setActiveTab("sell")}
-                  className={`flex-1 text-center py-2.5 lg:py-2 rounded-xl text-xs font-semibold transition-all duration-200 cursor-pointer ${
-                    activeTab === "sell"
+                  onClick={() => setSearchByTab("details")}
+                  className={`flex-1 text-center  rounded-2xl w-[192.5px] h-[40px] py-2.5 lg:py-2 text-xs font-semibold transition-all duration-200 cursor-pointer ${
+                    searchByTab === "details"
                       ? "bg-white text-primary-500 shadow-sm font-bold"
                       : "text-gray-500 lg:text-gray-200 hover:text-gray-800 lg:hover:text-white"
                   }`}
                 >
                   تفاصيل السيارة
                 </button>
+                <button
+                  onClick={() => setSearchByTab("type")}
+                  className={`flex-1 text-center rounded-2xl w-[192.5px] h-[40px]  py-2.5 lg:py-2 text-xs font-semibold transition-all duration-200 cursor-pointer ${
+                    searchByTab === "type"
+                      ? "bg-white text-primary-500 shadow-sm font-bold"
+                      : "text-gray-500 lg:text-gray-200 hover:text-gray-800 lg:hover:text-white"
+                  }`}
+                >
+                  نوع السيارة
+                </button>
               </div>
             </div>
 
             {/* Filters Form */}
-            <div className="w-full max-w-[335px] lg:max-w-none bg-white lg:backdrop-blur-lg lg:bg-black/40 border border-gray-100 lg:border-white/15 rounded-[24px] p-6 lg:p-8 flex flex-col gap-6 shadow-md lg:shadow-2xl">
-              <div className="grid grid-cols-2 lg:grid-cols-6 gap-4">
-                {filterFields.map((field, index) => (
-                  <div key={index} className="flex flex-col gap-2 text-right">
-                    <label className="text-gray-900 lg:text-white text-xs font-semibold px-1">
-                      {field.label}
-                    </label>
-                    <div className="relative bg-[#FAFAFA] lg:bg-black/30 border border-gray-200/60 lg:border-white/10 rounded-2xl h-[50px] flex items-center justify-between px-3 cursor-pointer group hover:border-gray-300 lg:hover:border-white/30 transition-colors">
-                      <Image
-                        src="/assets/chevron_down.svg"
-                        alt="down"
-                        width={12}
-                        height={6}
-                        className="opacity-70 group-hover:opacity-100 transition-opacity invert lg:invert-0"
+            <div className="w-full bg-white lg:backdrop-blur-lg lg:bg-black/20 max-lg:border max-lg:border-gray-100 rounded-[24px] p-6 lg:py-8 lg:px-6 flex flex-col gap-6 shadow-md lg:shadow-2xl">
+              {searchByTab === "details" ? (
+                <>
+                  <div className="grid grid-cols-2 lg:grid-cols-6 gap-4 max-lg:hidden">
+                    {filterFields.map((field, i) => (
+                      <Dropdown
+                        key={i}
+                        label={field.label}
+                        placeholder={field.placeholder}
+                        option={Object.values(filters)[i]}
+                        options={field.options}
+                        setOption={(val) =>
+                          handleFilterChange(Object.keys(filters)[i], val)
+                        }
                       />
-                      <span className="text-gray-800 lg:text-gray-300 text-xs font-light">
-                        {field.placeholder}
-                      </span>
-                    </div>
+                    ))}
+                  </div>{" "}
+                  <div className="grid grid-cols-2 lg:grid-cols-6 gap-4 lg:hidden">
+                    {filterFields.map((field, i) => (
+                      <Dropdown
+                        key={i}
+                        label={field.label}
+                        placeholder={field.placeholder}
+                        option={Object.values(filters)[i]}
+                        options={field.options}
+                        setOption={(val) =>
+                          handleFilterChange(Object.keys(filters)[i], val)
+                        }
+                        variant="white"
+                      />
+                    ))}
                   </div>
-                ))}
-              </div>
+                </>
+              ) : (
+                <>
+                  <div className="flex gap-3 flex-wrap max-lg:hidden">
+                    {Array(11)
+                      .fill(0)
+                      .map((item, i) => (
+                        <CarCardType key={i} />
+                      ))}
+                  </div>
+
+                  <div className="flex gap-3 flex-wrap lg:hidden">
+                    {Array(11)
+                      .fill(0)
+                      .map((item, i) => (
+                        <CarCardType key={i} variant={"white"} />
+                      ))}
+                  </div>
+                </>
+              )}
 
               {/* Results Button */}
-              <div className="flex justify-center w-full">
-                <button className="bg-primary-500 hover:bg-primary-600 text-white font-semibold text-sm h-12 w-full lg:max-w-[420px] rounded-2xl shadow-lg transition-colors flex items-center justify-center gap-2 cursor-pointer">
-                  <span>عرض النتائج</span>
+              <div className="flex max-lg:justify-center w-full">
+                <button
+                  className="bg-primary-500 hover:bg-primary-600 text-white font-semibold text-sm h-12 w-full lg:max-w-[420px] rounded-2xl shadow-lg transition-colors flex items-center justify-center gap-2 cursor-pointer"
+                  onClick={showResultsHandler}
+                  disabled={isPending}
+                >
+                  {isPending ? <Spinner /> : <span>عرض النتائج</span>}
                 </button>
               </div>
             </div>

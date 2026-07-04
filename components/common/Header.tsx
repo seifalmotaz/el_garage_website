@@ -17,12 +17,41 @@ export default function Header({
   variant?: "light" | "dark";
 }) {
   const [showHeader, setShowHeader] = useState(false);
+  const [isHeaderVisible, setIsHeaderVisible] = useState(true);
 
   const pathname = usePathname();
 
   useEffect(() => {
     if (!pathname.startsWith("/auth/")) setShowHeader(true);
+    else setShowHeader(false);
   }, [pathname]);
+
+  useEffect(() => {
+    let lastScrollY = window.scrollY;
+    const scrollHandler = () => {
+      const currentScrollY = window.scrollY;
+
+      requestAnimationFrame(() => {
+        // Always show nav at the top of the page
+        if (currentScrollY > lastScrollY) {
+          // scrolling down
+          setIsHeaderVisible(false);
+        } else {
+          // scrolling up
+          setIsHeaderVisible(true);
+        }
+
+        lastScrollY = currentScrollY;
+      });
+    };
+
+    window.addEventListener("scroll", scrollHandler, { passive: true });
+    return () => window.removeEventListener("scroll", scrollHandler);
+  }, []);
+
+  useEffect(() => {
+    if (window.scrollY < 100) setIsHeaderVisible(true);
+  }, []);
 
   const [menuOpen, setMenuOpen] = useState(false);
 
@@ -38,25 +67,30 @@ export default function Header({
   return !showHeader ? (
     <></>
   ) : (
-    <MaxWidthWrapper className="fixed z-50 w-full pt-6">
+    <MaxWidthWrapper className={cn("fixed z-50 w-full pt-6")}>
       <header
+        style={{ pointerEvents: isHeaderVisible ? "auto" : "none" }}
         className={cn(
-          "relative",
-          variant === "dark"
-            ? "top-12 left-5 right-5 w-[calc(100%-40px)] lg:top-6 lg:left-1/2 lg:right-auto"
-            : "top-0 lg:top-6 left-0 w-full",
+          "relative duration-300 transition-opacity",
+          isHeaderVisible ? "" : "opacity-0",
+          // isHeaderVisible ? "" : "hidden",
+          // variant === "dark"
+          // ? "top-12 left-5 right-5 w-[calc(100%-40px)] lg:top-6 lg:left-1/2 lg:right-auto"
+          // : "top-0 lg:top-6 left-0 w-full",
         )}
       >
         <div
           className={`
+            lg:px-8
         ${
-          variant === "dark"
-            ? menuOpen
-              ? "bg-transparent border-none rounded-[20px] lg:rounded-2xl px-3.5 lg:px-6 py-2 lg:py-4 h-[60px] lg:h-auto"
-              : "backdrop-blur-md bg-[#000000]/30 border border-white/10 rounded-[20px] lg:rounded-2xl px-3.5 lg:px-6 py-2 lg:py-4 h-[60px] lg:h-auto"
-            : menuOpen
-              ? "bg-transparent border-none rounded-none lg:rounded-2xl px-6 py-4"
-              : "bg-white lg:backdrop-blur-md lg:bg-black/20 lg:border lg:border-white/10 border-b border-gray-100 lg:border-none rounded-none lg:rounded-2xl px-6 py-4"
+          // variant === "dark"
+          // ? menuOpen
+          // ? "bg-transparent border-none rounded-[20px] lg:rounded-2xl px-3.5 lg:px-6 py-2 lg:py-4 h-[60px] lg:h-auto"
+          // : "backdrop-blur-md bg-[#000000]/30 border border-white/10 rounded-[20px] lg:rounded-2xl px-3.5 lg:px-6 py-2 lg:py-4 h-[60px] lg:h-auto"
+          // :
+          menuOpen
+            ? "border-none rounded-none lg:rounded-2xl py-4"
+            : "bg-white lg:backdrop-blur-md lg:bg-black/20 lg:border lg:border-white/10 border-b border-gray-100 lg:border-none rounded-none lg:rounded-2xl  py-4"
         }
         flex items-center justify-between lg:shadow-lg w-full relative z-50
       `}
@@ -91,12 +125,12 @@ export default function Header({
               </div>
             </div>
             {/* Desktop Logo Shield & Text */}
-            <div className="relative w-8 h-8">
+            <div className="relative w-8 h-8 xl:hidden max-lg:hidden">
               <Image
                 src="/logo-part.svg"
                 alt="elGARAGE Logo"
                 fill
-                className="xl:hidden max-lg:hidden"
+                className=""
               />
             </div>
             <div className="hidden xl:flex items-center gap-3">
@@ -146,7 +180,7 @@ export default function Header({
               <SearchIcon />
             </button>
             <Link
-              href="#"
+              href="/auth/login"
               className="text-white hover:text-white/80 font-medium text-sm transition-colors duration-200"
             >
               تسجيل الدخول
@@ -163,7 +197,7 @@ export default function Header({
           {/* Hamburger Menu Icon (Shown on Mobile on Left side of flow - placed last to render leftmost under RTL flow) */}
           <button
             onClick={() => setMenuOpen(!menuOpen)}
-            className="lg:hidden w-11 h-11 bg-primary-500 hover:bg-primary-600 rounded-xl flex items-center justify-center cursor-pointer transition-colors shadow-md z-50"
+            className="lg:hidden size-11.5 bg-primary-500 hover:bg-primary-600 rounded-xl flex items-center justify-center cursor-pointer transition-colors shadow-md z-50"
           >
             <MenuButton open={menuOpen} setOpen={setMenuOpen} />
           </button>
@@ -173,7 +207,7 @@ export default function Header({
         {/* {menuOpen && ( */}
         <div
           className={cn(
-            "lg:hidden fixed inset-0 bg-white z-40 flex flex-col justify-between pt-24 px-8 pb-12 shadow-2xl duration-300",
+            "lg:hidden fixed inset-0 bg-white overscroll-contain overflow-y-auto z-40 flex flex-col justify-between pt-24 px-8 pb-12 shadow-2xl duration-300",
             menuOpen ? "translate-x-0" : "translate-x-full",
           )}
         >
@@ -194,7 +228,7 @@ export default function Header({
           {/* Drawer Actions */}
           <div className="flex flex-col gap-4 mt-8">
             <Link
-              href="#"
+              href="/auth/login"
               onClick={() => setMenuOpen(false)}
               className="w-full text-center py-3 border border-gray-200 rounded-2xl text-gray-700 hover:bg-gray-50 font-bold text-base transition-colors"
             >

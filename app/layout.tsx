@@ -13,8 +13,13 @@ const font = localFont({
     },
     {
       path: "../public/fonts/Madani-Arabic-Regular-1.ttf",
-      weight: "400",
-      style: "regular",
+      weight: "500",
+      style: "medium",
+    },
+    {
+      path: "../public/fonts/Madani-Arabic-Semi-Bold-1.ttf",
+      weight: "600",
+      style: "semibold",
     },
     {
       path: "../public/fonts/Madani-Arabic-Bold-2.ttf",

@@ -59,7 +59,7 @@ const LeftSideHero = ({ text = {}, bottomSubText = {} }: Props) => {
 
       {/* Bottom subtext */}
       <div className="absolute bottom-[80px] lg:bottom-[100px] right-0 left-0 flex justify-center px-6">
-        <p className="font-normal text-white text-xl lg:text-2xl xl:text-3xl leading-normal text-center max-w-[769px]">
+        <p className="text-white text-xl lg:text-2xl xl:text-3xl leading-normal text-center max-w-[769px]">
           {subLine1} <br /> {subLine2}
         </p>
       </div>

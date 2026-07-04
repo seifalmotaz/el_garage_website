@@ -16,6 +16,7 @@ import { loginSchema, LoginSchemaType } from "@/shared/schemas";
 import { fakePromise } from "@/lib/utils";
 import LeftSideHero from "@/components/form/LeftSideHero";
 import Logo from "@/components/form/Logo";
+import Spinner from "@/components/common/Spinner";
 
 export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);
@@ -123,11 +124,7 @@ export default function LoginPage() {
                   className="bg-foreground text-white rounded-2xl min-h-[48px] font-semibold text-sm w-full transition-opacity hover:opacity-90 cursor-pointer"
                   disabled={isPending}
                 >
-                  {isPending ? (
-                    <span className="spinner"></span>
-                  ) : (
-                    "تسجيل الدخول"
-                  )}
+                  {isPending ? <Spinner /> : "تسجيل الدخول"}
                 </button>
                 <Link
                   href="/auth/signup"

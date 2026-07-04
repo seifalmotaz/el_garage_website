@@ -1,10 +1,10 @@
 import Image from "next/image";
+import MaxWidthWrapper from "./common/MaxWidthWrapper";
 
 export default function DownloadApp() {
   return (
-    <section className="w-full flex items-center justify-center pt-28 pb-16 lg:pt-16 lg:pb-24 px-6 max-w-full text-right bg-white">
-      <div className="relative w-full max-w-[1336px] min-h-[462px] lg:h-[462px] bg-[#f8f9fa] rounded-3xl overflow-visible flex flex-col lg:flex-row items-center justify-between px-6 md:px-12 lg:px-[72px] py-12 lg:py-0 gap-10 lg:gap-0">
-
+    <section className="w-full flex items-center justify-center pt-28 pb-16 lg:pt-16 lg:pb-24  text-right bg-white">
+      <MaxWidthWrapper className="relative w-full min-h-[462px] lg:h-[462px] bg-[#f8f9fa] rounded-3xl overflow-visible flex flex-col lg:flex-row items-center justify-between px-6 md:px-12 lg:px-[72px] py-12 lg:py-0 gap-10 lg:gap-0">
         {/* Background illustration */}
         <Image
           className="absolute bottom-0 left-1/2 -translate-x-1/2 w-full max-w-[909px] h-[467px] object-cover pointer-events-none z-0"
@@ -45,7 +45,9 @@ export default function DownloadApp() {
             </p>
           </div>
           <div className="flex flex-col items-center lg:items-start gap-4">
-            <span className="text-base md:text-lg font-semibold text-gray-800">حمّل التطبيق وابدأ بثقة</span>
+            <span className="text-base md:text-lg font-semibold text-gray-800">
+              حمّل التطبيق وابدأ بثقة
+            </span>
             <div className="flex items-start gap-3">
               <a href="#" className="block hover:opacity-90 transition-opacity">
                 <Image
@@ -80,7 +82,9 @@ export default function DownloadApp() {
 
         {/* QR Code Column (Left in RTL, Bottom on Mobile/Tablet) */}
         <div className="hidden md:flex w-full lg:w-[251px] flex-col items-center gap-4 text-center z-10 bg-white p-6 rounded-2xl border border-gray-100 shadow-sm">
-          <span className="text-sm font-semibold text-gray-700">افتح الكاميرا و امسح الكود</span>
+          <span className="text-sm font-semibold text-gray-700">
+            افتح الكاميرا و امسح الكود
+          </span>
           <div className="p-2 border border-gray-100 rounded-xl bg-gray-50">
             <Image
               className="w-[152px] h-[152px] rounded-lg object-contain"
@@ -94,8 +98,7 @@ export default function DownloadApp() {
             تحويل فوري لصفحة التحميل—في ثوانٍ ومن غير تسجيل أو خطوات إضافية.
           </p>
         </div>
-
-      </div>
+      </MaxWidthWrapper>
     </section>
   );
 }

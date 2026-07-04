@@ -10,6 +10,7 @@ import {
   ChangePasswordSchemaType,
 } from "@/shared/schemas";
 import { fakePromise } from "@/lib/utils";
+import Spinner from "../common/Spinner";
 
 const ChangePassword = () => {
   const [showPassword, setShowPassword] = useState(false);
@@ -105,7 +106,7 @@ const ChangePassword = () => {
         className=" text-white rounded-2xl min-h-[48px] bg-primary-500 font-semibold text-sm w-full transition-opacity hover:opacity-90 cursor-pointer"
         disabled={isPending}
       >
-        {isPending ? <span className="spinner"></span> : "حفظ"}
+        {isPending ? <Spinner /> : "حفظ"}
       </button>
     </form>
   );

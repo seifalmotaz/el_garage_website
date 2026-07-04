@@ -9,6 +9,7 @@ import {
   ForgetPasswordSchemaType,
 } from "@/shared/schemas";
 import { fakePromise } from "@/lib/utils";
+import Spinner from "../common/Spinner";
 
 const PhoneOrEmail = () => {
   const {
@@ -62,7 +63,7 @@ const PhoneOrEmail = () => {
             className="bg-primary-500 text-white rounded-2xl min-h-[48px] font-semibold text-sm w-full transition-opacity hover:opacity-90 cursor-pointer"
             disabled={isPending}
           >
-            {isPending ? <span className="spinner"></span> : "تحقق"}
+            {isPending ? <Spinner /> : "تحقق"}
           </button>
         </div>
       </form>

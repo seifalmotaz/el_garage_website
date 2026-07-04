@@ -44,6 +44,12 @@ body {
   /* font-family: var(--font-cairo), sans-serif; */
   font-family: var(--madani-arabic), sans-serif;
 }
+html {
+  scroll-behavior: smooth;
+}
+button {
+  cursor: pointer;
+}
 /* =============== global rules =============== */
 
 /* spinner animation */
