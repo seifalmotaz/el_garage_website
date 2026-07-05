@@ -4,6 +4,12 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import MaxWidthWrapper from "./MaxWidthWrapper";
+import {
+  FacebookIcon,
+  InstagramIcon,
+  TiwtterIcon,
+  YoutubeIcon,
+} from "../svg/Svgs";
 
 const legalLinks = [
   { label: "الشروط و الأحكام", href: "#" },
@@ -166,22 +172,31 @@ export default function Footer() {
             <p className="text-gray-400 text-sm text-center md:text-right">
               جميع الحقوق محفوظة لدى منصة elGARAGE
             </p>
-            <div className="flex items-center gap-4">
-              {socialIcons.map((soc, idx) => (
-                <a
-                  key={idx}
-                  href="#"
-                  className="w-11 h-11 rounded-full border border-white/12 hover:bg-white/10 flex items-center justify-center transition-colors"
-                >
-                  <Image
-                    src={soc.icon}
-                    alt={soc.name}
-                    width={19}
-                    height={19}
-                    className="w-5 h-5 opacity-80 hover:opacity-100 transition-opacity"
-                  />
-                </a>
-              ))}
+            <div className="flex items-center flex-row-reverse gap-4">
+              <Link
+                href="#"
+                className="w-11 h-11 rounded-full border border-white/12 hover:bg-white/10 flex items-center justify-center transition-colors"
+              >
+                <YoutubeIcon />
+              </Link>
+              <Link
+                href="#"
+                className="w-11 h-11 rounded-full border border-white/12 hover:bg-white/10 flex items-center justify-center transition-colors"
+              >
+                <FacebookIcon />
+              </Link>
+              <Link
+                href="#"
+                className="w-11 h-11 rounded-full border border-white/12 hover:bg-white/10 flex items-center justify-center transition-colors"
+              >
+                <TiwtterIcon />
+              </Link>
+              <Link
+                href="#"
+                className="w-11 h-11 rounded-full border border-white/12 hover:bg-white/10 flex items-center justify-center transition-colors"
+              >
+                <InstagramIcon />
+              </Link>
             </div>
           </MaxWidthWrapper>
         </div>

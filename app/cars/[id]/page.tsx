@@ -434,7 +434,7 @@ const PricingArea = ({ car }: { car: CarType }) => {
       <div className="flex flex-col gap-2 items-start md:items-end text-start shrink-0">
         <div className="flex items-baseline gap-1.5 justify-end md:justify-end  max-sm:flex-row-reverse w-full">
           {car.discountText && (
-            <span className="text-sm text-gray-400 line-throughtext-xs px-2.5 py-0.5 line-through rounded-full">
+            <span className="sm:text-sm text-xs text-gray-400 line-throughtext-xs px-2.5 py-0.5 line-through rounded-full">
               {car.discountText}
             </span>
           )}
@@ -451,7 +451,7 @@ const PricingArea = ({ car }: { car: CarType }) => {
         </div>
       </div>
 
-      <span className="bg-yellow-50 sm:hidden text-yellow-600 text-xs px-3 py-1 rounded-md border border-yellow-200/50 max-sm:order-1">
+      <span className="bg-yellow-50 sm:hidden text-yellow-600 text-xs sm:px-3 px-2 py-1 rounded-md border border-yellow-200/50 max-sm:order-1">
         {car.condition}
       </span>
     </div>
@@ -774,6 +774,7 @@ export default function CarDetailPage({
   const [activeImageIdx, setActiveImageIdx] = useState(0);
 
   const [showOfferModal, setShowOfferModal] = useState(false);
+
   const [offerPrice, setOfferPrice] = useState("");
 
   // Sidebar Accordion states
@@ -808,11 +809,11 @@ export default function CarDetailPage({
       {/* Main Container */}
       <main className="py-12 flex flex-col items-center">
         <MaxWidthWrapper
-          className="w-full 2xl:grid 2xl:grid-cols-12 2xl:gap-8 max-2xl:space-y-6 xl:px-[182px]!"
+          className="w-full xl:grid xl:grid-cols-12 xl:gap-8 max-xl:space-y-6 2xl:px-[182px]!"
           // dir="rtl"
         >
           {/* Right Column in RTL: Main Car Panel */}
-          <div className="flex-1 w-full flex flex-col gap-6 2xl:col-span-9">
+          <div className="flex-1 w-full flex flex-col gap-6 xl:col-span-9">
             {/* Gallery Wrapper */}
             <div className="flex flex-col gap-4 w-full">
               {/* Main Image Preview */}
@@ -848,7 +849,7 @@ export default function CarDetailPage({
           </div>
 
           {/* Left Column in RTL: Sidebar */}
-          <div className="w-full 2xl:w-[322px] shrink-0 flex flex-col gap-6 2xl:col-span-3">
+          <div className="w-full 2xl:w-[322px] shrink-0 flex flex-col gap-6 xl:col-span-3">
             {/* Sidebar Actions Card */}
             <div className="rounded-[20px] flex flex-col gap-4 w-full">
               {/* Send Offer Button */}
