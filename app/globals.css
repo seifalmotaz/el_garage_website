@@ -50,6 +50,10 @@ html {
 button {
   cursor: pointer;
 }
+html,
+body {
+  overflow-x: clip;
+}
 /* =============== global rules =============== */
 
 /* spinner animation */

@@ -71,7 +71,7 @@ export default function Header({
       <header
         style={{ pointerEvents: isHeaderVisible ? "auto" : "none" }}
         className={cn(
-          "relative duration-300 transition-opacity",
+          "relative duration-300 transition-opacity ",
           isHeaderVisible ? "" : "opacity-0",
           // isHeaderVisible ? "" : "hidden",
           // variant === "dark"
@@ -81,7 +81,7 @@ export default function Header({
       >
         <div
           className={`
-            lg:px-8
+            lg:px-8 px-4 rounded-2xl
         ${
           // variant === "dark"
           // ? menuOpen
@@ -89,8 +89,8 @@ export default function Header({
           // : "backdrop-blur-md bg-[#000000]/30 border border-white/10 rounded-[20px] lg:rounded-2xl px-3.5 lg:px-6 py-2 lg:py-4 h-[60px] lg:h-auto"
           // :
           menuOpen
-            ? "border-none rounded-none lg:rounded-2xl py-4"
-            : "bg-white lg:backdrop-blur-md lg:bg-black/20 lg:border lg:border-white/10 border-b border-gray-100 lg:border-none rounded-none lg:rounded-2xl  py-4"
+            ? "border-none rounded-none py-4"
+            : "backdrop-blur-md bg-black/20 lg:border lg:border-none  py-4"
         }
         flex items-center justify-between lg:shadow-lg w-full relative z-50
       `}
@@ -98,7 +98,7 @@ export default function Header({
           {/* Right: Logo (Placed first to align rightmost under RTL flow) */}
           <Link href="/" className="flex items-center gap-3 z-50">
             {/* Mobile Logo Shield & Text */}
-            <div className="lg:hidden flex items-center gap-2">
+            {/* <div className="lg:hidden flex items-center gap-2">
               <div className="relative w-8 h-8">
                 <Image
                   src={
@@ -123,7 +123,7 @@ export default function Header({
                   className="object-contain"
                 />
               </div>
-            </div>
+            </div> */}
             {/* Desktop Logo Shield & Text */}
             <div className="relative w-8 h-8 xl:hidden max-lg:hidden">
               <Image
@@ -133,7 +133,7 @@ export default function Header({
                 className=""
               />
             </div>
-            <div className="hidden xl:flex items-center gap-3">
+            <div className="flex lg:hidden xl:flex items-center gap-3">
               <div className="relative w-8 h-8">
                 <Image
                   src="/assets/logo_shield.svg"
@@ -150,7 +150,7 @@ export default function Header({
                   className="object-contain"
                 />
               </div>
-            </div>{" "}
+            </div>
           </Link>
 
           {/* Center: Navigation - Hidden on Mobile, shown on Large Screens */}
