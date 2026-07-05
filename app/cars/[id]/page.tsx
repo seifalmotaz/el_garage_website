@@ -660,7 +660,7 @@ const TabsComponentCard = ({ car }: { car: CarType }) => {
 
 const TabsComponentCardInMobile = ({ car }: { car: CarType }) => {
   return (
-    <div className="space-y-4 mb-4">
+    <div className="space-y-4 sm:hidden">
       <div className="p-3 rounded-2xl space-y-4 border border-[#F2F2F2] bg-white">
         <div className="flex justify-between">
           <h3 className="text-primary-500 text-sm leading-[150%]">
@@ -808,7 +808,7 @@ export default function CarDetailPage({
       {/* Main Container */}
       <main className="py-12 flex flex-col items-center">
         <MaxWidthWrapper
-          className="w-full 2xl:grid 2xl:grid-cols-12 2xl:gap-8 lx:px-[182px]!"
+          className="w-full 2xl:grid 2xl:grid-cols-12 2xl:gap-8 max-2xl:space-y-6 xl:px-[182px]!"
           // dir="rtl"
         >
           {/* Right Column in RTL: Main Car Panel */}
@@ -848,7 +848,7 @@ export default function CarDetailPage({
           </div>
 
           {/* Left Column in RTL: Sidebar */}
-          <div className="w-full lg:w-[322px] shrink-0 flex flex-col gap-6 2xl:col-span-3">
+          <div className="w-full 2xl:w-[322px] shrink-0 flex flex-col gap-6 2xl:col-span-3">
             {/* Sidebar Actions Card */}
             <div className="rounded-[20px] flex flex-col gap-4 w-full">
               {/* Send Offer Button */}
