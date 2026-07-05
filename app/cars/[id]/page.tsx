@@ -5,9 +5,39 @@ import Image from "next/image";
 import Link from "next/link";
 import DownloadApp from "../../../components/DownloadApp";
 import CarCard from "../../../components/CarCard";
+import MaxWidthWrapper from "@/components/common/MaxWidthWrapper";
+import { TriArrow } from "@/components/svg/Svgs";
+import {
+  Carousel,
+  CarouselContent,
+  CarouselItem,
+} from "@/components/common/Carousel";
+
+type CarType = {
+  brand: string;
+  model: string;
+  price: string;
+  originalPrice?: string;
+  discountText?: string;
+  installment: string;
+  year: string;
+  mileage: string;
+  trim: string;
+  location: string;
+  condition: string;
+  transmission: string;
+  fuelType: string;
+  color: string;
+  hp: string;
+  engineSize: string;
+  tankCapacity: string;
+  images: string[];
+  features: string[];
+  description: string;
+};
 
 // Mock car database
-const carsData: Record<string, any> = {
+const carsData: Record<string, CarType> = {
   "bmw-x5": {
     brand: "بي إم دبليو",
     model: "X5",
@@ -164,11 +194,546 @@ const initialCars = [
   },
 ];
 
+const Banner = ({ car }: { car: CarType }) => {
+  return (
+    <div className="relative w-full lg:h-[427px] h-[375px] overflow-hidden flex flex-col justify-end text-center pb-8 md:pb-0">
+      {/* Background Image */}
+      <Image
+        src="/images/car-details/banner.png"
+        alt="Car Details Page Banner"
+        fill
+        className="object-cover object-center"
+        priority
+      />
+      {/* Dark Gradient Overlay */}
+
+      {/* Content */}
+      <div
+        className="relative z-20 flex flex-col gap-3 px-6 lg:pb-[112px] pb-[44px]"
+        dir="rtl"
+      >
+        <h1 className="lg:text-3xl  md:text-[38px] text-lg text-white leading-tight tracking-wide">
+          تفاصيل السيارة
+        </h1>
+        <div className="flex items-center justify-center sm:gap-2 gap-1 text-xs md:text-sm text-gray-300 font-medium">
+          <Link
+            href="/"
+            className="hover:text-white transition-colors flex gap-2 items-center max-sm:text-xs"
+          >
+            <Image
+              src="/icons/home-2.svg"
+              alt="Car Details Page Banner"
+              width={24}
+              height={24}
+            />
+            الصفحة الرئيسية
+          </Link>
+          <span className="text-gray-500">/</span>
+          <Link
+            href="/cars"
+            className="hover:text-white transition-colors max-sm:text-xs"
+          >
+            تصفح السيارات
+          </Link>
+          <span className="text-gray-500">/</span>
+          <span className="text-primary-400">
+            {car.brand} {car.model}
+          </span>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+const MainImagePreview = ({
+  car,
+  activeImageIdx,
+}: {
+  car: CarType;
+  activeImageIdx: number;
+}) => {
+  const [isLiked, setIsLiked] = useState(false);
+
+  return (
+    <div className="relative lg:aspect-[730/452] aspect-[335/260] w-full rounded-[24px] overflow-hidden bg-white border border-gray-200/60 group shadow-xs">
+      <Image
+        src={car.images[activeImageIdx] || "/assets/car_placeholder.png"}
+        alt={`${car.brand} ${car.model}`}
+        fill
+        className="object-cover transition-all duration-300"
+        priority
+      />
+      {/* Floating Action Buttons: Visually on the RIGHT */}
+      <div className="absolute md:top-6 top-4 z-10 left-auto md:right-6 right-4 flex flex-col gap-3">
+        <button
+          onClick={() => setIsLiked(!isLiked)}
+          className="md:size-11 size-8 rounded-full bg-black/25 backdrop-blur-md flex items-center justify-center hover:bg-black/40 transition-colors shadow-sm cursor-pointer"
+        >
+          <Image
+            src="/assets/favourite_heart.svg"
+            alt="favorite"
+            width={18}
+            height={18}
+            className={`w-5.5 h-5.5 transition-all ${isLiked ? "brightness-125 saturate-150 scale-110" : "opacity-80"}`}
+          />
+        </button>
+        <button className="md:size-11 size-8 rounded-full bg-black/25 backdrop-blur-md flex items-center justify-center hover:bg-black/40 transition-colors shadow-sm cursor-pointer">
+          <Image
+            src="/icons/share.svg"
+            alt="share"
+            width={18}
+            height={18}
+            className="w-5 h-5 opacity-80"
+          />
+        </button>
+      </div>
+      {/* Floating Condition Badge: Visually on the LEFT */}
+      <div
+        className="absolute md:top-11 top-4 bg-yellow-100/90 backdrop-blur-xs text-yellow-600 text-sm p-2 pl-4 rounded-tr-lg rounded-br-lg shadow-xs border border-yellow-200/40"
+        style={{ left: "0px", right: "auto" }}
+      >
+        {car.condition}
+      </div>
+      {/* Bottom Gallery Utilities Overlay */}
+      <div
+        className="absolute md:bottom-6 bottom-2 md:left-6 left-4 md:right-6 right-4 flex items-center justify-between pointer-events-none z-10"
+        dir="rtl"
+      >
+        {/* Images Count Indicator: Visually on the RIGHT (DOM 1st child) */}
+        <div className="pointer-events-auto bg-black/45 backdrop-blur-md text-white font-medium text-sm md:px-6 md:py-4 py-2 px-3 rounded-full flex items-center gap-3 shadow-sm border border-white/10">
+          <span className="text-lg">{car.images.length}</span>
+          <div className="relative md:size-6 size-4.5">
+            <Image src="/icons/image.svg" alt="images" fill />
+          </div>
+        </div>
+
+        {/* Play Video CTA Button: Visually on the LEFT (DOM 2nd child) */}
+        <button className="pointer-events-auto bg-primary-50 hover:bg-primary-100 text-primary-500 font-semibold text-sm md:px-8 md:py-3.5 py-2 px-3 rounded-full flex items-center gap-2 transition-colors shadow-md cursor-pointer">
+          <div className="relative md:size-8 size-4.5">
+            <Image src="/icons/blue-play.svg" alt="images" fill />
+          </div>
+          <span className="text-primary-500 md:text-lg leading-7 md:font-medium">
+            تشغيل
+          </span>
+        </button>
+      </div>
+    </div>
+  );
+};
+
+const ThumbnailsStrip = ({
+  car,
+  activeImageIdx,
+  setActiveImageIdx,
+}: {
+  car: CarType;
+  activeImageIdx: number;
+  setActiveImageIdx: (idx: number) => void;
+}) => {
+  return (
+    <div className="bg-white border border-gray-100 rounded-2xl p-3 flex flex-nowrap items-center gap-2 overflow-x-auto w-full select-none ">
+      {car.images.map((imgUrl: string, idx: number) => {
+        const isActive = idx === activeImageIdx;
+        const isLastVisible = idx === 6 && car.images.length > 7;
+        return (
+          <button
+            key={idx}
+            onClick={() => setActiveImageIdx(idx)}
+            className={`relative sm:w-[89px] sm:h-[73px] size-[60px] rounded-xl overflow-hidden shrink-0 border-2 transition-all cursor-pointer ${
+              isActive
+                ? "border-primary-500 scale-95 shadow-sm"
+                : "border-gray-100 hover:border-gray-300"
+            }`}
+          >
+            <Image
+              src={imgUrl}
+              alt={`thumbnail ${idx}`}
+              fill
+              className="object-cover"
+            />
+            {isLastVisible && (
+              <div className="absolute inset-0 bg-primary-500/80 backdrop-blur-xs flex items-center justify-center text-white font-bold text-lg">
+                +{car.images.length - 6}
+              </div>
+            )}
+          </button>
+        );
+      })}
+    </div>
+  );
+};
+
+const BrandAndTitle = ({ car }: { car: CarType }) => {
+  return (
+    <div className="flex flex-col  gap-3 lg:text-start text-end max-lg:order-2">
+      <div className="flex items-center  gap-4 w-[500px]">
+        <h1 className="font-bold sm:text-2xl md:text-3xl text-[16px] text-gray-900 leading-normal md:leading-tight">
+          {car.brand} {car.model} {car.year}
+        </h1>
+        <span className="bg-yellow-50  max-sm:hidden text-yellow-600 text-xs px-3 py-1 rounded-md border border-yellow-200/50 max-sm:order-1">
+          {car.condition}
+        </span>
+      </div>
+      {/* Specs Grid */}
+      <div className="flex flex-wrap gap-3 w-full">
+        <div className="flex items-center gap-1 justify-start text-sm text-gray-500">
+          <Image
+            src="/icons/gas-station.svg"
+            alt="fuel Type"
+            width={20}
+            height={20}
+          />
+          {car.fuelType}
+        </div>
+        <div className="flex items-center gap-1 justify-start text-sm text-gray-500">
+          <Image
+            src="/icons/calendar.svg"
+            alt="calendar"
+            width={20}
+            height={20}
+          />
+          {car.year}
+        </div>
+        <div className="flex items-center gap-1 justify-start text-sm text-gray-500">
+          <Image
+            src="/icons/spedometer-middle.svg"
+            alt="spedometer-middle"
+            width={20}
+            height={20}
+          />
+          {car.mileage}
+        </div>
+
+        <div className="flex items-center gap-1 justify-start text-sm text-gray-500">
+          <Image src="/icons/car.svg" alt="trim" width={20} height={20} />
+          {car.trim}
+        </div>
+
+        <div className="flex items-center gap-1 justify-start text-sm text-gray-500">
+          <Image
+            src="/icons/transmission-square.svg"
+            alt="car"
+            width={20}
+            height={20}
+          />
+          {car.transmission}
+        </div>
+
+        <div className="flex items-center gap-1 justify-start text-sm text-gray-500">
+          <Image src="/icons/location.svg" alt="car" width={20} height={20} />
+          {car.location}
+        </div>
+      </div>
+    </div>
+  );
+};
+
+const PricingArea = ({ car }: { car: CarType }) => {
+  return (
+    <div className="flex items-start">
+      <div className="flex flex-col gap-2 items-start md:items-end text-start shrink-0">
+        <div className="flex items-baseline gap-1.5 justify-end md:justify-end  max-sm:flex-row-reverse w-full">
+          {car.discountText && (
+            <span className="text-sm text-gray-400 line-throughtext-xs px-2.5 py-0.5 line-through rounded-full">
+              {car.discountText}
+            </span>
+          )}
+          <div>
+            <span className="lg:text-3xl text-[18px] font-extrabold font-monos text-primary-500">
+              {car.price}
+            </span>
+            <span className="text-sm font-semibold text-primary-400">ج.م</span>
+          </div>
+        </div>
+
+        <div className="bg-green-50/70 border border-green-100 text-green-600 px-4 py-1.5 rounded-full text-sm mt-1">
+          قسط شهري يبدأ من {car.installment} ج.م
+        </div>
+      </div>
+
+      <span className="bg-yellow-50 sm:hidden text-yellow-600 text-xs px-3 py-1 rounded-md border border-yellow-200/50 max-sm:order-1">
+        {car.condition}
+      </span>
+    </div>
+  );
+};
+
+const TabsComponentCard = ({ car }: { car: CarType }) => {
+  const [activeTab, setActiveTab] = useState<
+    "specs" | "features" | "description"
+  >("specs");
+  return (
+    <>
+      <div className="bg-white border border-gray-100 rounded-[20px] overflow-hidden w-full shadow-2xs max-sm:hidden">
+        {/* Tab Navigation header */}
+        <div className="border-b border-gray-100 flex items-center justify-start bg-gray-50/50 px-4 md:px-6 overflow-x-auto scrollbar-none whitespace-nowrap">
+          <button
+            onClick={() => setActiveTab("specs")}
+            className={`px-4 md:px-6 py-3.5 md:py-4.5 font-medium text-base border-b-2 transition-all cursor-pointer ${
+              activeTab === "specs"
+                ? "border-primary-500 text-primary-500"
+                : "border-transparent text-gray-400 hover:text-gray-600"
+            }`}
+          >
+            مواصفات السيارة
+          </button>
+          <button
+            onClick={() => setActiveTab("features")}
+            className={`px-4 md:px-6 py-3.5 md:py-4.5 font-medium text-base border-b-2 transition-all cursor-pointer ${
+              activeTab === "features"
+                ? "border-primary-500 text-primary-500"
+                : "border-transparent text-gray-400 hover:text-gray-600"
+            }`}
+          >
+            المميزات
+          </button>
+          <button
+            onClick={() => setActiveTab("description")}
+            className={`px-4 md:px-6 py-3.5 md:py-4.5 font-medium text-base border-b-2 transition-all cursor-pointer ${
+              activeTab === "description"
+                ? "border-primary-500 text-primary-500"
+                : "border-transparent text-gray-400 hover:text-gray-600"
+            }`}
+          >
+            الوصف
+          </button>
+        </div>
+
+        {/* Tab Content body */}
+        <div className="p-6 md:p-8 text-start">
+          {activeTab === "specs" && (
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 md:gap-4">
+              <div className="bg-gray-50 border border-gray-100 rounded-xl p-3 md:p-4 flex flex-col gap-1.5">
+                <span className="text-sm leading-4 text-black">الوقود</span>
+                <span className="text-sm text-gray-500 leading-4">
+                  {car.fuelType}
+                </span>
+              </div>
+              <div className="bg-gray-50 border border-gray-100 rounded-xl p-3 md:p-4 flex flex-col gap-1.5">
+                <span className="text-sm leading-4 text-black">اللون</span>
+                <span className="text-sm text-gray-500 leading-4">
+                  {car.color || "أسود"}
+                </span>
+              </div>
+              <div className="bg-gray-50 border border-gray-100 rounded-xl p-3 md:p-4 flex flex-col gap-1.5">
+                <span className="text-sm leading-4 text-black">الحالة</span>
+                <span className="text-sm text-gray-500 leading-4">
+                  {car.condition}
+                </span>
+              </div>
+              <div className="bg-gray-50 border border-gray-100 rounded-xl p-3 md:p-4 flex flex-col gap-1.5">
+                <span className="text-sm leading-4 text-black">الموديل</span>
+                <span className="text-sm text-gray-500 leading-4">
+                  {car.year}
+                </span>
+              </div>
+              <div className="bg-gray-50 border border-gray-100 rounded-xl p-3 md:p-4 flex flex-col gap-1.5">
+                <span className="text-sm leading-4 text-black">
+                  ناقل الحركة
+                </span>
+                <span className="text-sm text-gray-500 leading-4">
+                  {car.transmission}
+                </span>
+              </div>
+              <div className="bg-gray-50 border border-gray-100 rounded-xl p-3 md:p-4 flex flex-col gap-1.5">
+                <span className="text-sm leading-4 text-black">
+                  الكيلومترات
+                </span>
+                <span className="text-sm text-gray-500 leading-4">
+                  {car.mileage}
+                </span>
+              </div>
+              <div className="bg-gray-50 border border-gray-100 rounded-xl p-3 md:p-4 flex flex-col gap-1.5">
+                <span className="text-sm leading-4 text-black">سعة الخزان</span>
+                <span className="text-sm text-gray-500 leading-4">
+                  {car.tankCapacity || "70 لتر"}
+                </span>
+              </div>
+              <div className="bg-gray-50 border border-gray-100 rounded-xl p-3 md:p-4 flex flex-col gap-1.5">
+                <span className="text-sm leading-4 text-black">قوة HP</span>
+                <span className="text-sm text-gray-500 leading-4">
+                  {car.hp || "180"}
+                </span>
+              </div>
+              <div className="bg-gray-50 border border-gray-100 rounded-xl p-3 md:p-4 flex flex-col gap-1.5">
+                <span className="text-sm leading-4 text-black">سعة المحرك</span>
+                <span className="text-sm text-gray-500 leading-4">
+                  {car.engineSize || "1600 سي سي"}
+                </span>
+              </div>
+            </div>
+          )}
+
+          {activeTab === "features" && (
+            <div className="flex flex-wrap gap-2.5">
+              {car.features.map((feature: string, idx: number) => (
+                <span
+                  key={idx}
+                  className="bg-primary-50/60 border border-primary-100/50 text-primary-600 text-xs font-semibold px-4.5 py-2.5 rounded-xl flex items-center gap-2"
+                >
+                  <span className="w-1.5 h-1.5 rounded-full bg-primary-500"></span>
+                  {feature}
+                </span>
+              ))}
+            </div>
+          )}
+
+          {activeTab === "description" && (
+            <p className="text-gray-600 text-sm leading-relaxed whitespace-pre-line">
+              {car.description}
+            </p>
+          )}
+        </div>
+      </div>
+
+      <div className="sm:hidden">
+        <div className="self-stretch inline-flex justify-end items-center mb-2">
+          <div className="text-right justify-start text-primary-500 font-normal">
+            مواصفات السيارة
+          </div>
+        </div>
+
+        <div className="grid grid-cols-3 gap-2">
+          <div className="bg-gray-50 border border-gray-100 rounded-sm px-2 py-1.5 flex flex-col gap-1">
+            <span className="text-[10px] leading-4 text-black">الوقود</span>
+            <span className="text-xs text-gray-500 leading-4">
+              {car.fuelType}
+            </span>
+          </div>
+          <div className="bg-gray-50 border border-gray-100 rounded-sm px-2 py-1.5 flex flex-col gap-1">
+            <span className="text-[10px] leading-4 text-black">الوقود</span>
+            <span className="text-xs text-gray-500 leading-4">
+              {car.color || "أسود"}
+            </span>
+          </div>
+
+          <div className="bg-gray-50 border border-gray-100 rounded-sm px-2 py-1.5 flex flex-col gap-1">
+            <span className="text-[10px] leading-4 text-black">اللون</span>
+            <span className="text-xs text-gray-500 leading-4">
+              {car.condition}
+            </span>
+          </div>
+
+          <div className="bg-gray-50 border border-gray-100 rounded-sm px-2 py-1.5 flex flex-col gap-1">
+            <span className="text-[10px] leading-4 text-black">الموديل</span>
+            <span className="text-xs text-gray-500 leading-4">{car.year}</span>
+          </div>
+          <div className="bg-gray-50 border border-gray-100 rounded-sm px-2 py-1.5 flex flex-col gap-1">
+            <span className="text-[10px] leading-4 text-black">
+              ناقل الحركة
+            </span>
+            <span className="text-xs text-gray-500 leading-4">
+              {car.transmission}
+            </span>
+          </div>
+          <div className="bg-gray-50 border border-gray-100 rounded-sm px-2 py-1.5 flex flex-col gap-1">
+            <span className="text-[10px] leading-4 text-black">
+              الكيلومترات
+            </span>
+            <span className="text-xs text-gray-500 leading-4">
+              {car.mileage}
+            </span>
+          </div>
+          <div className="bg-gray-50 border border-gray-100 rounded-sm px-2 py-1.5 flex flex-col gap-1">
+            <span className="text-[10px] leading-4 text-black">سعة الخزان</span>
+            <span className="text-xs text-gray-500 leading-4">
+              {car.tankCapacity || "70 لتر"}
+            </span>
+          </div>
+          <div className="bg-gray-50 border border-gray-100 rounded-sm px-2 py-1.5 flex flex-col gap-1">
+            <span className="text-[10px] leading-4 text-black">قوة HP</span>
+            <span className="text-xs text-gray-500 leading-4">
+              {car.hp || "180"}
+            </span>
+          </div>
+          <div className="bg-gray-50 border border-gray-100 rounded-sm px-2 py-1.5 flex flex-col gap-1">
+            <span className="text-[10px] leading-4 text-black">سعة المحرك</span>
+            <span className="text-xs text-gray-500 leading-4">
+              {car.engineSize || "1600 سي سي"}
+            </span>
+          </div>
+        </div>
+      </div>
+    </>
+  );
+};
+
+const TabsComponentCardInMobile = ({ car }: { car: CarType }) => {
+  return (
+    <div className="space-y-4 mb-4">
+      <div className="p-3 rounded-2xl space-y-4 border border-[#F2F2F2] bg-white">
+        <div className="flex justify-between">
+          <h3 className="text-primary-500 text-sm leading-[150%]">
+            مميزات السيارة
+          </h3>
+          <Link href={"#"} className="text-gray-500 text-sm leading-[150%]">
+            عرض جميع المميزات
+          </Link>
+        </div>
+
+        <div className="grid grid-cols-3 gap-x-2 gap-y-3">
+          {car.features.map((feature: string, idx: number) => (
+            <div
+              key={idx}
+              className="bg-gray-50 text-gray-600 py-2 px-3 rounded-md flex flex-col justify-center items-center gap-1"
+            >
+              <span className="text-sm text-center">{feature}</span>
+
+              <Image src={"/car-feat.svg"} alt="feat" width={30} height={30} />
+            </div>
+          ))}
+        </div>
+      </div>
+      <div className="p-3 rounded-2xl border border-[#F2F2F2] bg-white">
+        <h3 className="text-primary-500 text-sm leading-[150%] mb-4">
+          مميزات السيارة
+        </h3>
+        <div>
+          <p className="text-gray-800 text-sm leading-[190%]">
+            {car.description}
+          </p>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+const CertificationFooterBanner = () => {
+  return (
+    <div className="bg-gradient-to-r from-[#002ec1] to-[#00165b] text-white px-4 py-2 flex items-center justify-between shadow-inner rounded-b-2xl h-11">
+      {/* Certified Label on Right in RTL */}
+      <div className="flex items-center gap-1.5">
+        <div className="relative w-4 h-4">
+          <Image
+            src="/assets/certified_shield.svg"
+            alt="certified"
+            fill
+            className="object-contain"
+          />
+        </div>
+        <span className="text-xs font-medium">معتمدة من جراج</span>
+      </div>
+
+      {/* Arrow on Left in RTL */}
+      <div className="flex items-center justify-center hover:opacity-80 transition-opacity cursor-pointer">
+        <Image
+          src="/assets/arrow_left_white.svg"
+          alt="view details"
+          width={16}
+          height={16}
+          className="w-4 h-4 rotate-45"
+        />
+      </div>
+    </div>
+  );
+};
+
 const getCarData = (id: string) => {
   if (carsData[id]) return carsData[id];
 
   // Dynamic lookup fallback
   const carFromList = initialCars.find((c) => c.id === id);
+
   if (carFromList) {
     return {
       brand: carFromList.brand,
@@ -207,10 +772,7 @@ export default function CarDetailPage({
 
   // States
   const [activeImageIdx, setActiveImageIdx] = useState(0);
-  const [activeTab, setActiveTab] = useState<
-    "specs" | "features" | "description"
-  >("specs");
-  const [isLiked, setIsLiked] = useState(false);
+
   const [showOfferModal, setShowOfferModal] = useState(false);
   const [offerPrice, setOfferPrice] = useState("");
 
@@ -241,478 +803,58 @@ export default function CarDetailPage({
   return (
     <div className="relative flex flex-col min-h-screen bg-gray-50">
       {/* Page Title Hero Banner */}
-      <div className="relative w-full h-[240px] md:h-[320px] overflow-hidden flex flex-col justify-end md:justify-center items-center text-center pb-8 md:pb-0">
-        {/* Background Image */}
-        <Image
-          src="/assets/login_hero.jpg"
-          alt="Car Details Page Banner"
-          fill
-          className="object-cover object-center"
-          priority
-        />
-        {/* Dark Gradient Overlay */}
-        <div className="absolute inset-0 bg-gradient-to-b from-black/80 to-black/65 z-10" />
-
-        {/* Content */}
-        <div className="relative z-20 flex flex-col gap-3 px-6" dir="rtl">
-          <h1 className="text-3xl md:text-[38px] font-extrabold text-white leading-tight font-sans tracking-wide">
-            تفاصيل السيارة
-          </h1>
-          <div className="flex items-center justify-center gap-2 text-xs md:text-sm text-gray-300 font-medium font-sans">
-            <Link href="/" className="hover:text-white transition-colors">
-              الصفحة الرئيسية
-            </Link>
-            <span className="text-gray-500">/</span>
-            <Link href="/cars" className="hover:text-white transition-colors">
-              تصفح السيارات
-            </Link>
-            <span className="text-gray-500">/</span>
-            <span className="text-primary-400 font-bold">
-              {car.brand} {car.model}
-            </span>
-          </div>
-        </div>
-      </div>
+      <Banner car={car} />
 
       {/* Main Container */}
-      <main className="flex-1 py-12 flex flex-col items-center">
-        <div
-          className="w-full max-w-[1336px] mx-auto px-6 md:px-12 flex flex-col lg:flex-row gap-8 items-start"
-          dir="rtl"
+      <main className="py-12 flex flex-col items-center">
+        <MaxWidthWrapper
+          className="w-full 2xl:grid 2xl:grid-cols-12 2xl:gap-8 lx:px-[182px]!"
+          // dir="rtl"
         >
           {/* Right Column in RTL: Main Car Panel */}
-          <div className="flex-1 w-full flex flex-col gap-6">
+          <div className="flex-1 w-full flex flex-col gap-6 2xl:col-span-9">
             {/* Gallery Wrapper */}
             <div className="flex flex-col gap-4 w-full">
               {/* Main Image Preview */}
-              <div className="relative aspect-[730/452] w-full rounded-[24px] overflow-hidden bg-white border border-gray-200/60 group shadow-xs">
-                <Image
-                  src={
-                    car.images[activeImageIdx] || "/assets/car_placeholder.png"
-                  }
-                  alt={`${car.brand} ${car.model}`}
-                  fill
-                  className="object-cover transition-all duration-300"
-                  priority
-                />
-
-                {/* Floating Action Buttons: Visually on the RIGHT */}
-                <div
-                  className="absolute top-4 z-10 flex flex-col gap-3"
-                  style={{ right: "16px", left: "auto" }}
-                >
-                  <button
-                    onClick={() => setIsLiked(!isLiked)}
-                    className="w-11 h-11 rounded-full bg-black/25 backdrop-blur-md flex items-center justify-center hover:bg-black/40 transition-colors shadow-sm cursor-pointer"
-                  >
-                    <Image
-                      src="/assets/favourite_heart.svg"
-                      alt="favorite"
-                      width={22}
-                      height={22}
-                      className={`w-5.5 h-5.5 transition-all ${isLiked ? "brightness-125 saturate-150 scale-110" : "opacity-80"}`}
-                    />
-                  </button>
-                  <button className="w-11 h-11 rounded-full bg-black/25 backdrop-blur-md flex items-center justify-center hover:bg-black/40 transition-colors shadow-sm cursor-pointer">
-                    <Image
-                      src="/assets/arrow_left_white.svg"
-                      alt="share"
-                      width={20}
-                      height={20}
-                      className="w-5 h-5 opacity-80"
-                    />
-                  </button>
-                </div>
-
-                {/* Floating Condition Badge: Visually on the LEFT */}
-                <div
-                  className="absolute top-4 bg-yellow-100/90 backdrop-blur-xs text-yellow-700 text-sm font-semibold px-4 py-1.5 rounded-full shadow-xs border border-yellow-200/40"
-                  style={{ left: "16px", right: "auto" }}
-                >
-                  {car.condition}
-                </div>
-
-                {/* Bottom Gallery Utilities Overlay */}
-                <div
-                  className="absolute bottom-4 left-4 right-4 flex items-center justify-between pointer-events-none z-10"
-                  dir="rtl"
-                >
-                  {/* Images Count Indicator: Visually on the RIGHT (DOM 1st child) */}
-                  <div className="pointer-events-auto bg-black/45 backdrop-blur-md text-white font-medium text-sm px-4 py-2 rounded-full flex items-center gap-2 shadow-sm border border-white/10">
-                    <span className="font-mono">{car.images.length}</span>
-                    <Image
-                      src="/assets/search_normal.svg"
-                      alt="images"
-                      width={18}
-                      height={18}
-                      className="w-4.5 h-4.5 invert"
-                    />
-                  </div>
-
-                  {/* Play Video CTA Button: Visually on the LEFT (DOM 2nd child) */}
-                  <button className="pointer-events-auto bg-primary-50 hover:bg-primary-100 text-primary-500 font-semibold text-sm px-6 py-2.5 rounded-full flex items-center gap-2 transition-colors shadow-md cursor-pointer">
-                    <span>تشغيل</span>
-                    <Image
-                      src="/assets/play_video.svg"
-                      alt="play"
-                      width={16}
-                      height={16}
-                      className="w-4.5 h-4.5"
-                    />
-                  </button>
-                </div>
-              </div>
+              <MainImagePreview car={car} activeImageIdx={activeImageIdx} />
 
               {/* Thumbnails strip */}
-              <div className="bg-white border border-gray-100 rounded-2xl p-3 flex items-center gap-3 overflow-x-auto w-full select-none scrollbar-none">
-                {car.images.map((imgUrl: string, idx: number) => {
-                  const isActive = idx === activeImageIdx;
-                  const isLastVisible = idx === 6 && car.images.length > 7;
-                  return (
-                    <button
-                      key={idx}
-                      onClick={() => setActiveImageIdx(idx)}
-                      className={`relative w-[89px] h-[73px] rounded-xl overflow-hidden shrink-0 border-2 transition-all cursor-pointer ${
-                        isActive
-                          ? "border-primary-500 scale-95 shadow-sm"
-                          : "border-gray-100 hover:border-gray-300"
-                      }`}
-                    >
-                      <Image
-                        src={imgUrl}
-                        alt={`thumbnail ${idx}`}
-                        fill
-                        className="object-cover"
-                      />
-                      {isLastVisible && (
-                        <div className="absolute inset-0 bg-primary-500/80 backdrop-blur-xs flex items-center justify-center text-white font-bold text-lg">
-                          +{car.images.length - 6}
-                        </div>
-                      )}
-                    </button>
-                  );
-                })}
-              </div>
+              <ThumbnailsStrip
+                car={car}
+                activeImageIdx={activeImageIdx}
+                setActiveImageIdx={(v) => setActiveImageIdx(v)}
+              />
             </div>
 
-            {/* Title & Pricing Card */}
-            <div className="bg-white border border-gray-100 rounded-[20px] p-6 md:p-8 flex flex-col gap-6 w-full shadow-2xs">
-              <div className="flex flex-col md:flex-row md:items-start justify-between gap-6 pb-6 border-b border-gray-100">
-                {/* Brand & Title */}
-                <div className="flex flex-col gap-3 text-start">
-                  <div className="flex items-center gap-3">
-                    <span className="bg-yellow-50 text-yellow-600 text-xs font-semibold px-3 py-1 rounded-md border border-yellow-200/50">
-                      {car.condition}
-                    </span>
-                    <h1 className="font-bold text-2xl md:text-3xl text-gray-900 leading-normal md:leading-tight">
-                      {car.brand} {car.model} {car.year}
-                    </h1>
-                  </div>
-                  <p className="text-gray-500 text-sm font-medium">
-                    {car.trim}
-                  </p>
-                </div>
+            <div>
+              {/* Title & Pricing Card */}
+              <div className="bg-white border border-gray-100 rounded-t-[20px] p-4 flex flex-col gap-6 w-full shadow-2xs">
+                <div className="flex flex-col lg:flex-row md:items-start justify-between gap-6 pb-6  border-gray-100 overflow-hidden">
+                  {/* Brand & Title */}
+                  <BrandAndTitle car={car} />
 
-                {/* Pricing Area */}
-                <div className="flex flex-col gap-2 items-start md:items-end text-start shrink-0">
-                  <div className="flex items-baseline gap-1.5 justify-start md:justify-end w-full">
-                    <span className="text-sm font-semibold text-primary-400">
-                      ج.م
-                    </span>
-                    <span className="text-3xl font-extrabold font-mono text-primary-500">
-                      {car.price}
-                    </span>
-                    {car.discountText && (
-                      <span className="text-xs text-gray-400 line-through font-semibold ms-2 self-center">
-                        {car.originalPrice || car.price}
-                      </span>
-                    )}
-                  </div>
-                  {car.discountText && (
-                    <span className="bg-red-50 border border-red-100 text-red-600 text-xs font-semibold px-2.5 py-0.5 rounded-full">
-                      {car.discountText}
-                    </span>
-                  )}
-                  <div className="bg-green-50/70 border border-green-100 text-green-700 px-4 py-1.5 rounded-full text-sm font-semibold mt-1">
-                    قسط شهري يبدأ من {car.installment} ج.م
-                  </div>
+                  {/* Pricing Area */}
+                  <PricingArea car={car} />
                 </div>
+                {/* Tabs Component Card */}
+                <TabsComponentCard car={car} />
               </div>
 
-              {/* Specs Grid */}
-              <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 md:gap-6 text-start w-full">
-                <div className="flex items-center gap-2 md:gap-3 justify-start bg-gray-50/50 p-2.5 md:p-3 rounded-xl border border-gray-100/50">
-                  <Image
-                    src="/assets/car_specs_icon.svg"
-                    alt="trim"
-                    width={20}
-                    height={20}
-                    className="w-4.5 h-4.5 md:w-5 md:h-5 opacity-70 shrink-0"
-                  />
-                  <div className="flex flex-col gap-0.5 min-w-0">
-                    <span className="text-[11px] text-gray-400">الفئة</span>
-                    <span className="text-xs font-semibold text-gray-700 truncate">
-                      {car.trim}
-                    </span>
-                  </div>
-                </div>
-                <div className="flex items-center gap-2 md:gap-3 justify-start bg-gray-50/50 p-2.5 md:p-3 rounded-xl border border-gray-100/50">
-                  <Image
-                    src="/assets/spedometer_specs.svg"
-                    alt="mileage"
-                    width={20}
-                    height={20}
-                    className="w-4.5 h-4.5 md:w-5 md:h-5 opacity-70 shrink-0"
-                  />
-                  <div className="flex flex-col gap-0.5 min-w-0">
-                    <span className="text-[11px] text-gray-400">
-                      المسافة المقطوعة
-                    </span>
-                    <span className="text-xs font-semibold text-gray-700 truncate font-mono">
-                      {car.mileage}
-                    </span>
-                  </div>
-                </div>
-                <div className="flex items-center gap-2 md:gap-3 justify-start bg-gray-50/50 p-2.5 md:p-3 rounded-xl border border-gray-100/50">
-                  <Image
-                    src="/assets/calendar_specs.svg"
-                    alt="year"
-                    width={20}
-                    height={20}
-                    className="w-4.5 h-4.5 md:w-5 md:h-5 opacity-70 shrink-0"
-                  />
-                  <div className="flex flex-col gap-0.5 min-w-0">
-                    <span className="text-[11px] text-gray-400">
-                      سنة الموديل
-                    </span>
-                    <span className="text-xs font-semibold text-gray-700 truncate font-mono">
-                      {car.year}
-                    </span>
-                  </div>
-                </div>
-                <div className="flex items-center gap-2 md:gap-3 justify-start bg-gray-50/50 p-2.5 md:p-3 rounded-xl border border-gray-100/50">
-                  <Image
-                    src="/assets/services_device_3.svg"
-                    alt="fuel"
-                    width={20}
-                    height={20}
-                    className="w-4.5 h-4.5 md:w-5 md:h-5 opacity-70 shrink-0"
-                  />
-                  <div className="flex flex-col gap-0.5 min-w-0">
-                    <span className="text-[11px] text-gray-400">
-                      نوع الوقود
-                    </span>
-                    <span className="text-xs font-semibold text-gray-700 truncate">
-                      {car.fuelType}
-                    </span>
-                  </div>
-                </div>
-                <div className="flex items-center gap-2 md:gap-3 justify-start bg-gray-50/50 p-2.5 md:p-3 rounded-xl border border-gray-100/50">
-                  <Image
-                    src="/assets/location_specs.svg"
-                    alt="location"
-                    width={20}
-                    height={20}
-                    className="w-4.5 h-4.5 md:w-5 md:h-5 opacity-70 shrink-0"
-                  />
-                  <div className="flex flex-col gap-0.5 min-w-0">
-                    <span className="text-[11px] text-gray-400">المحافظة</span>
-                    <span className="text-xs font-semibold text-gray-700 truncate">
-                      {car.location}
-                    </span>
-                  </div>
-                </div>
-                <div className="flex items-center gap-2 md:gap-3 justify-start bg-gray-50/50 p-2.5 md:p-3 rounded-xl border border-gray-100/50">
-                  <Image
-                    src="/assets/services_car_1.svg"
-                    alt="transmission"
-                    width={20}
-                    height={20}
-                    className="w-4.5 h-4.5 md:w-5 md:h-5 opacity-70 shrink-0"
-                  />
-                  <div className="flex flex-col gap-0.5 min-w-0">
-                    <span className="text-[11px] text-gray-400">
-                      ناقل الحركة
-                    </span>
-                    <span className="text-xs font-semibold text-gray-700 truncate">
-                      {car.transmission}
-                    </span>
-                  </div>
-                </div>
-              </div>
+              {/* Certification Footer Banner */}
+              <CertificationFooterBanner />
             </div>
 
-            {/* Tabs Component Card */}
-            <div className="bg-white border border-gray-100 rounded-[20px] overflow-hidden w-full shadow-2xs">
-              {/* Tab Navigation header */}
-              <div className="border-b border-gray-100 flex items-center justify-start bg-gray-50/50 px-4 md:px-6 overflow-x-auto scrollbar-none whitespace-nowrap">
-                <button
-                  onClick={() => setActiveTab("specs")}
-                  className={`px-4 md:px-6 py-3.5 md:py-4.5 font-bold text-sm border-b-2 transition-all cursor-pointer ${
-                    activeTab === "specs"
-                      ? "border-primary-500 text-primary-500"
-                      : "border-transparent text-gray-400 hover:text-gray-600"
-                  }`}
-                >
-                  مواصفات السيارة
-                </button>
-                <button
-                  onClick={() => setActiveTab("features")}
-                  className={`px-4 md:px-6 py-3.5 md:py-4.5 font-bold text-sm border-b-2 transition-all cursor-pointer ${
-                    activeTab === "features"
-                      ? "border-primary-500 text-primary-500"
-                      : "border-transparent text-gray-400 hover:text-gray-600"
-                  }`}
-                >
-                  المميزات
-                </button>
-                <button
-                  onClick={() => setActiveTab("description")}
-                  className={`px-4 md:px-6 py-3.5 md:py-4.5 font-bold text-sm border-b-2 transition-all cursor-pointer ${
-                    activeTab === "description"
-                      ? "border-primary-500 text-primary-500"
-                      : "border-transparent text-gray-400 hover:text-gray-600"
-                  }`}
-                >
-                  الوصف
-                </button>
-              </div>
-
-              {/* Tab Content body */}
-              <div className="p-6 md:p-8 text-start">
-                {activeTab === "specs" && (
-                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 md:gap-4">
-                    <div className="bg-gray-50 border border-gray-100 rounded-xl p-3 md:p-4 flex flex-col gap-1">
-                      <span className="text-[11px] text-gray-400">الوقود</span>
-                      <span className="text-sm font-semibold text-gray-800">
-                        {car.fuelType}
-                      </span>
-                    </div>
-                    <div className="bg-gray-50 border border-gray-100 rounded-xl p-3 md:p-4 flex flex-col gap-1">
-                      <span className="text-[11px] text-gray-400">اللون</span>
-                      <span className="text-sm font-semibold text-gray-800">
-                        {car.color || "أسود"}
-                      </span>
-                    </div>
-                    <div className="bg-gray-50 border border-gray-100 rounded-xl p-3 md:p-4 flex flex-col gap-1">
-                      <span className="text-[11px] text-gray-400">الحالة</span>
-                      <span className="text-sm font-semibold text-gray-800">
-                        {car.condition}
-                      </span>
-                    </div>
-                    <div className="bg-gray-50 border border-gray-100 rounded-xl p-3 md:p-4 flex flex-col gap-1">
-                      <span className="text-[11px] text-gray-400">الموديل</span>
-                      <span className="text-sm font-semibold text-gray-800 font-mono">
-                        {car.year}
-                      </span>
-                    </div>
-                    <div className="bg-gray-50 border border-gray-100 rounded-xl p-3 md:p-4 flex flex-col gap-1">
-                      <span className="text-[11px] text-gray-400">
-                        ناقل الحركة
-                      </span>
-                      <span className="text-sm font-semibold text-gray-800">
-                        {car.transmission}
-                      </span>
-                    </div>
-                    <div className="bg-gray-50 border border-gray-100 rounded-xl p-3 md:p-4 flex flex-col gap-1">
-                      <span className="text-[11px] text-gray-400">
-                        الكيلومترات
-                      </span>
-                      <span className="text-sm font-semibold text-gray-800 font-mono">
-                        {car.mileage}
-                      </span>
-                    </div>
-                    <div className="bg-gray-50 border border-gray-100 rounded-xl p-3 md:p-4 flex flex-col gap-1">
-                      <span className="text-[11px] text-gray-400">
-                        سعة الخزان
-                      </span>
-                      <span className="text-sm font-semibold text-gray-800 font-mono">
-                        {car.tankCapacity || "70 لتر"}
-                      </span>
-                    </div>
-                    <div className="bg-gray-50 border border-gray-100 rounded-xl p-3 md:p-4 flex flex-col gap-1">
-                      <span className="text-[11px] text-gray-400">قوة HP</span>
-                      <span className="text-sm font-semibold text-gray-800 font-mono">
-                        {car.hp || "180"}
-                      </span>
-                    </div>
-                    <div className="bg-gray-50 border border-gray-100 rounded-xl p-3 md:p-4 flex flex-col gap-1">
-                      <span className="text-[11px] text-gray-400">
-                        سعة المحرك
-                      </span>
-                      <span className="text-sm font-semibold text-gray-800 font-mono">
-                        {car.engineSize || "1600 سي سي"}
-                      </span>
-                    </div>
-                  </div>
-                )}
-
-                {activeTab === "features" && (
-                  <div className="flex flex-wrap gap-2.5">
-                    {car.features.map((feature: string, idx: number) => (
-                      <span
-                        key={idx}
-                        className="bg-primary-50/60 border border-primary-100/50 text-primary-600 text-xs font-semibold px-4.5 py-2.5 rounded-xl flex items-center gap-2"
-                      >
-                        <span className="w-1.5 h-1.5 rounded-full bg-primary-500"></span>
-                        {feature}
-                      </span>
-                    ))}
-                  </div>
-                )}
-
-                {activeTab === "description" && (
-                  <p className="text-gray-600 text-sm leading-relaxed whitespace-pre-line">
-                    {car.description}
-                  </p>
-                )}
-              </div>
-            </div>
-
-            {/* Certification Footer Banner */}
-            <div className="bg-gradient-to-r from-primary-500 to-[#00165b] text-white rounded-2xl py-4 px-6 flex items-center justify-between shadow-md">
-              <Link
-                href="/inspection-report"
-                className="flex items-center gap-2 hover:opacity-85 transition-opacity cursor-pointer"
-              >
-                <div className="w-6 h-6 rounded-full bg-white/20 flex items-center justify-center">
-                  <Image
-                    src="/assets/arrow_left_white.svg"
-                    alt="view"
-                    width={14}
-                    height={14}
-                    className="w-3.5 h-3.5 rotate-45"
-                  />
-                </div>
-                <span className="text-xs md:text-sm font-semibold">
-                  معلومات عن الفحص
-                </span>
-              </Link>
-
-              <div className="flex items-center gap-2.5">
-                <span className="text-xs md:text-sm font-bold">
-                  معتمدة من جراج
-                </span>
-                <div className="relative w-5 h-5">
-                  <Image
-                    src="/assets/certified_shield.svg"
-                    alt="certified"
-                    fill
-                    className="object-contain"
-                  />
-                </div>
-              </div>
-            </div>
+            <TabsComponentCardInMobile car={car} />
           </div>
 
           {/* Left Column in RTL: Sidebar */}
-          <div className="w-full lg:w-[322px] shrink-0 flex flex-col gap-6">
+          <div className="w-full lg:w-[322px] shrink-0 flex flex-col gap-6 2xl:col-span-3">
             {/* Sidebar Actions Card */}
-            <div className="bg-white border border-gray-100 rounded-[20px] p-5 flex flex-col gap-4 w-full shadow-2xs">
+            <div className="rounded-[20px] flex flex-col gap-4 w-full">
               {/* Send Offer Button */}
               <button
                 onClick={() => setShowOfferModal(true)}
-                className="bg-primary-500 hover:bg-primary-600 text-white font-bold text-sm w-full py-3.5 rounded-2xl flex items-center justify-center shadow-md cursor-pointer transition-colors"
+                className="bg-primary-500 hover:bg-primary-600 text-white text-sm w-full py-3.5 rounded-2xl flex items-center justify-center shadow-md cursor-pointer transition-colors"
               >
                 ارسال عرض سعر
               </button>
@@ -720,33 +862,31 @@ export default function CarDetailPage({
               {/* Call & Whatsapp action rows */}
               <div className="flex items-center gap-3 w-full">
                 <a
-                  href="tel:19900"
-                  className="bg-primary-50 hover:bg-primary-100 border border-primary-100 text-primary-600 font-bold text-sm h-[48px] rounded-2xl flex items-center justify-center gap-2 flex-1 transition-colors"
-                >
-                  <span>مكالمة</span>
-                  <Image
-                    src="/assets/call_icon_figma.svg"
-                    alt="call"
-                    width={18}
-                    height={18}
-                    className="w-4.5 h-4.5"
-                  />
-                </a>
-
-                <a
                   href="https://wa.me/201200000000"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="bg-green-50 hover:bg-green-100 border border-green-200 text-green-700 font-bold text-sm h-[48px] rounded-2xl flex items-center justify-center gap-2 flex-1 transition-colors"
                 >
-                  <span>واتساب</span>
                   <Image
-                    src="/assets/whatsapp_logo.svg"
+                    src="/assets/whatsapp.svg"
                     alt="whatsapp"
-                    width={18}
-                    height={18}
-                    className="w-4.5 h-4.5"
+                    width={20}
+                    height={20}
                   />
+                  <span>واتساب</span>
+                </a>
+
+                <a
+                  href="tel:19900"
+                  className="bg-primary-50 border border-[#D2E0F9] text-primary-600 font-bold text-sm h-[48px] rounded-2xl flex items-center justify-center gap-2 flex-1 transition-colors"
+                >
+                  <Image
+                    src="/assets/call.svg"
+                    alt="call"
+                    width={20}
+                    height={20}
+                  />
+                  <span>مكالمة</span>
                 </a>
               </div>
             </div>
@@ -754,37 +894,36 @@ export default function CarDetailPage({
             {/* Sidebar Inspection Summary Card */}
             <div className="bg-white border border-gray-100 rounded-[20px] overflow-hidden w-full shadow-2xs">
               {/* Accordion header */}
-              <div className="bg-primary-50/80 border-b border-gray-100 px-5 py-4 flex items-center justify-between">
+              <div className="bg-primary-50/80 border-b border-gray-100 px-10 py-4 flex items-center justify-between">
                 <div className="flex items-center gap-2">
                   <Image
-                    src="/assets/certified_shield.svg"
+                    src="/icons/verify.svg"
                     alt="verify"
-                    width={18}
-                    height={18}
-                    className="w-4.5 h-4.5"
+                    width={20}
+                    height={20}
                   />
                   <span className="font-bold text-base text-gray-900">
                     تقرير الفحص
                   </span>
                 </div>
-                <span className="text-xs text-gray-500 font-medium font-mono">
+                <span className="text-xs text-gray-500 font-medium font-monos">
                   (14 Jan, 2025)
                 </span>
               </div>
 
               {/* Legends */}
-              <div className="px-5 py-3 border-b border-gray-100 flex items-center justify-between text-xs text-gray-400 select-none">
+              <div className="px-10 py-3 border-b border-gray-100 flex items-center justify-between text-xs text-gray-400 select-none">
                 <div className="flex items-center gap-1.5">
-                  <span>عيب او خلل</span>
-                  <span className="w-4 h-4 rounded-full bg-orange-100 text-orange-600 flex items-center justify-center text-[10px] font-bold text-center">
-                    !
-                  </span>
-                </div>
-                <div className="flex items-center gap-1.5">
-                  <span>فحص ناجح</span>
-                  <span className="w-4 h-4 rounded-full bg-green-100 text-green-700 flex items-center justify-center text-[10px] font-bold text-center">
+                  <span className="w-4 h-4 rounded-full bg-green-100 text-green-500 flex items-center justify-center text-[10px] font-bold text-center">
                     ✓
                   </span>
+                  <span className="text-green-500">فحص ناجح</span>
+                </div>
+                <div className="flex items-center gap-1.5">
+                  <span className="w-4 h-4 rounded-full bg-orange-100 text-orange-500 flex items-center justify-center text-[10px] font-bold text-center">
+                    !
+                  </span>
+                  <span className="text-orange-500">عيب او خلل</span>
                 </div>
               </div>
 
@@ -794,29 +933,30 @@ export default function CarDetailPage({
                 <div className="border border-gray-100 rounded-xl overflow-hidden shadow-3xs">
                   <button
                     onClick={() => toggleAccordion("body")}
-                    className="w-full bg-gray-50/50 hover:bg-gray-50 px-4 py-3 flex items-center justify-between text-sm text-gray-700 font-bold transition-colors cursor-pointer"
+                    className="w-full bg-gray-50/50 hover:bg-gray-50 px-4 py-3 flex items-center justify-between text-sm text-gray-700 transition-colors cursor-pointer"
                   >
                     <div className="flex items-center gap-2">
                       <Image
-                        src="/assets/car_specs_icon.svg"
+                        src="/icons/car.svg"
                         alt="body"
-                        width={18}
-                        height={18}
-                        className="w-4.5 h-4.5 opacity-60"
+                        width={24}
+                        height={24}
+                        className="opacity-60"
                       />
                       <span>هيكل السيارة</span>
                     </div>
+
                     <div className="flex gap-2 items-center">
                       <div className="flex gap-1.5">
-                        <span className="flex items-center justify-center bg-green-50 text-green-700 px-1.5 py-0.5 rounded text-[9px] font-bold border border-green-100/50">
+                        <span className="flex items-center justify-center bg-green-50 text-green-500 px-1.5 py-0.5 rounded text-[9px] font-bold border border-green-100/50">
                           02 ✓
                         </span>
-                        <span className="flex items-center justify-center bg-orange-50 text-orange-600 px-1.5 py-0.5 rounded text-[9px] font-bold border border-orange-100/50">
+                        <span className="flex items-center justify-center bg-orange-50 text-orange-500 px-1.5 py-0.5 rounded text-[9px] font-bold border border-orange-100/50">
                           01 !
                         </span>
                       </div>
-                      <span className="text-[10px] text-gray-400 font-mono">
-                        {openAccordions.body ? "▲" : "▼"}
+                      <span className="text-[10px] text-gray-400 font-monos">
+                        <TriArrow open={openAccordions.body} />
                       </span>
                     </div>
                   </button>
@@ -839,7 +979,7 @@ export default function CarDetailPage({
                         </p>
                       </div>
                       <div className="flex items-start text-xs text-gray-500 gap-2.5">
-                        <span className="w-4.5 h-4.5 rounded-full bg-orange-100 text-orange-700 flex items-center justify-center text-[10px] font-bold shrink-0 text-center font-mono">
+                        <span className="w-4.5 h-4.5 rounded-full bg-orange-100 text-orange-700 flex items-center justify-center text-[10px] font-bold shrink-0 text-center font-monos">
                           !
                         </span>
                         <p className="text-start flex-1">
@@ -854,15 +994,15 @@ export default function CarDetailPage({
                 <div className="border border-gray-100 rounded-xl overflow-hidden shadow-3xs">
                   <button
                     onClick={() => toggleAccordion("engine")}
-                    className="w-full bg-gray-50/50 hover:bg-gray-50 px-4 py-3 flex items-center justify-between text-sm text-gray-700 font-bold transition-colors cursor-pointer"
+                    className="w-full bg-gray-50/50 hover:bg-gray-50 px-4 py-3 flex items-center justify-between text-sm text-gray-700 transition-colors cursor-pointer"
                   >
                     <div className="flex items-center gap-2">
                       <Image
-                        src="/assets/services_car_1.svg"
+                        src="/icons/engine.svg"
                         alt="engine"
-                        width={18}
-                        height={18}
-                        className="w-4.5 h-4.5 opacity-60"
+                        width={24}
+                        height={24}
+                        className="opacity-60"
                       />
                       <span>المحرك وناقل الحركة</span>
                     </div>
@@ -872,8 +1012,8 @@ export default function CarDetailPage({
                           04 ✓
                         </span>
                       </div>
-                      <span className="text-[10px] text-gray-400 font-mono">
-                        {openAccordions.engine ? "▲" : "▼"}
+                      <span className="text-[10px] text-gray-400 font-monos">
+                        <TriArrow open={openAccordions.engine} />
                       </span>
                     </div>
                   </button>
@@ -919,15 +1059,15 @@ export default function CarDetailPage({
                 <div className="border border-gray-100 rounded-xl overflow-hidden shadow-3xs">
                   <button
                     onClick={() => toggleAccordion("electronic")}
-                    className="w-full bg-gray-50/50 hover:bg-gray-50 px-4 py-3 flex items-center justify-between text-sm text-gray-700 font-bold transition-colors cursor-pointer"
+                    className="w-full bg-gray-50/50 hover:bg-gray-50 px-4 py-3 flex items-center justify-between text-sm text-gray-700 transition-colors cursor-pointer"
                   >
                     <div className="flex items-center gap-2">
                       <Image
-                        src="/assets/services_phone_2.svg"
+                        src="/icons/file-check.svg"
                         alt="electronic"
-                        width={18}
-                        height={18}
-                        className="w-4.5 h-4.5 opacity-60"
+                        width={24}
+                        height={24}
+                        className="opacity-60"
                       />
                       <span>الفحص الإلكتروني</span>
                     </div>
@@ -940,8 +1080,8 @@ export default function CarDetailPage({
                           01 !
                         </span>
                       </div>
-                      <span className="text-[10px] text-gray-400 font-mono">
-                        {openAccordions.electronic ? "▲" : "▼"}
+                      <span className="text-[10px] text-gray-400">
+                        <TriArrow open={openAccordions.electronic} />
                       </span>
                     </div>
                   </button>
@@ -964,7 +1104,7 @@ export default function CarDetailPage({
                         </p>
                       </div>
                       <div className="flex items-start text-xs text-gray-500 gap-2.5">
-                        <span className="w-4.5 h-4.5 rounded-full bg-orange-100 text-orange-700 flex items-center justify-center text-[10px] font-bold shrink-0 text-center font-mono">
+                        <span className="w-4.5 h-4.5 rounded-full bg-orange-100 text-orange-700 flex items-center justify-center text-[10px] font-bold shrink-0 text-center font-monos">
                           !
                         </span>
                         <p className="text-start flex-1">
@@ -979,15 +1119,15 @@ export default function CarDetailPage({
                 <div className="border border-gray-100 rounded-xl overflow-hidden shadow-3xs">
                   <button
                     onClick={() => toggleAccordion("brakes")}
-                    className="w-full bg-gray-50/50 hover:bg-gray-50 px-4 py-3 flex items-center justify-between text-sm text-gray-700 font-bold transition-colors cursor-pointer"
+                    className="w-full bg-gray-50/50 hover:bg-gray-50 px-4 py-3 flex items-center justify-between text-sm text-gray-700 transition-colors cursor-pointer"
                   >
                     <div className="flex items-center gap-2">
                       <Image
-                        src="/assets/spedometer_specs.svg"
+                        src="/icons/wheel.svg"
                         alt="brakes"
-                        width={18}
-                        height={18}
-                        className="w-4.5 h-4.5 opacity-60"
+                        width={24}
+                        height={24}
+                        className="opacity-60"
                       />
                       <span>الإطارات والفرامل</span>
                     </div>
@@ -1000,8 +1140,8 @@ export default function CarDetailPage({
                           01 !
                         </span>
                       </div>
-                      <span className="text-[10px] text-gray-400 font-mono">
-                        {openAccordions.brakes ? "▲" : "▼"}
+                      <span className="text-[10px] text-gray-400 font-monos">
+                        <TriArrow open={openAccordions.brakes} />
                       </span>
                     </div>
                   </button>
@@ -1024,7 +1164,7 @@ export default function CarDetailPage({
                         </p>
                       </div>
                       <div className="flex items-start text-xs text-gray-500 gap-2.5">
-                        <span className="w-4.5 h-4.5 rounded-full bg-orange-100 text-orange-700 flex items-center justify-center text-[10px] font-bold shrink-0 text-center font-mono">
+                        <span className="w-4.5 h-4.5 rounded-full bg-orange-100 text-orange-700 flex items-center justify-center text-[10px] font-bold shrink-0 text-center font-monos">
                           !
                         </span>
                         <p className="text-start flex-1">
@@ -1039,15 +1179,15 @@ export default function CarDetailPage({
                 <div className="border border-gray-100 rounded-xl overflow-hidden shadow-3xs">
                   <button
                     onClick={() => toggleAccordion("road")}
-                    className="w-full bg-gray-50/50 hover:bg-gray-50 px-4 py-3 flex items-center justify-between text-sm text-gray-700 font-bold transition-colors cursor-pointer"
+                    className="w-full bg-gray-50/50 hover:bg-gray-50 px-4 py-3 flex items-center justify-between text-sm text-gray-700 transition-colors cursor-pointer"
                   >
                     <div className="flex items-center gap-2">
                       <Image
-                        src="/assets/services_car_2.svg"
+                        src="/icons/road-test.svg"
                         alt="road test"
-                        width={18}
-                        height={18}
-                        className="w-4.5 h-4.5 opacity-60"
+                        width={24}
+                        height={24}
+                        className="opacity-60"
                       />
                       <span>اختبار الطريق</span>
                     </div>
@@ -1060,8 +1200,8 @@ export default function CarDetailPage({
                           01 !
                         </span>
                       </div>
-                      <span className="text-[10px] text-gray-400 font-mono">
-                        {openAccordions.road ? "▲" : "▼"}
+                      <span className="text-[10px] text-gray-400 font-monos">
+                        <TriArrow open={openAccordions.road} />
                       </span>
                     </div>
                   </button>
@@ -1084,7 +1224,7 @@ export default function CarDetailPage({
                         </p>
                       </div>
                       <div className="flex items-start text-xs text-gray-500 gap-2.5">
-                        <span className="w-4.5 h-4.5 rounded-full bg-orange-100 text-orange-700 flex items-center justify-center text-[10px] font-bold shrink-0 text-center font-mono">
+                        <span className="w-4.5 h-4.5 rounded-full bg-orange-100 text-orange-700 flex items-center justify-center text-[10px] font-bold shrink-0 text-center font-monos">
                           !
                         </span>
                         <p className="text-start flex-1">
@@ -1099,11 +1239,11 @@ export default function CarDetailPage({
                 <div className="border border-gray-100 rounded-xl overflow-hidden shadow-3xs">
                   <button
                     onClick={() => toggleAccordion("defects")}
-                    className="w-full bg-gray-50/50 hover:bg-gray-50 px-4 py-3 flex items-center justify-between text-sm text-gray-700 font-bold transition-colors cursor-pointer"
+                    className="w-full bg-gray-50/50 hover:bg-gray-50 px-4 py-3 flex items-center justify-between text-sm text-gray-700 transition-colors cursor-pointer"
                   >
                     <div className="flex items-center gap-2">
                       <Image
-                        src="/assets/services_trash_3.svg"
+                        src="/icons/car-repair.svg"
                         alt="defects"
                         width={18}
                         height={18}
@@ -1120,8 +1260,8 @@ export default function CarDetailPage({
                           01 !
                         </span>
                       </div>
-                      <span className="text-[10px] text-gray-400 font-mono">
-                        {openAccordions.defects ? "▲" : "▼"}
+                      <span className="text-[10px] text-gray-400 font-monos">
+                        <TriArrow open={openAccordions.defects} />
                       </span>
                     </div>
                   </button>
@@ -1144,7 +1284,7 @@ export default function CarDetailPage({
                         </p>
                       </div>
                       <div className="flex items-start text-xs text-gray-500 gap-2.5">
-                        <span className="w-4.5 h-4.5 rounded-full bg-orange-100 text-orange-700 flex items-center justify-center text-[10px] font-bold shrink-0 text-center font-mono">
+                        <span className="w-4.5 h-4.5 rounded-full bg-orange-100 text-orange-700 flex items-center justify-center text-[10px] font-bold shrink-0 text-center font-monos">
                           !
                         </span>
                         <p className="text-start flex-1">
@@ -1168,73 +1308,42 @@ export default function CarDetailPage({
               </div>
             </div>
           </div>
-        </div>
+        </MaxWidthWrapper>
 
         {/* Similar Cars Section */}
-        <div
-          className="w-full max-w-[1336px] mx-auto px-6 md:px-12 mt-16 flex flex-col gap-6"
-          dir="rtl"
-        >
+        <MaxWidthWrapper className="w-full mx-auto mt-16 flex flex-col gap-6">
           <div className="flex items-center justify-between border-b border-gray-200/50 pb-4">
             <h3 className="text-gray-900 font-bold text-xl md:text-2xl">
               سيارات مشابهة
             </h3>
-            <Link
-              href="/cars"
-              className="text-primary-500 font-bold text-xs hover:underline flex items-center gap-1"
-            >
-              <span>عرض المزيد</span>
-              <span>←</span>
+            <Link href="/cars">
+              <div className="text-right justify-center text-[#666] text-sm font-normal leading-4">
+                عرض المزيد
+              </div>
             </Link>
           </div>
-
           {/* Mobile swipeable horizontal container, hidden on medium and above */}
-          <div
-            className="flex md:hidden w-full overflow-x-auto pb-4 gap-4 scrollbar-none snap-x snap-mandatory"
-            dir="rtl"
-          >
-            {recommendedCars.map((similarCar) => (
-              <div
-                key={similarCar.id}
-                className="w-[280px] shrink-0 snap-start"
-              >
-                <CarCard
-                  id={similarCar.id}
-                  brand={similarCar.brand}
-                  model={similarCar.model}
-                  price={similarCar.price}
-                  installment={similarCar.installment}
-                  year={similarCar.year}
-                  mileage={similarCar.mileage}
-                  trim={similarCar.trim}
-                  location={similarCar.location}
-                  isFeatured={similarCar.isFeatured}
-                  isCertified={similarCar.isCertified}
-                />
-              </div>
-            ))}
-          </div>
-
+          <Carousel dir="rtl" className="sm:hidden">
+            <CarouselContent className="">
+              {recommendedCars.map((similarCar) => (
+                <CarouselItem
+                  key={similarCar.id}
+                  className="basis-1/1 relative pl-3 last:pl-0 overflow-hidden  transition-all rounded-2xl duration-300 h-[370px] select-none group"
+                >
+                  <div key={similarCar.id} className="pointer-events-none">
+                    <CarCard key={similarCar.id} {...similarCar} />
+                  </div>
+                </CarouselItem>
+              ))}
+            </CarouselContent>
+          </Carousel>
           {/* Desktop grid layout, hidden on mobile */}
-          <div className="hidden md:grid grid-cols-2 lg:grid-cols-3 gap-6 w-full">
+          <div className="max-sm:hidden sm:grid grid-cols-2 lg:grid-cols-3 gap-4 w-full">
             {recommendedCars.map((similarCar) => (
-              <CarCard
-                key={similarCar.id}
-                id={similarCar.id}
-                brand={similarCar.brand}
-                model={similarCar.model}
-                price={similarCar.price}
-                installment={similarCar.installment}
-                year={similarCar.year}
-                mileage={similarCar.mileage}
-                trim={similarCar.trim}
-                location={similarCar.location}
-                isFeatured={similarCar.isFeatured}
-                isCertified={similarCar.isCertified}
-              />
+              <CarCard key={similarCar.id} {...similarCar} />
             ))}
           </div>
-        </div>
+        </MaxWidthWrapper>
 
         {/* Mobile Download App Banner CTA */}
         <div className="w-full mt-12">
@@ -1255,7 +1364,7 @@ export default function CarDetailPage({
               </h3>
               <button
                 onClick={() => setShowOfferModal(false)}
-                className="text-gray-400 hover:text-gray-600 font-mono text-xl cursor-pointer"
+                className="text-gray-400 hover:text-gray-600 font-monos text-xl cursor-pointer"
               >
                 ✕
               </button>
@@ -1278,7 +1387,7 @@ export default function CarDetailPage({
                   placeholder="مثال: 600,000"
                   value={offerPrice}
                   onChange={(e) => setOfferPrice(e.target.value)}
-                  className="w-full h-full bg-transparent text-start outline-none text-sm font-semibold text-gray-800 font-mono"
+                  className="w-full h-full bg-transparent text-start outline-none text-sm font-semibold text-gray-800 font-monos"
                 />
               </div>
             </div>

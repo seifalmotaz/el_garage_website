@@ -1,3 +1,5 @@
+import Image from "next/image";
+
 export function CallIcon() {
   return (
     <svg
@@ -337,5 +339,17 @@ export function SearchIcon() {
         strokeLinejoin="round"
       />
     </svg>
+  );
+}
+
+export function TriArrow({ open }: { open: boolean }) {
+  return (
+    <Image
+      src="/icons/tri-arrow.svg"
+      alt="arrow"
+      width={18}
+      height={18}
+      className={open ? "" : "rotate-180"}
+    />
   );
 }
