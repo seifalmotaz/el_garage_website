@@ -3,7 +3,6 @@
 import { useState, useMemo, use } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import DownloadApp from "../../../components/DownloadApp";
 import CarCard from "../../../components/CarCard";
 import MaxWidthWrapper from "@/components/common/MaxWidthWrapper";
 import { TriArrow } from "@/components/svg/Svgs";
@@ -1345,11 +1344,6 @@ export default function CarDetailPage({
             ))}
           </div>
         </MaxWidthWrapper>
-
-        {/* Mobile Download App Banner CTA */}
-        <div className="w-full mt-12">
-          <DownloadApp />
-        </div>
       </main>
 
       {/* Offer Modal */}

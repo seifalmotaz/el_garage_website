@@ -122,10 +122,10 @@ export default function Dropdown({
               exit={{ opacity: 0, y: -6 }}
               transition={{ duration: 0.3, ease: "easeOut" }}
               className={cn(
-                "custom-scroll absolute md:top-[60px] top-[unset] space-y-1 md:bottom-[unset] bottom-[60px] md:mt-[20px] rounded-2xl left-0 z-50 overscroll-contain w-full  shadow-lg py-1 md:max-h-[300px] max-h-[200px] overflow-y-auto animate-dropdown",
+                "custom-scroll absolute top-[60px] space-y-1 rounded-2xl left-0 z-50 overscroll-contain w-full  shadow-lg py-1 md:max-h-[300px] max-h-[200px] overflow-y-auto animate-dropdown",
                 variant === "blurry"
                   ? "bg-black/60 backdrop-blur-xl"
-                  : "bg-[#EEEEEE]",
+                  : "bg-[#f3f3f3]",
               )}
               data-lenis-prevent
             >
@@ -143,8 +143,8 @@ export default function Dropdown({
                         ? "bg-[#555]/20"
                         : "hover:bg-[#888]/20"
                       : opt.value === option
-                        ? "bg-[#d3d3d3]"
-                        : "hover:bg-[#e5e5e5]",
+                        ? "bg-[#dfdfdf]"
+                        : "hover:bg-[#e9e9e9]",
                   )}
                 >
                   {opt.label}

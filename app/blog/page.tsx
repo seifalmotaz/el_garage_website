@@ -3,7 +3,6 @@
 import { useState, useMemo } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import DownloadApp from "../../components/DownloadApp";
 
 // Mock articles data
 const initialArticles = [
@@ -477,9 +476,6 @@ export default function BlogPage() {
           </section>
         )}
       </main>
-
-      {/* Download App Banner */}
-      <DownloadApp />
     </div>
   );
 }

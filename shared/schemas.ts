@@ -76,3 +76,20 @@ export const changePasswordSchema = z
 
 export type ChangePasswordSchemaType = z.infer<typeof changePasswordSchema>;
 // ===== forget password schema ===== //
+//
+//
+//
+// ===== car sell schema ===== //
+export const carSellFirstStepSchema = z.object({
+  brand: z.string().min(1, "أختر الماركة"),
+  model: z.string().min(1, "أختر الموديل"),
+  year: z.string().min(1, "أختر سنة الصنع"),
+  mileage: z.string().min(1, "أختر الكيلوميترات"),
+  chassisNumber: z
+    .string()
+    .length(17, "رقم الشاصي يجب أن يكون 17 حرف")
+    .regex(/^[A-HJ-NPR-Z0-9]{17}$/, "رقم الشاصي غير صالح"),
+});
+
+export type CarSellFirstStepSchemaType = z.infer<typeof carSellFirstStepSchema>;
+// ===== car sell schema ===== //
