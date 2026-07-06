@@ -3,14 +3,23 @@ import { cn } from "@/lib/utils";
 import React from "react";
 import Spinner from "./Spinner";
 
-export type ButtonVariants = "default" | "primary" | "outline";
+export type ButtonVariants =
+  | "black"
+  | "primary"
+  | "secondary"
+  | "ghost"
+  | "error"
+  | "primaryDark"
+  | "white";
 
 const VARIANTS = {
-  default: "",
-  primary:
-    "bg-white text-black hover:bg-white/90 hover:text-white transition-colors px-2",
-  outline:
-    "bg-[#FFFFFF33] hover:bg-[#1E1E1E] text-white backdrop-blur-[4.4px] border-[1.5px] border-white/30 px-2",
+  black: "bg-[#1A1A1A] text-white",
+  primary: "bg-primary-500 text-white",
+  secondary: "bg-primary-50 text-primary-500",
+  ghost: "",
+  error: "bg-red-500 text-white",
+  primaryDark: "bg-primary-900 text-white",
+  white: "bg-white text-white",
 };
 
 interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
@@ -21,7 +30,7 @@ interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
 }
 
 const Button: React.FC<ButtonProps> = ({
-  variant = "default",
+  variant = "primary",
   children,
   className,
   isLoading,
@@ -32,7 +41,7 @@ const Button: React.FC<ButtonProps> = ({
     <button
       {...props}
       className={cn(
-        "text-center uppercase text-nowrap group cursor-pointer font-medium tracking-[0.6px] duration text-sm relative overflow-hidden",
+        "text-center font-bold text-nowrap w-full hover:opacity-95 px-2 group py-3 cursor-pointer rounded-2xl leading-[100%] tracking-[0.6px] duration text-sm relative overflow-hidden",
         props.disabled
           ? "opacity-50 cursor-not-allowed pointer-events-none"
           : "",
@@ -41,14 +50,6 @@ const Button: React.FC<ButtonProps> = ({
       )}
       ref={ref}
     >
-      {variant === "primary" ? (
-        <img
-          className="absolute w-full left-0 top-0 -translate-y-full group-hover:translate-y-0 duration-[calc(var(--duration)*1.5)]"
-          src={"/images/svgs/wave.svg"}
-          alt=""
-        />
-      ) : null}
-
       {isLoading ? <Spinner /> : children}
     </button>
   );

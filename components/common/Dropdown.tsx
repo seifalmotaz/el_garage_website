@@ -125,7 +125,7 @@ export default function Dropdown({
                 "custom-scroll absolute top-[60px] space-y-1 rounded-2xl left-0 z-50 overscroll-contain w-full  shadow-lg py-1 md:max-h-[300px] max-h-[200px] overflow-y-auto animate-dropdown",
                 variant === "blurry"
                   ? "bg-black/60 backdrop-blur-xl"
-                  : "bg-[#f3f3f3]",
+                  : "bg-white",
               )}
               data-lenis-prevent
             >
@@ -143,8 +143,8 @@ export default function Dropdown({
                         ? "bg-[#555]/20"
                         : "hover:bg-[#888]/20"
                       : opt.value === option
-                        ? "bg-[#dfdfdf]"
-                        : "hover:bg-[#e9e9e9]",
+                        ? "bg-[#f1f1f1]"
+                        : "hover:bg-[#f8f8f8]",
                   )}
                 >
                   {opt.label}

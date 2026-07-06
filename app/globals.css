@@ -31,6 +31,7 @@
   /* test */
 
   /* transition duration */
+  --duration: 300ms;
 }
 /* =============== variables =============== */
 /*
@@ -54,6 +55,27 @@ html,
 body {
   overflow-x: clip;
 }
+.duration {
+  transition-duration: var(--duration);
+}
+
+.flex-center {
+  display: flex;
+  justify-items: center;
+  align-items: center;
+}
+
+.position-center {
+  position: absolute;
+  left: 50%;
+  right: 50%;
+  transform: translate(-50%, -50%);
+}
+
+.animation-duration {
+  transition-duration: var(--animation-duration);
+}
+
 /* =============== global rules =============== */
 
 /* spinner animation */

@@ -4,7 +4,7 @@ import { useState } from "react";
 import Image from "next/image";
 import CarCard from "./CarCard";
 import MaxWidthWrapper from "./common/MaxWidthWrapper";
-import { initialCars } from "@/constants/cars";
+import { initialCars } from "@/mock-data/cars";
 import FilterToolbar from "./common/FilterToolbar";
 
 type CarGridProps = {

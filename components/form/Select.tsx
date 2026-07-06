@@ -127,7 +127,7 @@ const Select = forwardRef<HTMLInputElement, SelectProps>(
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -6 }}
                 transition={{ duration: 0.3, ease: "easeOut" }}
-                className="custom-scroll absolute top-[60px] space-y-1 rounded-2xl left-0 z-50 overscroll-contain w-full bg-[#f3f3f3] shadow-lg py-1 md:max-h-[300px] max-h-[200px] overflow-y-auto"
+                className="custom-scroll absolute top-[60px] space-y-1 rounded-2xl left-0 z-50 overscroll-contain w-full bg-white shadow-lg py-1 md:max-h-[300px] max-h-[200px] overflow-y-auto"
                 data-lenis-prevent
               >
                 {options.map((opt) => (
@@ -139,8 +139,8 @@ const Select = forwardRef<HTMLInputElement, SelectProps>(
                     className={cn(
                       "flex items-center justify-between md:h-[50px] h-[48px] rounded-2xl mx-1 px-3 md:text-[14px] text-[12px] font-medium cursor-pointer transition-colors",
                       opt.value === value
-                        ? "bg-[#dfdfdf]"
-                        : "hover:bg-[#e9e9e9]",
+                        ? "bg-[#f1f1f1]"
+                        : "hover:bg-[#f8f8f8]",
                     )}
                   >
                     {opt.label}
