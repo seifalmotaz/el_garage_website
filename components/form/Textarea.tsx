@@ -73,7 +73,7 @@ const Textarea = React.forwardRef<HTMLTextAreaElement, TextareaProps>(
 
           <div className="absolute left-0 w-full bottom-0 translate-y-full flex items-start justify-between pt-1.5">
             {error ? (
-              <p className="text-(--red) text-[16px] leading-[100%]">{error}</p>
+              <p className="text-red-500 text-xs leading-[100%]">{error}</p>
             ) : (
               <span />
             )}
