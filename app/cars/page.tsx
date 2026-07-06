@@ -3,7 +3,6 @@
 import { useState, useMemo } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import DownloadApp from "../../components/DownloadApp";
 import CarCard from "../../components/CarCard";
 
 const AdBannerCard = () => (
@@ -1157,27 +1156,11 @@ export default function CarsBrowsePage() {
         >
           {similarCars.map((car, idx) => (
             <div key={idx} className="w-[280px] shrink-0">
-              <CarCard
-                id={car.id}
-                brand={car.brand}
-                model={car.model}
-                price={car.price}
-                installment={car.installment}
-                year={car.year}
-                mileage={car.mileage}
-                trim={car.trim}
-                location={car.location}
-                isFeatured={car.isFeatured}
-                isCertified={car.isCertified}
-                discountText={car.discountText}
-                image={car.image}
-              />
+              <CarCard {...car} />
             </div>
           ))}
         </div>
       </div>
-
-      <DownloadApp />
     </div>
   );
 }

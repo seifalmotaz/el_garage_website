@@ -1,7 +1,7 @@
 import { model_options } from "@/constants/car-filters";
 import Dropdown from "./Dropdown";
 import Image from "next/image";
-import { initialCars } from "@/constants/cars";
+import { initialCars } from "@/mock-data/cars";
 
 type CarType =
   | {

@@ -6,7 +6,6 @@ import Blog from "../components/Blog";
 import Reviews from "../components/Reviews";
 import InspectionBanner from "../components/InspectionBanner";
 import FAQ from "../components/FAQ";
-import DownloadApp from "../components/DownloadApp";
 
 export default function Home() {
   return (
@@ -41,9 +40,6 @@ export default function Home() {
 
         {/* FAQs */}
         <FAQ />
-
-        {/* Mobile App Downloads */}
-        <DownloadApp />
       </main>
     </div>
   );

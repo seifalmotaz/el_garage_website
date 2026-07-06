@@ -81,7 +81,7 @@ export default function Header({
       >
         <div
           className={`
-            lg:px-8 px-4 rounded-2xl
+            lg:px-8 md:px-4 px-3 rounded-2xl lg:py-4 md:py-3 py-2
         ${
           // variant === "dark"
           // ? menuOpen
@@ -89,8 +89,8 @@ export default function Header({
           // : "backdrop-blur-md bg-[#000000]/30 border border-white/10 rounded-[20px] lg:rounded-2xl px-3.5 lg:px-6 py-2 lg:py-4 h-[60px] lg:h-auto"
           // :
           menuOpen
-            ? "border-none rounded-none py-4"
-            : "backdrop-blur-md bg-black/20 lg:border lg:border-none  py-4"
+            ? "border-none rounded-none"
+            : "backdrop-blur-md bg-black/20 lg:border lg:border-none  "
         }
         flex items-center justify-between lg:shadow-lg w-full relative z-50
       `}
@@ -133,19 +133,19 @@ export default function Header({
                 className=""
               />
             </div>
-            <div className="flex lg:hidden xl:flex items-center gap-3">
-              <div className="relative w-8 h-8">
-                <Image
-                  src="/assets/logo_shield.svg"
-                  alt="elGARAGE Logo"
-                  fill
-                  className="object-contain"
-                />
-              </div>
+            <div className="flex lg:hidden xl:flex items-center gap-1.25">
               <div className="relative w-[117px] h-[16px]">
                 <Image
                   src="/assets/logo_text.svg"
                   alt="elGARAGE"
+                  fill
+                  className="object-contain"
+                />
+              </div>
+              <div className="relative w-8 h-8">
+                <Image
+                  src="/assets/logo_shield.svg"
+                  alt="elGARAGE Logo"
                   fill
                   className="object-contain"
                 />
@@ -197,7 +197,7 @@ export default function Header({
           {/* Hamburger Menu Icon (Shown on Mobile on Left side of flow - placed last to render leftmost under RTL flow) */}
           <button
             onClick={() => setMenuOpen(!menuOpen)}
-            className="lg:hidden size-11.5 bg-primary-500 hover:bg-primary-600 rounded-xl flex items-center justify-center cursor-pointer transition-colors shadow-md z-50"
+            className="lg:hidden size-11.5 bg-primary-500 hover:bg-primary-600 rounded-[14.7px] flex items-center justify-center cursor-pointer transition-colors shadow-md z-50"
           >
             <MenuButton open={menuOpen} setOpen={setMenuOpen} />
           </button>
