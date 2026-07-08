@@ -1,39 +1,8 @@
 import { model_options } from "@/constants/car-filters";
 import Dropdown from "./Dropdown";
 import Image from "next/image";
-import { initialCars } from "@/mock-data/cars";
-
-type CarType =
-  | {
-      id: string;
-      brand: string;
-      model: string;
-      price: string;
-      installment: string;
-      year: string;
-      mileage: string;
-      trim: string;
-      location: string;
-      isFeatured: boolean;
-      isCertified: boolean;
-      discountText: string;
-      image: string;
-    }
-  | {
-      id: string;
-      brand: string;
-      model: string;
-      price: string;
-      installment: string;
-      year: string;
-      mileage: string;
-      trim: string;
-      location: string;
-      isFeatured: boolean;
-      isCertified: boolean;
-      image: string;
-      discountText?: undefined;
-    };
+import Button from "./Button";
+import { cn } from "@/lib/utils";
 
 const FilterToolbar = ({
   selectedModel,
@@ -42,8 +11,10 @@ const FilterToolbar = ({
   setSortBy,
   searchTerm,
   setSearchTerm,
-  setFilteredCars,
+  searchAction,
   isFeaturedMode,
+  isLeftCol = false,
+  isPending = false,
 }: {
   selectedModel: string;
   setSelectedModel: (value: string) => void;
@@ -51,45 +22,30 @@ const FilterToolbar = ({
   setSortBy: (value: string) => void;
   searchTerm: string;
   setSearchTerm: (value: string) => void;
-  setFilteredCars: (value: CarType[]) => void;
-  isFeaturedMode: boolean;
+  searchAction: () => void;
+  isFeaturedMode?: boolean;
+  isLeftCol?: boolean;
+  isPending?: boolean;
 }) => {
-  const getFilteredCars = () => {
-    return initialCars
-      .filter((car) => {
-        if (isFeaturedMode && !car.isFeatured) return false;
-
-        const matchesSearch =
-          car.brand.includes(searchTerm) ||
-          car.model.includes(searchTerm) ||
-          car.trim.includes(searchTerm);
-
-        const matchesModel =
-          selectedModel === "all" || car.brand === selectedModel;
-
-        return matchesSearch && matchesModel;
-      })
-      .sort((a, b) => {
-        const priceA = parseFloat(a.price.replace(/,/g, ""));
-        const priceB = parseFloat(b.price.replace(/,/g, ""));
-        if (sortBy === "high-to-low") return priceB - priceA;
-        return priceA - priceB;
-      });
-  };
-
   return (
-    <div className="flex flex-col md:flex-row md:items-end justify-between gap-8 w-full">
+    <div
+      className={cn(
+        "flex flex-col justify-between gap-8 w-full",
+        isLeftCol ? "2xl:flex-row 2xl:items-end" : "md:flex-row md:items-end",
+      )}
+    >
       {/* Right side filters: Model & Sorting */}
-      <div className="flex flex-row items-center gap-8 w-full md:w-auto md:flex-initial">
+      <div className="flex flex-row items-center sm:gap-8 gap-2 w-full md:w-auto md:flex-initial">
         {/* Model Dropdown */}
-
         <Dropdown
           label="الموديل"
           placeholder="حدد الموديل"
           option={selectedModel}
           options={[{ label: "كل الموديلات", value: "all" }, ...model_options]}
-          setOption={(val) => setSelectedModel(val)}
-          className="w-[252px]"
+          setOption={(val) => {
+            setSelectedModel(val);
+          }}
+          className={isLeftCol ? "2xl:w-[252px] w-full" : "w-[252px]"}
           variant="white"
         />
 
@@ -100,16 +56,25 @@ const FilterToolbar = ({
           options={[
             { label: "السعر - من الاعلى الي الاقل", value: "high-to-low" },
             { label: "السعر - من الاقل الي الاعلى", value: "low-to-high" },
+            { label: "الأقدم", value: "newest" },
+            { label: "الأحدث", value: "oldest" },
           ]}
-          setOption={(val) => setSortBy(val)}
-          className="w-[252px]"
+          setOption={(val) => {
+            setSortBy(val);
+          }}
+          className={isLeftCol ? "2xl:w-[252px] w-full" : "w-[252px]"}
           variant="white"
         />
       </div>
 
       {/* Left side: Search input */}
-      <div className="flex flex-col gap-1.5 text-right w-full md:max-w-[600px]">
-        <label className="text-gray-900 text-xs font-semibold px-1">
+      <div
+        className={cn(
+          "flex flex-col gap-2 text-right w-full",
+          isLeftCol ? "md:max-w-full" : "md:max-w-[600px]",
+        )}
+      >
+        <label className="text-gray-900 text-sm px-1 leading-[100%]">
           البحث
         </label>
         <div className="flex gap-2 w-full">
@@ -129,14 +94,15 @@ const FilterToolbar = ({
               className="absolute right-3 opacity-50"
             />
           </div>
-          <button
-            onClick={() => {
-              setFilteredCars(getFilteredCars());
-            }}
-            className="bg-white border border-gray-200 hover:bg-primary-50 text-primary-500 font-semibold w-[120px] cursor-pointer text-xs px-6 rounded-xl transition-colors shrink-0"
+          <Button
+            onClick={searchAction}
+            isLoading={isPending}
+            disabled={isPending}
+            spinnerVariant={"primary"}
+            className="bg-white border border-gray-200 hover:bg-primary-50 text-primary-500 font-semibold w-[120px]"
           >
             بحث
-          </button>
+          </Button>
         </div>
       </div>
     </div>

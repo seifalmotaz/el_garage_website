@@ -8,22 +8,31 @@ import MaxWidthWrapper from "./MaxWidthWrapper";
 import MenuButton from "./MenuButton";
 import { cn } from "@/lib/utils";
 import { usePathname } from "next/navigation";
+import Logo from "./Logo";
 
-export default function Header({
-  activeHref,
-  variant = "light",
-}: {
-  activeHref?: string;
-  variant?: "light" | "dark";
-}) {
+export default function Header({ activeHref }: { activeHref?: string }) {
+  const [activeNavlinkIdx, setActiveNavlinkIdx] = useState<number>(0);
   const [showHeader, setShowHeader] = useState(false);
   const [isHeaderVisible, setIsHeaderVisible] = useState(true);
 
   const pathname = usePathname();
 
+  const navItems = [
+    { label: "الصفحة الرئيسية", href: "/", idx: 0 },
+    { label: "تصفح السيارات", href: "/cars", idx: 1 },
+    { label: "السيارات المميزة", href: "/cars/featured", idx: 2 },
+    { label: "المقالات", href: "/blog", idx: 3 },
+    { label: "الأسئلة الشائعة", href: "/faq", idx: 4 },
+    { label: "تواصل معنا", href: "/contact", idx: 5 },
+  ];
+
   useEffect(() => {
-    if (!pathname.startsWith("/auth/")) setShowHeader(true);
-    else setShowHeader(false);
+    if (!pathname.startsWith("/auth/")) {
+      setShowHeader(true);
+      setActiveNavlinkIdx(
+        navItems.find((item) => item.href === pathname)?.idx || 0,
+      );
+    } else setShowHeader(false);
   }, [pathname]);
 
   useEffect(() => {
@@ -55,15 +64,6 @@ export default function Header({
 
   const [menuOpen, setMenuOpen] = useState(false);
 
-  const navItems = [
-    { label: "الصفحة الرئيسية", href: "/" },
-    { label: "تصفح السيارات", href: "/cars" },
-    { label: "السيارات المميزة", href: "/#grid-featured" },
-    { label: "المقالات", href: "/blog" },
-    { label: "الأسئلة الشائعة", href: "/#faq" },
-    { label: "تواصل معنا", href: "/#footer" },
-  ];
-
   return !showHeader ? (
     <></>
   ) : (
@@ -73,21 +73,11 @@ export default function Header({
         className={cn(
           "relative duration-300 transition-opacity ",
           isHeaderVisible ? "" : "opacity-0",
-          // isHeaderVisible ? "" : "hidden",
-          // variant === "dark"
-          // ? "top-12 left-5 right-5 w-[calc(100%-40px)] lg:top-6 lg:left-1/2 lg:right-auto"
-          // : "top-0 lg:top-6 left-0 w-full",
         )}
       >
         <div
-          className={`
-            lg:px-8 md:px-4 px-3 rounded-2xl lg:py-4 md:py-3 py-2
+          className={`lg:px-8 md:px-4 px-3 rounded-2xl lg:py-4 md:py-3 py-2
         ${
-          // variant === "dark"
-          // ? menuOpen
-          // ? "bg-transparent border-none rounded-[20px] lg:rounded-2xl px-3.5 lg:px-6 py-2 lg:py-4 h-[60px] lg:h-auto"
-          // : "backdrop-blur-md bg-[#000000]/30 border border-white/10 rounded-[20px] lg:rounded-2xl px-3.5 lg:px-6 py-2 lg:py-4 h-[60px] lg:h-auto"
-          // :
           menuOpen
             ? "border-none rounded-none"
             : "backdrop-blur-md bg-black/20 lg:border lg:border-none  "
@@ -97,34 +87,6 @@ export default function Header({
         >
           {/* Right: Logo (Placed first to align rightmost under RTL flow) */}
           <Link href="/" className="flex items-center gap-3 z-50">
-            {/* Mobile Logo Shield & Text */}
-            {/* <div className="lg:hidden flex items-center gap-2">
-              <div className="relative w-8 h-8">
-                <Image
-                  src={
-                    variant === "dark" && !menuOpen
-                      ? "/assets/logo_shield.svg"
-                      : "/assets/logo_shield_color.svg"
-                  }
-                  alt="elGARAGE Logo"
-                  fill
-                  className="object-contain"
-                />
-              </div>
-              <div className="relative w-[117px] h-[16px]">
-                <Image
-                  src={
-                    variant === "dark" && !menuOpen
-                      ? "/assets/logo_text.svg"
-                      : "/assets/logo_text_dark.svg"
-                  }
-                  alt="elGARAGE"
-                  fill
-                  className="object-contain"
-                />
-              </div>
-            </div> */}
-            {/* Desktop Logo Shield & Text */}
             <div className="relative w-8 h-8 xl:hidden max-lg:hidden">
               <Image
                 src="/logo-part.svg"
@@ -133,39 +95,21 @@ export default function Header({
                 className=""
               />
             </div>
-            <div className="flex lg:hidden xl:flex items-center gap-1.25">
-              <div className="relative w-[117px] h-[16px]">
-                <Image
-                  src="/assets/logo_text.svg"
-                  alt="elGARAGE"
-                  fill
-                  className="object-contain"
-                />
-              </div>
-              <div className="relative w-8 h-8">
-                <Image
-                  src="/assets/logo_shield.svg"
-                  alt="elGARAGE Logo"
-                  fill
-                  className="object-contain"
-                />
-              </div>
-            </div>
+            <Logo className="lg:hidden xl:flex" />
           </Link>
 
           {/* Center: Navigation - Hidden on Mobile, shown on Large Screens */}
           <nav className="hidden lg:flex items-center gap-6 lg:gap-3 xl:gap-8">
             {navItems.map((item, idx) => {
-              const isActive = activeHref
-                ? item.href === activeHref ||
-                  (item.href === "/" && activeHref === "/")
-                : idx === 0;
               return (
                 <Link
                   key={idx}
                   href={item.href}
+                  // onClick={() => setActiveNavlinkIdx(idx)}
                   className={`text-white hover:text-white/80 text-sm lg:text-[12px] 2xl:text-sm font-medium transition-colors duration-200 ${
-                    isActive ? "font-bold border-b-2 border-white pb-1" : ""
+                    activeNavlinkIdx === idx
+                      ? "font-bold border-b-2 border-white pb-1"
+                      : ""
                   }`}
                 >
                   {item.label}

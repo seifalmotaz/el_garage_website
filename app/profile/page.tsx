@@ -274,7 +274,7 @@ const profilePage = () => {
 
       <section>
         <MaxWidthWrapper className="py-[52px] 2xl:px-[182px]">
-          <div className="relative p-6 bg-gray-100 rounded-[32px] min-h-screen flex gap-6">
+          <div className="relative p-6 bg-gray-100 rounded-[32px] min-h-screen flex max-lg:flex-col gap-6">
             {/* right */}
             <div className="w-[292px] h-full flex flex-col gap-6">
               <div className="bg-white rounded-[24px] flex flex-col items-center border border-gray-200 p-[32px]">

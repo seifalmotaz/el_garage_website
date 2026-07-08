@@ -18,7 +18,7 @@ const VARIANTS = {
   secondary: "bg-primary-50 text-primary-500",
   ghost: "",
   error: "bg-red-500 text-white",
-  primaryDark: "bg-primary-900 text-white",
+  primaryDark: "bg-[#06142D] text-white",
   white: "bg-white text-white",
 };
 
@@ -27,6 +27,7 @@ interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   children?: React.ReactNode;
   ref?: React.Ref<HTMLButtonElement | null>;
   isLoading?: boolean;
+  spinnerVariant?: "white" | "primary";
 }
 
 const Button: React.FC<ButtonProps> = ({
@@ -34,6 +35,7 @@ const Button: React.FC<ButtonProps> = ({
   children,
   className,
   isLoading,
+  spinnerVariant,
   ref,
   ...props
 }) => {
@@ -50,7 +52,7 @@ const Button: React.FC<ButtonProps> = ({
       )}
       ref={ref}
     >
-      {isLoading ? <Spinner /> : children}
+      {isLoading ? <Spinner variant={spinnerVariant} /> : children}
     </button>
   );
 };

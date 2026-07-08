@@ -54,7 +54,7 @@ const CarIcon = () => (
   </svg>
 );
 
-const LocationIcon = ({ className = "w-5 h-5" }) => (
+const LocationIcon = () => (
   <svg
     width="20"
     height="20"
@@ -74,7 +74,7 @@ const LocationIcon = ({ className = "w-5 h-5" }) => (
   </svg>
 );
 
-const CalendarIcon = ({ className = "w-5 h-5" }) => (
+const CalendarIcon = () => (
   <svg
     width="20"
     height="20"
@@ -118,7 +118,7 @@ const CalendarIcon = ({ className = "w-5 h-5" }) => (
   </svg>
 );
 
-const ClipboardIcon = ({ className = "w-5 h-5" }) => (
+const ClipboardIcon = () => (
   <svg
     width="20"
     height="20"
@@ -925,7 +925,7 @@ export default function SellCarPage() {
                       {/* Box Header */}
                       <div className="border-b border-gray-100 pb-2 flex items-center justify-between">
                         <div className="flex items-center gap-1.5 font-bold text-gray-800 text-sm">
-                          <LocationIcon className="w-5 h-5 text-primary-500" />
+                          <LocationIcon />
                           <span>الموقع</span>
                         </div>
                         <button
@@ -950,7 +950,7 @@ export default function SellCarPage() {
                       {/* Box Header */}
                       <div className="border-b border-gray-100 pb-2 flex items-center justify-between">
                         <div className="flex items-center gap-1.5 font-bold text-gray-800 text-sm">
-                          <CalendarIcon className="w-5 h-5 text-primary-500" />
+                          <CalendarIcon />
                           <span>الموعد</span>
                         </div>
                         <button
