@@ -1,17 +1,18 @@
 "use client";
 
-import { useState, useMemo, use, useEffect, useTransition } from "react";
+import { useState, useMemo, useEffect, useTransition } from "react";
 import Image from "next/image";
-import Link from "next/link";
 import CarCard from "../../components/CarCard";
 import FilterToolbar from "@/components/common/FilterToolbar";
 import RangeInput from "@/components/form/RangeInput";
 import Checkbox from "@/components/form/Checkbox";
 import Button from "@/components/common/Button";
-import { ChevronLeft, ChevronRight } from "lucide-react";
 import Logo from "@/components/common/Logo";
 import SimilarCars from "@/components/sections/SimilarCars";
 import { cn, fakePromise } from "@/lib/utils";
+import PageBanner from "../common/PageBanner";
+import Pagination from "../common/Pagination";
+import NotFoundFeedback from "../common/NotFoundFeedback";
 
 export type CarsFilterTitleType = "browseCars" | "bestSeller" | "featuredCars";
 
@@ -183,54 +184,20 @@ const FilterIcon = () => (
 
 const Banner = ({ pageTitle }: { pageTitle: CarsFilterTitleType }) => {
   return (
-    <div className="relative w-full lg:h-[427px] h-[375px] overflow-hidden flex flex-col justify-end text-center pb-8 md:pb-0">
-      {/* Background Image */}
-      <Image
-        src="/images/car-details/banner.png"
-        alt="Car Details Page Banner"
-        fill
-        className="object-cover object-center"
-        priority
-      />
-      {/* Dark Gradient Overlay */}
-
-      {/* Content */}
-      <div
-        className="relative z-20 flex flex-col gap-3 px-6 lg:pb-[112px] pb-[44px]"
-        dir="rtl"
-      >
-        <h1 className="lg:text-3xl  md:text-[38px] text-lg text-white leading-tight tracking-wide">
-          {getArabicPageTitle(pageTitle)}
-        </h1>
-        <div className="flex items-center justify-center sm:gap-2 gap-1 text-xs md:text-sm text-gray-300 font-medium">
-          <Link
-            href="/"
-            className="hover:text-white transition-colors flex gap-2 items-center max-sm:text-xs"
-          >
-            <Image
-              src="/icons/home-2.svg"
-              alt="Car Details Page Banner"
-              width={24}
-              height={24}
-            />
-            الصفحة الرئيسية
-          </Link>
-          <span className="text-gray-500">/</span>
-          <Link
-            href={
-              pageTitle === "browseCars"
-                ? "/cars"
-                : pageTitle === "bestSeller"
-                  ? "/cars/best-seller"
-                  : "/cars/featured"
-            }
-            className="hover:text-white transition-colors max-sm:text-xs"
-          >
-            {getArabicPageTitle(pageTitle)}
-          </Link>
-        </div>
-      </div>
-    </div>
+    <PageBanner
+      href={
+        pageTitle === "browseCars"
+          ? "/cars"
+          : pageTitle === "bestSeller"
+            ? "/cars/best-seller"
+            : "/cars/featured"
+      }
+      title={
+        pageTitle === "browseCars"
+          ? getArabicPageTitle(pageTitle)
+          : `تصفح السيارات/${getArabicPageTitle(pageTitle)}`
+      }
+    />
   );
 };
 
@@ -936,9 +903,7 @@ const CarsFilter = ({ pageTitle }: { pageTitle: CarsFilterTitleType }) => {
               {getArabicPageTitle(pageTitle)}
             </h1>
 
-            {/* Mobile Search Toolbar */}
-
-            {/* Desktop Search toolbar */}
+            {/*  Search toolbar */}
             <form
               onSubmit={handleSearchSubmit}
               className="flex flex-col md:flex-row md:items-end justify-between gap-4 w-full"
@@ -956,90 +921,26 @@ const CarsFilter = ({ pageTitle }: { pageTitle: CarsFilterTitleType }) => {
               />
             </form>
 
-            {/* Mobile Ad Banner */}
+            {/* Ad Banner */}
             <AdBannerCard pageTitle={pageTitle} />
 
             {/* Cars Grid */}
             {filteredCars.length > 0 ? (
-              <div className="grid grid-cols-1 sm:grid-cols-2 2xl:grid-cols-3 gap-6 w-full">
+              <div className="grid grid-cols-1 sm:grid-cols-2 2xl:grid-cols-3 gap-4 w-full">
                 {paginatedCars.map((car, idx) => (
                   <CarCard key={idx} {...car} />
                 ))}
               </div>
             ) : (
-              <div className="bg-white border border-gray-100 rounded-2xl p-16 flex flex-col items-center justify-center gap-4 text-center">
-                <Image
-                  src="/assets/search_normal.svg"
-                  alt="no results"
-                  width={48}
-                  height={48}
-                  className="opacity-20"
-                />
-                <h3 className="text-lg font-bold text-gray-800">
-                  لا توجد نتائج مطابقة
-                </h3>
-                <p className="text-sm text-gray-400 max-w-[320px]">
-                  جرب تغيير فلاتر البحث أو إعادة تعيين الكل لرؤية جميع السيارات
-                  المتاحة
-                </p>
-                <button
-                  onClick={handleResetAll}
-                  className="bg-primary-500 hover:bg-primary-600 text-white text-xs font-semibold py-2.5 px-6 rounded-xl mt-2 transition-colors cursor-pointer"
-                >
-                  إعادة تعيين الكل
-                </button>
-              </div>
+              <NotFoundFeedback resetHandler={handleResetAll} />
             )}
 
             {/* Interactive Pagination */}
-            {totalPages > 1 && (
-              <div className="flex items-center justify-center gap-6 mt-8 select-none">
-                {/* Arrow Left (Next page in RTL / Left direction) */}
-                <button
-                  onClick={() =>
-                    setCurrentPage((prev) => Math.min(prev + 1, totalPages))
-                  }
-                  disabled={activePage === totalPages}
-                  className="w-10 h-10 rounded-full bg-white border border-gray-200 flex items-center justify-center text-gray-500 hover:border-primary-500 hover:text-primary-500 transition-colors disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
-                >
-                  <ChevronRight />
-                </button>
-
-                {/* Page numbers (LTR ordered for correct rendering layout) */}
-                <div className="flex items-center gap-2" dir="ltr">
-                  {Array.from({ length: totalPages }, (_, i) => i + 1).map(
-                    (page) => {
-                      const isActive = page === activePage;
-                      return (
-                        <button
-                          key={page}
-                          onClick={() => setCurrentPage(page)}
-                          className={`size-8 rounded-full font-medium text-sm transition-colors cursor-pointer flex items-center justify-center
-                          ${
-                            isActive
-                              ? "bg-primary-500 border border-primary-500 text-white shadow-sm"
-                              : "bg-white border border-gray-200 text-gray-700 hover:border-primary-600 hover:text-primary-600"
-                          }`}
-                        >
-                          {page}
-                        </button>
-                      );
-                    },
-                  )}
-                </div>
-
-                {/* Arrow Right (Prev page in RTL / Right direction) */}
-                <button
-                  onClick={() =>
-                    setCurrentPage((prev) => Math.max(prev - 1, 1))
-                  }
-                  disabled={activePage === 1}
-                  className="w-10 h-10 rounded-full bg-white border border-gray-200 flex items-center justify-center text-gray-500 hover:border-primary-500 hover:text-primary-500 transition-colors disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
-                >
-                  <ChevronLeft />
-                </button>
-              </div>
-            )}
+            <Pagination
+              totalPages={totalPages}
+              setCurrentPage={setCurrentPage}
+              activePage={activePage}
+            />
           </div>
         </div>
       </main>

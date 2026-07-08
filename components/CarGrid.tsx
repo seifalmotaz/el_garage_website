@@ -7,6 +7,7 @@ import MaxWidthWrapper from "./common/MaxWidthWrapper";
 import { initialCars } from "@/mock-data/cars";
 import FilterToolbar from "./common/FilterToolbar";
 import Link from "next/link";
+import ShowMoreLink from "./common/ShowMoreLink";
 
 type CarGridProps = {
   id?: string;
@@ -63,19 +64,10 @@ export default function CarGrid({
           <h2 className="text-primary-800 font-medium text-2xl md:text-3xl">
             {title}
           </h2>
-          <Link
+
+          <ShowMoreLink
             href={isFeaturedMode ? "/cars/featured" : "/cars/best-seller"}
-            className="flex items-center gap-2 text-gray-500 hover:text-primary-500 cursor-pointer transition-colors group"
-          >
-            <span className="text-sm font-semibold">عرض المزيد</span>
-            <Image
-              src="/assets/arrow_left_gray.svg"
-              alt="show more"
-              width={16}
-              height={16}
-              className="size-4.5 group-hover:translate-x-[-4px] transition-transform"
-            />
-          </Link>
+          />
         </div>
 
         <FilterToolbar
@@ -85,7 +77,6 @@ export default function CarGrid({
           setSortBy={(v) => setSortBy(v)}
           searchTerm={searchTerm}
           setSearchTerm={(v) => setSearchTerm(v)}
-          isFeaturedMode={isFeaturedMode}
           searchAction={() => setFilteredCars(getFilteredCars())}
         />
 

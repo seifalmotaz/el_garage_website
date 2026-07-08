@@ -3,15 +3,15 @@
 /
 
 ○ cars
-- cars
-- cars/{id}
-- cars/special
-- cars/best-seller
+- /cars/{id}
+- /cars
+- /cars/featured
+- /cars/best-seller
 
 ○ authentication
-- auth/signup
-- auth/login
-- auth/reset-password
+- /auth/signup
+- /auth/login
+- /auth/reset-password
 
 ○ sell
 - /sell

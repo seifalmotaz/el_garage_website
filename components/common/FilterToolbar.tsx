@@ -12,7 +12,6 @@ const FilterToolbar = ({
   searchTerm,
   setSearchTerm,
   searchAction,
-  isFeaturedMode,
   isLeftCol = false,
   isPending = false,
 }: {
@@ -23,7 +22,6 @@ const FilterToolbar = ({
   searchTerm: string;
   setSearchTerm: (value: string) => void;
   searchAction: () => void;
-  isFeaturedMode?: boolean;
   isLeftCol?: boolean;
   isPending?: boolean;
 }) => {

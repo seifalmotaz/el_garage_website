@@ -1,7 +1,11 @@
-import React from "react";
+import PageBanner from "@/components/common/PageBanner";
 
 const page = () => {
-  return <div>page</div>;
+  return (
+    <main>
+      <PageBanner title="تواصل معنا" href="/contact" />
+    </main>
+  );
 };
 
 export default page;

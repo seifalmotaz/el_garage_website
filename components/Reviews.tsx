@@ -47,67 +47,7 @@ export default function Reviews() {
           <h2 className="text-[#0C295A] font-bold text-2xl md:text-3xl">
             اراء عملائنا
           </h2>
-
-          {/* Arrow navigation buttons */}
-          {/* <div className="flex items-center gap-3">
-            <button className="w-10 h-10 rounded-full bg-primary-500 hover:bg-primary-600 text-white transition-colors flex items-center justify-center shadow-md">
-              <ArrowIcon
-                className="w-5 h-5 rotate-180"
-                strokeColor="currentColor"
-              />
-            </button>
-            <button className="w-10 h-10 rounded-full bg-gray-100 hover:bg-gray-200 text-[#0C0507] hover:text-[#002EC1] transition-colors flex items-center justify-center border border-gray-200/40">
-              <ArrowIcon className="w-5 h-5" strokeColor="currentColor" />
-            </button>
-          </div> */}
         </div>
-        {/* Testimonials Cards Grid */}
-        {/* <div className="relative w-full px-4">
-          <Carousel>
-            <CarouselContent className="-ml-4">
-              <CarouselItem className="basis-1/3 pl-4">
-                <div className="flex aspect-square items-center justify-center border border-zinc-200 dark:border-zinc-800">
-                  1
-                </div>
-              </CarouselItem>
-              <CarouselItem className="basis-1/3 pl-4">
-                <div className="flex aspect-square items-center justify-center border border-zinc-200 dark:border-zinc-800">
-                  2
-                </div>
-              </CarouselItem>
-              <CarouselItem className="basis-1/3 pl-4">
-                <div className="flex aspect-square items-center justify-center border border-zinc-200 dark:border-zinc-800">
-                  3
-                </div>
-              </CarouselItem>
-              <CarouselItem className="basis-1/3 pl-4">
-                <div className="flex aspect-square items-center justify-center border border-zinc-200 dark:border-zinc-800">
-                  4
-                </div>
-              </CarouselItem>
-              <CarouselItem className="basis-1/3 pl-4">
-                <div className="flex aspect-square items-center justify-center border border-zinc-200 dark:border-zinc-800">
-                  5
-                </div>
-              </CarouselItem>
-              <CarouselItem className="basis-1/3 pl-4">
-                <div className="flex aspect-square items-center justify-center border border-zinc-200 dark:border-zinc-800">
-                  6
-                </div>
-              </CarouselItem>
-              <CarouselItem className="basis-1/3 pl-4">
-                <div className="flex aspect-square items-center justify-center border border-zinc-200 dark:border-zinc-800">
-                  7
-                </div>
-              </CarouselItem>
-            </CarouselContent>
-            <CarouselNavigation
-              className="absolute -bottom-20 left-auto top-auto w-full justify-end gap-2"
-              classNameButton="bg-zinc-800 *:stroke-zinc-50 dark:bg-zinc-200 dark:*:stroke-zinc-800"
-              alwaysShow
-            />
-          </Carousel>
-        </div> */}
 
         {/* <div className="grid grid-cols-1 md:grid-cols-3 gap-6 w-full mt-4"> */}
         <Carousel dir="rtl">
