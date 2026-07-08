@@ -7,6 +7,7 @@ export type InputProps = React.InputHTMLAttributes<HTMLInputElement> & {
   wachedValue?: string;
   fieldName?: string;
   children?: ReactNode;
+  variant?: "gray" | "white";
 };
 
 const Input = React.forwardRef<HTMLInputElement, InputProps>(
@@ -17,6 +18,7 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
       error,
       label,
       wachedValue,
+      variant = "gray",
       fieldName,
       min = 0,
       max = Infinity,
@@ -45,7 +47,8 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
             name={label}
             placeholder={props.placeholder}
             className={cn(
-              "w-full border h-[50px] bg-gray-50 rounded-2xl border-transparent text-black outline-none placeholder:text-gray-300 placeholder:leading-[32px] placeholder:text-[14px] placeholder:font-light",
+              "w-full border h-[50px] rounded-2xl border-transparent text-black outline-none placeholder:text-gray-300 placeholder:leading-[32px] placeholder:text-[14px] placeholder:font-light",
+              variant === "gray" ? "bg-gray-50" : "bg-white border-[#F2F2F2]",
               error ? "border-red-500!" : "focus:border-gray-300",
               children ? (props.type === "tel" ? "px-13" : "px-11") : "px-3",
             )}

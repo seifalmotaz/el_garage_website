@@ -106,3 +106,17 @@ export const carSellStepsSchema = z.object({
 
 export type CarSellStepsSchemaType = z.infer<typeof carSellStepsSchema>;
 // ===== car sell schema ===== //
+//
+//
+//
+// ===== contact us schema ===== //
+export const contactSchema = z.object({
+  name: z.string().min(2, "الاسم بالكامل مطلوب"),
+  email: z.string().email("بريد غير صالح"),
+  phoneNumber: phoneNumberSchema,
+  messageType: z.string().min(1, "حدد نوع الرسالة"),
+  message: z.string().min(10, "يجب أن لا تقل الرسالة عن 10 أحرف"),
+});
+
+export type ContactSchemaType = z.infer<typeof contactSchema>;
+// ===== contact us schema ===== //
