@@ -25,6 +25,7 @@ import {
 import { carSellStepsSchema, CarSellStepsSchemaType } from "@/shared/schemas";
 import { fakePromise } from "@/lib/utils";
 import Spinner from "@/components/common/Spinner";
+import PageBanner from "@/components/common/PageBanner";
 
 const CarIcon = () => (
   <svg
@@ -54,7 +55,7 @@ const CarIcon = () => (
   </svg>
 );
 
-const LocationIcon = ({ className = "w-5 h-5" }) => (
+const LocationIcon = () => (
   <svg
     width="20"
     height="20"
@@ -74,7 +75,7 @@ const LocationIcon = ({ className = "w-5 h-5" }) => (
   </svg>
 );
 
-const CalendarIcon = ({ className = "w-5 h-5" }) => (
+const CalendarIcon = () => (
   <svg
     width="20"
     height="20"
@@ -118,7 +119,7 @@ const CalendarIcon = ({ className = "w-5 h-5" }) => (
   </svg>
 );
 
-const ClipboardIcon = ({ className = "w-5 h-5" }) => (
+const ClipboardIcon = () => (
   <svg
     width="20"
     height="20"
@@ -404,53 +405,6 @@ const ActionsRow = ({
   </div>
 );
 
-const Banner = () => {
-  return (
-    <div className="relative w-full lg:h-[427px] h-[375px] overflow-hidden flex flex-col justify-end text-center pb-8 md:pb-0">
-      {/* Background Image */}
-      <Image
-        src="/images/car-details/banner.png"
-        alt="Car Details Page Banner"
-        fill
-        className="object-cover object-center"
-        priority
-      />
-      {/* Dark Gradient Overlay */}
-
-      {/* Content */}
-      <div
-        className="relative z-20 flex flex-col gap-3 px-6 lg:pb-[112px] pb-[44px]"
-        dir="rtl"
-      >
-        <h1 className="lg:text-3xl  md:text-[38px] text-lg text-white leading-tight tracking-wide">
-          بيع السيارة
-        </h1>
-        <div className="flex items-center justify-center sm:gap-2 gap-1 text-xs md:text-sm text-gray-300 font-medium">
-          <Link
-            href="/"
-            className="hover:text-white transition-colors flex gap-2 items-center max-sm:text-xs"
-          >
-            <Image
-              src="/icons/home-2.svg"
-              alt="Car Details Page Banner"
-              width={24}
-              height={24}
-            />
-            الصفحة الرئيسية
-          </Link>
-          <span className="text-gray-500">/</span>
-          <Link
-            href="/cars"
-            className="hover:text-white transition-colors max-sm:text-xs"
-          >
-            بيع السيارة
-          </Link>
-        </div>
-      </div>
-    </div>
-  );
-};
-
 export default function SellCarPage() {
   const [step, setStep] = useState(0); // 0: Intro, 1: Car Info, 2: Location, 3: Schedule, 4: Review, 5: Success
 
@@ -529,7 +483,7 @@ export default function SellCarPage() {
   return (
     <div className="relative flex flex-col min-h-screen  bg-white" dir="rtl">
       {/* Banner */}
-      <Banner />
+      <PageBanner title="بيع السيارة" href="/cars" />
 
       {/* Main Content Area */}
       {step === 5 ? (
@@ -925,7 +879,7 @@ export default function SellCarPage() {
                       {/* Box Header */}
                       <div className="border-b border-gray-100 pb-2 flex items-center justify-between">
                         <div className="flex items-center gap-1.5 font-bold text-gray-800 text-sm">
-                          <LocationIcon className="w-5 h-5 text-primary-500" />
+                          <LocationIcon />
                           <span>الموقع</span>
                         </div>
                         <button
@@ -950,7 +904,7 @@ export default function SellCarPage() {
                       {/* Box Header */}
                       <div className="border-b border-gray-100 pb-2 flex items-center justify-between">
                         <div className="flex items-center gap-1.5 font-bold text-gray-800 text-sm">
-                          <CalendarIcon className="w-5 h-5 text-primary-500" />
+                          <CalendarIcon />
                           <span>الموعد</span>
                         </div>
                         <button

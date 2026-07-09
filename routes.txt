@@ -1,0 +1,17 @@
+
+○ home
+/
+
+○ cars
+- /cars/{id}
+- /cars
+- /cars/featured
+- /cars/best-seller
+
+○ authentication
+- /auth/signup
+- /auth/login
+- /auth/reset-password
+
+○ sell
+- /sell

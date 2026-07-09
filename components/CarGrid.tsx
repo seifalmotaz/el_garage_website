@@ -1,11 +1,13 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Image from "next/image";
 import CarCard from "./CarCard";
 import MaxWidthWrapper from "./common/MaxWidthWrapper";
 import { initialCars } from "@/mock-data/cars";
 import FilterToolbar from "./common/FilterToolbar";
+import Link from "next/link";
+import ShowMoreLink from "./common/ShowMoreLink";
 
 type CarGridProps = {
   id?: string;
@@ -24,6 +26,33 @@ export default function CarGrid({
   const [selectedModel, setSelectedModel] = useState("all");
   const [filteredCars, setFilteredCars] = useState(initialCars);
 
+  const getFilteredCars = () => {
+    return initialCars
+      .filter((car) => {
+        if (isFeaturedMode && !car.isFeatured) return false;
+
+        const matchesSearch =
+          car.brand.includes(searchTerm) ||
+          car.model.includes(searchTerm) ||
+          car.trim.includes(searchTerm);
+
+        const matchesModel =
+          selectedModel === "all" || car.brand === selectedModel;
+
+        return matchesSearch && matchesModel;
+      })
+      .sort((a, b) => {
+        const priceA = parseFloat(a.price.replace(/,/g, ""));
+        const priceB = parseFloat(b.price.replace(/,/g, ""));
+        if (sortBy === "high-to-low") return priceB - priceA;
+        return priceA - priceB;
+      });
+  };
+
+  useEffect(() => {
+    setFilteredCars(getFilteredCars());
+  }, [selectedModel, sortBy]);
+
   return (
     <section
       id={id}
@@ -35,16 +64,10 @@ export default function CarGrid({
           <h2 className="text-primary-800 font-medium text-2xl md:text-3xl">
             {title}
           </h2>
-          <div className="flex items-center gap-2 text-gray-500 hover:text-primary-500 cursor-pointer transition-colors group">
-            <span className="text-sm font-semibold">عرض المزيد</span>
-            <Image
-              src="/assets/arrow_left_gray.svg"
-              alt="show more"
-              width={16}
-              height={16}
-              className="w-4.5 h-4.5 group-hover:translate-x-[-4px] transition-transform"
-            />
-          </div>
+
+          <ShowMoreLink
+            href={isFeaturedMode ? "/cars/featured" : "/cars/best-seller"}
+          />
         </div>
 
         <FilterToolbar
@@ -54,8 +77,7 @@ export default function CarGrid({
           setSortBy={(v) => setSortBy(v)}
           searchTerm={searchTerm}
           setSearchTerm={(v) => setSearchTerm(v)}
-          setFilteredCars={(v) => setFilteredCars(v)}
-          isFeaturedMode={isFeaturedMode}
+          searchAction={() => setFilteredCars(getFilteredCars())}
         />
 
         {/* Cars Grid layout */}
