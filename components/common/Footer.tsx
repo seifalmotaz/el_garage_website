@@ -12,18 +12,18 @@ import {
 } from "../svg/Svgs";
 
 const legalLinks = [
-  { label: "الشروط و الأحكام", href: "#" },
-  { label: "سياسة الخصوصية", href: "#" },
+  { label: "الشروط و الأحكام", href: "/terms-and-conditions" },
+  { label: "سياسة الخصوصية", href: "/privacy-policy" },
 ];
 const directLinksCol1 = [
   { label: "الصفحة الرئيسية", href: "/" },
   { label: "تصفح السيارات", href: "/cars" },
-  { label: "السيارات المميزة", href: "/#grid-featured" },
+  { label: "السيارات المميزة", href: "/cars/featured" },
 ];
 const directLinksCol2 = [
   { label: "المقالات", href: "/blog" },
-  { label: "الأسئلة الشائعة", href: "/#faq" },
-  { label: "تواصل معنا", href: "/#footer" },
+  { label: "الأسئلة الشائعة", href: "/faq" },
+  { label: "تواصل معنا", href: "/contact" },
 ];
 const socialIcons = [
   { name: "instagram", icon: "/assets/social_instagram.svg" },
@@ -45,7 +45,7 @@ export default function Footer() {
   return !showFooter ? (
     <></>
   ) : (
-    <>
+    <footer id="footer" className="mt-10">
       <MaxWidthWrapper className="relative w-full min-h-[462px] lg:h-[462px] bg-[#f8f9fa] rounded-3xl overflow-visible flex flex-col lg:flex-row items-center justify-between px-6 md:px-12 lg:px-[72px] py-12 my-20 lg:py-0 gap-10 lg:gap-0">
         {/* Background illustration */}
         <Image
@@ -141,10 +141,7 @@ export default function Footer() {
           </p>
         </div>
       </MaxWidthWrapper>
-      <footer
-        id="footer"
-        className="relative bg-gradient-to-t from-[#002853] to-[#002ec1] text-white select-none overflow-hidden"
-      >
+      <div className="relative bg-gradient-to-t from-[#002853] to-[#002ec1] text-white select-none overflow-hidden">
         <div>
           {/* Background mechanic image */}
           <Image
@@ -275,31 +272,31 @@ export default function Footer() {
                   href="#"
                   className="w-11 h-11 rounded-full border border-white/12 hover:bg-white/10 flex items-center justify-center transition-colors"
                 >
-                  <YoutubeIcon />
+                  <YoutubeIcon color="white" />
                 </Link>
                 <Link
                   href="#"
                   className="w-11 h-11 rounded-full border border-white/12 hover:bg-white/10 flex items-center justify-center transition-colors"
                 >
-                  <FacebookIcon />
+                  <FacebookIcon color="white" />
                 </Link>
                 <Link
                   href="#"
                   className="w-11 h-11 rounded-full border border-white/12 hover:bg-white/10 flex items-center justify-center transition-colors"
                 >
-                  <TiwtterIcon />
+                  <TiwtterIcon color="white" />
                 </Link>
                 <Link
                   href="#"
                   className="w-11 h-11 rounded-full border border-white/12 hover:bg-white/10 flex items-center justify-center transition-colors"
                 >
-                  <InstagramIcon />
+                  <InstagramIcon color="white" />
                 </Link>
               </div>
             </MaxWidthWrapper>
           </div>
         </div>
-      </footer>
-    </>
+      </div>
+    </footer>
   );
 }

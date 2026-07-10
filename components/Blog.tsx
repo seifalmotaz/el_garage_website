@@ -33,7 +33,7 @@ export default function Blog() {
   return (
     <section
       id="blog"
-      className="bg-white py-16 flex flex-col items-center gap-8 w-full border-b border-gray-100"
+      className="bg-white lg:py-13 py-8 flex flex-col items-center gap-8 w-full border-b border-gray-100"
     >
       <MaxWidthWrapper className="w-full flex flex-col gap-6">
         {/* Title */}
@@ -59,7 +59,8 @@ export default function Blog() {
         {/* Blog Posts Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 w-full mt-4">
           {posts.map((post, idx) => (
-            <div
+            <Link
+              href={`/blog/${idx + 1}`}
               key={idx}
               className={`bg-[#06142d] border border-gray-100 rounded-3xl overflow-hidden shadow-sm hover:shadow-lg transition-all duration-300 flex flex-col h-[480px] relative group cursor-pointer ${post.span}`}
             >
@@ -116,7 +117,7 @@ export default function Blog() {
                   </p>
                 </div>
               </div>
-            </div>
+            </Link>
           ))}
         </div>
       </MaxWidthWrapper>

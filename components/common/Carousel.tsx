@@ -169,6 +169,7 @@ function CarouselNavigation({
         type="button"
         className={cn(
           "pointer-events-auto flex justify-center items-center size-10 rounded-full bg-zinc-50 p-2 transition-opacity duration-300",
+          rightButtonDisabled ? "" : "bg-primary-500! ",
           alwaysShow
             ? "opacity-100"
             : "opacity-0 group-hover/hover:opacity-100",
@@ -182,7 +183,7 @@ function CarouselNavigation({
         onClick={handleRightClick}
       >
         <ChevronRight
-          className="stroke-zinc-600 dark:stroke-zinc-50"
+          className={rightButtonDisabled ? "stroke-zinc-600" : "stroke-white!"}
           size={20}
         />
       </button>
@@ -190,7 +191,8 @@ function CarouselNavigation({
         type="button"
         aria-label={isRtl ? "Next slide" : "Previous slide"}
         className={cn(
-          "pointer-events-auto flex justify-center items-center size-10 rounded-full bg-zinc-50 p-2 transition-opacity duration-300 dark:bg-zinc-950",
+          "pointer-events-auto flex justify-center items-center size-10 rounded-full p-2 transition-opacity duration-300",
+          leftButtonDisabled ? "" : "bg-primary-500! ",
           alwaysShow
             ? "opacity-100"
             : "opacity-0 group-hover/hover:opacity-100",
@@ -203,8 +205,8 @@ function CarouselNavigation({
         onClick={handleLeftClick}
       >
         <ChevronLeft
-          className="stroke-zinc-600 dark:stroke-zinc-50"
           size={20}
+          className={leftButtonDisabled ? "stroke-zinc-600" : "stroke-white!"}
         />
       </button>
     </div>

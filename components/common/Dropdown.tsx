@@ -15,7 +15,7 @@ interface DropdownProps {
   option: string;
   setOption: (value: string) => void;
   className?: string;
-  variant?: "blurry" | "white";
+  variant?: "blurry" | "white" | "gray";
 }
 
 export default function Dropdown({
@@ -79,7 +79,9 @@ export default function Dropdown({
             `w-full flex items-center justify-between gap-2 px-3 py-2 h-[50px]  rounded-2xl text-sm cursor-pointer transition-all outline-none`,
             variant === "blurry"
               ? "bg-black/20"
-              : "bg-white border border-[#F2F2F2]",
+              : variant === "gray"
+                ? "bg-[#F9FAFB]"
+                : "bg-white border border-[#F2F2F2]",
           )}
         >
           <span
@@ -100,15 +102,12 @@ export default function Dropdown({
             src={
               variant === "blurry"
                 ? "/assets/chevron_down.svg"
-                : "/assets/arrow_down_gray.svg"
+                : "/assets/arrow_down_black.svg"
             }
             alt="down"
             width={12}
             height={6}
-            className={cn(
-              "opacity-70 group-hover:opacity-100 duration-300 invert lg:invert-0",
-              open ? "rotate-180" : "",
-            )}
+            className={cn("duration-300", open ? "rotate-180" : "")}
           />
         </button>
 

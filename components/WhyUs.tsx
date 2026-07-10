@@ -24,7 +24,7 @@ export default function WhyUs() {
   ];
 
   return (
-    <section className="bg-white py-13 w-full">
+    <section className="bg-white lg:py-13 py-8 w-full">
       <MaxWidthWrapper className="flex flex-col items-center gap-7.5">
         {/* Title & description */}
         <div className="text-center flex flex-col gap-4">
@@ -40,7 +40,7 @@ export default function WhyUs() {
         </div>
 
         {/* Stats row */}
-        <div className="flex flex-wrap justify-center gap-x-8 gap-y-6 md:flex md:flex-row md:items-center md:justify-center md:gap-16">
+        <div className="flex flex-wrap justify-center gap-x-2 gap-y-6 md:flex md:flex-row md:items-center md:justify-center md:gap-16">
           <Image
             src={"/images/home/why-us-1.svg"}
             alt="why us"

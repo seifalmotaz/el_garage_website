@@ -33,7 +33,7 @@ const PageBanner = ({
         dir="rtl"
       >
         <h1 className="lg:text-3xl md:text-[38px] text-lg text-white">
-          {title}
+          {titles[titles.length - 1]}
         </h1>
 
         <div className="flex items-center justify-center sm:gap-2 gap-1 text-xs md:text-sm text-gray-300 font-medium">

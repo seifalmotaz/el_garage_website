@@ -56,7 +56,7 @@ export default function CarGrid({
   return (
     <section
       id={id}
-      className="bg-gray-50 py-16 flex flex-col items-center gap-8 w-full border-b border-gray-100"
+      className="bg-gray-50 lg:py-13 py-8 flex flex-col items-center gap-8 w-full border-b border-gray-100"
     >
       <MaxWidthWrapper className="w-full flex flex-col gap-6">
         {/* Header Title with "Show More" Link */}
@@ -82,7 +82,7 @@ export default function CarGrid({
 
         {/* Cars Grid layout */}
         {filteredCars.length > 0 ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-6 w-full mt-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-4 w-full mt-4">
             {filteredCars.map((car, idx) => (
               <CarCard key={idx} {...car} />
             ))}

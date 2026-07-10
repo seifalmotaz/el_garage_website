@@ -10,27 +10,51 @@ import Spinner from "./common/Spinner";
 
 const CarCardType = ({
   variant = "blurry",
+  setCarType,
+  carType,
+  image,
+  currentCarType,
 }: {
   variant?: "white" | "blurry";
+  setCarType: (v: string) => void;
+  carType: string;
+  image: string;
+  currentCarType: string;
 }) => {
+  const isSelected = currentCarType === carType;
   return (
     <button
+      onClick={() => setCarType(carType)}
       className={cn(
-        " p-[30px] rounded-2xl flex flex-col gap-1 items-center",
-        variant === "blurry" ? "bg-black/30 backdrop-blur-lg" : "bg-[#eee]",
+        " rounded-2xl flex items-center justify-center gap-1 items-center aspect-square w-[106px]",
+        variant === "blurry"
+          ? isSelected
+            ? "bg-[#E9F0FC]"
+            : "bg-black/30 backdrop-blur-lg"
+          : isSelected
+            ? "border border-primary-500 bg-[#E9F0FC80]"
+            : "border border-[#1313131A]",
       )}
     >
-      <div className="">
-        <Image src={"/car-type.svg"} alt="car type" width={38} height={38} />
+      <div className="flex flex-col gap-1">
+        <div className="">
+          <Image src={image} alt="car type" width={38} height={38} />
+        </div>
+        <h3
+          className={cn(
+            "text-sm",
+            variant === "blurry"
+              ? isSelected
+                ? "text-black"
+                : "text-white"
+              : isSelected
+                ? "text-primary-500"
+                : "text-black",
+          )}
+        >
+          {carType}
+        </h3>
       </div>
-      <h3
-        className={cn(
-          "text-sm",
-          variant === "blurry" ? " text-white" : "text-black",
-        )}
-      >
-        مرسيدس
-      </h3>
     </button>
   );
 };
@@ -49,6 +73,8 @@ export default function Hero() {
     brand: "",
   });
 
+  const [carType, setCarType] = useState("all");
+
   const handleFilterChange = (key: string, value: string) => {
     setFilters((prev) => ({
       ...prev,
@@ -57,7 +83,7 @@ export default function Hero() {
   };
 
   const showResultsHandler = () => {
-    console.log(filters);
+    // console.log(filters);
     startTransition(async () => {
       await fakePromise();
     });
@@ -80,7 +106,7 @@ export default function Hero() {
       <MaxWidthWrapper>
         <div className="relative z-10 w-full flex flex-col items-center gap-8 lg:gap-12 ">
           {/* Headings */}
-          <div className="text-center text-primary-800 lg:text-white flex flex-col gap-4">
+          <div className="text-center text-primary-500 lg:text-white flex flex-col gap-4">
             <h1 className="text-3xl md:text-5xl lg:text-5xl font-bold lg:drop-shadow-md leading-[150%]">
               بيع و اشتري سيارتك مع الجراج بأفضل سعر وأكثر ثقة
             </h1>
@@ -91,7 +117,7 @@ export default function Hero() {
           </div>
 
           {/* Mobile Standalone Image Card */}
-          <div className="relative w-full aspect-[335/148] rounded-[24px] overflow-hidden lg:hidden shadow-sm">
+          <div className="relative w-full md:aspect-[335/148] aspect-video rounded-[24px] overflow-hidden lg:hidden shadow-sm">
             <Image
               src="/assets/hero_bg_decor2.png"
               alt="elGARAGE Handshake"
@@ -108,7 +134,7 @@ export default function Hero() {
               <span className="text-sm font-bold lg:font-medium text-right w-full lg:w-auto">
                 البحث حسب :
               </span>
-              <div className="bg-[#FAFAFA] lg:backdrop-blur-md lg:bg-black/25 border border-gray-200/50 lg:border-white/10 rounded-2xl p-1 flex gap-2 w-full lg:w-[320px]">
+              <div className="bg-[#0000001A] lg:backdrop-blur-md lg:bg-black/25 border border-gray-200/50 lg:border-white/10 rounded-2xl p-1 flex gap-2 w-full lg:w-[320px]">
                 <button
                   onClick={() => setSearchByTab("details")}
                   className={`flex-1 text-center  rounded-2xl w-[192.5px] h-[40px] py-2.5 lg:py-2 text-xs font-semibold transition-all duration-200 cursor-pointer ${
@@ -133,7 +159,7 @@ export default function Hero() {
             </div>
 
             {/* Filters Form */}
-            <div className="w-full bg-white lg:backdrop-blur-lg lg:bg-black/20 max-lg:border max-lg:border-gray-100 rounded-[24px] p-6 lg:py-8 lg:px-6 flex flex-col gap-6 shadow-md lg:shadow-2xl">
+            <div className="w-full bg-white lg:backdrop-blur-lg lg:bg-black/20 max-lg:border max-lg:border-gray-100 rounded-[24px] p-4 lg:py-8 lg:px-6 flex flex-col gap-6 shadow-md lg:shadow-2xl">
               {searchByTab === "details" ? (
                 <>
                   <div className="grid grid-cols-2 lg:grid-cols-6 gap-4 max-lg:hidden">
@@ -149,7 +175,7 @@ export default function Hero() {
                         }
                       />
                     ))}
-                  </div>{" "}
+                  </div>
                   <div className="grid grid-cols-2 lg:grid-cols-6 gap-4 lg:hidden">
                     {filterFields.map((field, i) => (
                       <Dropdown
@@ -161,7 +187,7 @@ export default function Hero() {
                         setOption={(val) =>
                           handleFilterChange(Object.keys(filters)[i], val)
                         }
-                        variant="white"
+                        variant="gray"
                       />
                     ))}
                   </div>
@@ -172,7 +198,13 @@ export default function Hero() {
                     {Array(11)
                       .fill(0)
                       .map((item, i) => (
-                        <CarCardType key={i} />
+                        <CarCardType
+                          image={"/car-type.svg"}
+                          key={i}
+                          carType={`car ${i + 1}`}
+                          currentCarType={carType}
+                          setCarType={(v) => setCarType(v)}
+                        />
                       ))}
                   </div>
 
@@ -180,7 +212,14 @@ export default function Hero() {
                     {Array(11)
                       .fill(0)
                       .map((item, i) => (
-                        <CarCardType key={i} variant={"white"} />
+                        <CarCardType
+                          image={"/car-type.svg"}
+                          key={i}
+                          variant={"white"}
+                          carType={`car ${i + 1}`}
+                          currentCarType={carType}
+                          setCarType={(v) => setCarType(v)}
+                        />
                       ))}
                   </div>
                 </>

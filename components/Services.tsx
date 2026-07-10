@@ -320,7 +320,7 @@ export default function Services() {
 
   return (
     <section>
-      <MaxWidthWrapper className="relative w-full py-16 flex flex-col items-center gap-12 text-white overflow-hidden">
+      <MaxWidthWrapper className="relative w-full lg:py-13 py-8 flex flex-col items-center gap-12 text-white overflow-hidden">
         {/* Background Image and Overlays */}
         <div className="absolute inset-0 z-0">
           <Image
@@ -359,7 +359,7 @@ export default function Services() {
 
           {/* Headings */}
           <div className="text-center flex flex-col gap-2">
-            <h2 className="text-2xl md:text-3xl font-bold">
+            <h2 className="text-lg sm:text-2xl md:text-3xl font-bold">
               {activeTab === "sell" ? "كيف تبيع سيارتك؟" : "كيف تشتري سيارتك؟"}
             </h2>
             <p className="text-white/70 text-base md:text-lg">
@@ -370,11 +370,11 @@ export default function Services() {
           </div>
 
           {/* Steps Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 w-full mt-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 w-full mt-4">
             {activeSteps.map((step, idx) => (
               <div
                 key={idx}
-                className="backdrop-blur-[20px] bg-black/20 border border-white/10 rounded-[24px] px-[52px] py-[24px] flex flex-col items-center text-center gap-2 hover:border-white/20 transition-all duration-200 group shadow-lg"
+                className="backdrop-blur-[20px] md:last:col-span-2 lg:last:col-span-1 bg-black/20 rounded-[24px] px-[52px] py-[24px] flex flex-col items-center text-center gap-2 hover:border-white/20 transition-all duration-200 group shadow-lg"
               >
                 {/* Step Illustration */}
                 <div className="transform group-hover:scale-105 transition-transform duration-200 mb-2">
@@ -395,7 +395,7 @@ export default function Services() {
           </div>
 
           {/* CTA Button */}
-          <div className="mt-4">
+          <div className="lg:mt-4">
             <Link
               href={activeTab === "sell" ? "/sell" : "/cars"}
               className="inline-block"

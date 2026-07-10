@@ -13,6 +13,7 @@ import { cn, fakePromise } from "@/lib/utils";
 import PageBanner from "../common/PageBanner";
 import Pagination from "../common/Pagination";
 import NotFoundFeedback from "../common/NotFoundFeedback";
+import MaxWidthWrapper from "../common/MaxWidthWrapper";
 
 export type CarsFilterTitleType = "browseCars" | "bestSeller" | "featuredCars";
 
@@ -661,7 +662,7 @@ const CarsFilter = ({ pageTitle }: { pageTitle: CarsFilterTitleType }) => {
       {/* Hero Banner Section */}
       <Banner pageTitle={pageTitle} />
 
-      <main className="flex-1 w-full mx-auto px-6 md:px-12 py-10 flex flex-col gap-6">
+      <MaxWidthWrapper className="flex-1 w-full mx-auto lg:py-13 py-8 flex flex-col gap-6">
         <h1 className="text-right text-primary-800 font-semibold leading-[150%] text-lg mb-1 lg:hidden">
           {getArabicPageTitle(pageTitle)}
         </h1>
@@ -943,7 +944,7 @@ const CarsFilter = ({ pageTitle }: { pageTitle: CarsFilterTitleType }) => {
             />
           </div>
         </div>
-      </main>
+      </MaxWidthWrapper>
       <div className="sm:hidden">
         <SimilarCars recommendedCars={similarCars} />
       </div>

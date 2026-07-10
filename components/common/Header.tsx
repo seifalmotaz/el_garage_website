@@ -10,12 +10,14 @@ import { cn } from "@/lib/utils";
 import { usePathname } from "next/navigation";
 import Logo from "./Logo";
 
-export default function Header({ activeHref }: { activeHref?: string }) {
-  const [activeNavlinkIdx, setActiveNavlinkIdx] = useState<number>(0);
+export default function Header() {
+  const [activeNavlinkIdx, setActiveNavlinkIdx] = useState<number | null>(0);
   const [showHeader, setShowHeader] = useState(false);
   const [isHeaderVisible, setIsHeaderVisible] = useState(true);
 
   const pathname = usePathname();
+
+  const isHeaderWhite = pathname === "/";
 
   const navItems = [
     { label: "الصفحة الرئيسية", href: "/", idx: 0 },
@@ -26,11 +28,21 @@ export default function Header({ activeHref }: { activeHref?: string }) {
     { label: "تواصل معنا", href: "/contact", idx: 5 },
   ];
 
+  const carRoute = "/cars/";
+  const blogRoute = "/blog/";
+
   useEffect(() => {
     if (!pathname.startsWith("/auth/")) {
       setShowHeader(true);
+      const selectedNavItem = navItems.find((item) => item.href === pathname);
       setActiveNavlinkIdx(
-        navItems.find((item) => item.href === pathname)?.idx || 0,
+        selectedNavItem
+          ? selectedNavItem.idx
+          : pathname.startsWith(carRoute)
+            ? 1
+            : pathname.startsWith(blogRoute)
+              ? 3
+              : null,
       );
     } else setShowHeader(false);
   }, [pathname]);
@@ -70,22 +82,23 @@ export default function Header({ activeHref }: { activeHref?: string }) {
     <MaxWidthWrapper className={cn("fixed z-50 w-full pt-6")}>
       <header
         style={{ pointerEvents: isHeaderVisible ? "auto" : "none" }}
-        className={cn(
-          "relative duration-300 transition-opacity ",
-          isHeaderVisible ? "" : "opacity-0",
-        )}
+        className={cn("relative", isHeaderVisible ? "" : "opacity-0")}
       >
         <div
-          className={`lg:px-8 md:px-4 px-3 rounded-2xl lg:py-4 md:py-3 py-2
-        ${
-          menuOpen
-            ? "border-none rounded-none"
-            : "backdrop-blur-md bg-black/20 lg:border lg:border-none  "
-        }
-        flex items-center justify-between lg:shadow-lg w-full relative z-50
-      `}
+          className={cn(
+            `lg:px-8 md:px-4 px-3 rounded-2xl lg:py-4 md:py-3 py-2`,
+            menuOpen
+              ? isHeaderWhite
+                ? "bg-white"
+                : "border-none rounded-none"
+              : isHeaderWhite
+                ? "lg:backdrop-blur-md lg:bg-black/20 bg-white"
+                : "backdrop-blur-md bg-black/20 lg:border lg:border-none",
+            "flex items-center justify-between lg:shadow-lg w-full relative z-50",
+          )}
         >
           {/* Right: Logo (Placed first to align rightmost under RTL flow) */}
+
           <Link href="/" className="flex items-center gap-3 z-50">
             <div className="relative w-8 h-8 xl:hidden max-lg:hidden">
               <Image
@@ -95,7 +108,12 @@ export default function Header({ activeHref }: { activeHref?: string }) {
                 className=""
               />
             </div>
-            <Logo className="lg:hidden xl:flex" />
+
+            <Logo className="max-xl:hidden" />
+            <Logo
+              className="lg:hidden"
+              variant={isHeaderWhite || menuOpen ? "primary" : "white"}
+            />
           </Link>
 
           {/* Center: Navigation - Hidden on Mobile, shown on Large Screens */}
@@ -105,7 +123,6 @@ export default function Header({ activeHref }: { activeHref?: string }) {
                 <Link
                   key={idx}
                   href={item.href}
-                  // onClick={() => setActiveNavlinkIdx(idx)}
                   className={`text-white hover:text-white/80 text-sm lg:text-[12px] 2xl:text-sm font-medium transition-colors duration-200 ${
                     activeNavlinkIdx === idx
                       ? "font-bold border-b-2 border-white pb-1"
@@ -162,7 +179,10 @@ export default function Header({ activeHref }: { activeHref?: string }) {
                 key={idx}
                 href={item.href}
                 onClick={() => setMenuOpen(false)}
-                className="text-gray-800 hover:text-primary-500 font-bold text-xl transition-colors py-2 border-b border-gray-100"
+                className={cn(
+                  "text-gray-800 hover:text-primary-500 font-bold text-xl transition-colors py-2 border-b border-gray-100",
+                  activeNavlinkIdx === idx ? "text-primary-500" : "",
+                )}
               >
                 {item.label}
               </Link>

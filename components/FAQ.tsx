@@ -4,6 +4,9 @@ import { useState } from "react";
 import Image from "next/image";
 import { buyFAQs, sellFAQs } from "@/constants/faq";
 import MaxWidthWrapper from "./common/MaxWidthWrapper";
+import Button from "./common/Button";
+import { cn } from "@/lib/utils";
+import Link from "next/link";
 
 export default function FAQ() {
   const [activeTab, setActiveTab] = useState<"buy" | "sell">("buy");
@@ -18,9 +21,9 @@ export default function FAQ() {
   return (
     <section
       id="faq"
-      className="bg-white py-16  gap-12 w-full border-b border-gray-100"
+      className="bg-white lg:py-13 py-8  gap-12 w-full border-b border-gray-100"
     >
-      <MaxWidthWrapper className="flex flex-col md:flex-row items-start justify-between">
+      <MaxWidthWrapper className="flex flex-col md:flex-row gap-4 items-start justify-between">
         {/* Right Column: Title and Tabs (renders on the right under RTL) */}
         <div className="w-full md:w-[370px] flex flex-col gap-6 text-right shrink-0">
           <h2 className="text-[#1A1A1A] font-bold text-3xl md:text-[32px]">
@@ -34,24 +37,23 @@ export default function FAQ() {
                 setActiveTab("buy");
                 setOpenIndex(0);
               }}
-              className={`flex-1 md:w-full h-12 px-4 rounded-lg text-center md:text-right text-sm font-semibold md:font-medium transition-all duration-200 cursor-pointer ${
-                activeTab === "buy"
-                  ? "bg-primary-50 text-primary-500 font-bold"
-                  : "text-[#1A1A1A] hover:bg-gray-50/50"
-              }`}
+              className={cn(
+                "text-start px-8 font-medium rounded-md py-[13.5px]",
+                activeTab === "buy" ? "bg-primary-50 text-primary-500" : "",
+              )}
             >
               الخاصة بالشراء
             </button>
+
             <button
               onClick={() => {
                 setActiveTab("sell");
                 setOpenIndex(0);
               }}
-              className={`flex-1 md:w-full h-12 px-4 rounded-lg text-center md:text-right text-sm font-semibold md:font-medium transition-all duration-200 cursor-pointer ${
-                activeTab === "sell"
-                  ? "bg-primary-50 text-primary-500 font-bold"
-                  : "text-[#1A1A1A] hover:bg-gray-50/50"
-              }`}
+              className={cn(
+                "text-start px-8 font-medium rounded-md py-[13.5px]",
+                activeTab === "sell" ? "bg-primary-50 text-primary-500" : "",
+              )}
             >
               الخاصة بالبيع
             </button>
@@ -59,8 +61,8 @@ export default function FAQ() {
         </div>
 
         {/* Left Column: Expandable Accordions (renders on the left under RTL) */}
-        <div className="flex-1 flex flex-col gap-6 w-full text-right">
-          <div className="bg-white border border-[#F2F2F2] p-4 md:p-6 rounded-2xl flex flex-col gap-6">
+        <div className="flex-1 flex flex-col gap-6 w-full text-right xl:pl-[126px]">
+          <div className="bg-white border border-[#F2F2F2] p-4 rounded-2xl flex flex-col gap-6">
             {faqs.map((faq, index) => {
               const isOpen = openIndex === index;
               return (
@@ -121,9 +123,11 @@ export default function FAQ() {
             <p className="text-primary-500 text-base font-semibold">
               اذا لم تجد سؤالك ؟
             </p>
-            <button className="bg-[#1A1A1A] hover:bg-black text-white font-bold text-base h-12 w-full max-w-[338px] rounded-2xl transition-colors flex items-center justify-center">
-              تواصل معنا
-            </button>
+            <Link href="/contact" className="w-full">
+              <button className="bg-[#1A1A1A] hover:bg-black text-white font-bold text-base h-12 w-full max-w-[338px] rounded-2xl transition-colors flex items-center justify-center">
+                تواصل معنا
+              </button>
+            </Link>
           </div>
         </div>
       </MaxWidthWrapper>
