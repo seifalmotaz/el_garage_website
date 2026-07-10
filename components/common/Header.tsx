@@ -53,8 +53,11 @@ export default function Header() {
       const currentScrollY = window.scrollY;
 
       requestAnimationFrame(() => {
+        if (currentScrollY <= 200) {
+          setIsHeaderVisible(true);
+        }
         // Always show nav at the top of the page
-        if (currentScrollY > lastScrollY) {
+        else if (currentScrollY > lastScrollY) {
           // scrolling down
           setIsHeaderVisible(false);
         } else {
@@ -68,10 +71,6 @@ export default function Header() {
 
     window.addEventListener("scroll", scrollHandler, { passive: true });
     return () => window.removeEventListener("scroll", scrollHandler);
-  }, []);
-
-  useEffect(() => {
-    if (window.scrollY < 100) setIsHeaderVisible(true);
   }, []);
 
   const [menuOpen, setMenuOpen] = useState(false);
