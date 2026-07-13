@@ -4,52 +4,68 @@ import { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
+import { formatMileage, formatPrice, formatYear } from "@/lib/format";
+
+/** Local placeholder path used when a car has no usable image URL. */
+const CAR_PLACEHOLDER = "/assets/car_placeholder.png";
 
 type CarCardProps = {
-  id?: string;
+  id: string;
+  /** Absolute image URL, or `undefined` to fall back to the placeholder. */
   image?: string;
+  /** Resolved brand name (e.g. `car.carBrand?.name ?? car.brand`). */
   brand: string;
+  /** Resolved model name (e.g. `car.carModel?.name ?? car.model`). */
   model: string;
-  price: string;
-  installment?: string;
-  year: string;
-  mileage: string;
-  trim: string;
+  /** Raw price; rendered via `formatPrice` with the ` ج.م` suffix. */
+  price: number;
+  /** Raw mileage; rendered via `formatMileage`. */
+  mileage: number;
+  /** Raw year; rendered via `formatYear`. */
+  year: number;
+  trim: string | null;
   location: string;
   isFeatured?: boolean;
   isCertified?: boolean;
+  /** Optional monthly installment value rendered after the price. */
+  installment?: number;
+  /** Optional discount pill shown above the price. */
   discountText?: string;
 };
 
 export default function CarCard({
   id,
-  image = "/assets/car_placeholder.png",
+  image,
   brand,
   model,
   price,
-  installment = "12,444",
   year,
   mileage,
   trim,
   location,
   isFeatured = false,
-  isCertified = true,
+  isCertified = false,
+  installment,
   discountText,
 }: CarCardProps) {
   const [isLiked, setIsLiked] = useState(false);
+  const imageSrc = image && image.length > 0 ? image : CAR_PLACEHOLDER;
 
   return (
     <Link
-      href={`/cars/${id || "bmw-x5"}`}
+      href={`/cars/${id}`}
       className="bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-lg transition-all duration-300 flex flex-col relative group select-none gap-[10px]"
     >
       {/* Top Section: Image and Badges */}
       <div className="relative h-[165px] overflow-hidden rounded-xl mx-[4px] mt-[4px]">
-        <Image
-          src={image}
+        {/* Plain <img> on purpose: car images come from the backend origin
+            which is not in `next.config.ts` remotePatterns. Using a plain
+            <img> avoids the Next Image proxy entirely. */}
+        <img
+          src={imageSrc}
           alt={`${brand} ${model}`}
-          fill
-          className="object-cover group-hover:scale-105 transition-transform duration-300 rounded-xl"
+          loading="lazy"
+          className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-300 rounded-xl"
         />
 
         {/* Favorite & Video CTAs */}
@@ -118,11 +134,11 @@ export default function CarCard({
           <div className="flex flex-col items-center gap-1 shrink-0 text-end">
             <div className="flex items-baseline gap-1">
               <span className="text-lg font-bold text-primary-600">
-                {price}
+                {formatPrice(price)}
               </span>
               <span className="text-sm text-primary-400 font-normal">ج.م</span>
             </div>
-            {installment && (
+            {installment !== undefined && installment !== null && (
               <span className="text-sm text-gray-500 font-normal">
                 {installment} شهر
               </span>
@@ -141,7 +157,7 @@ export default function CarCard({
               height={20}
               className="w-5 h-5 opacity-60"
             />
-            <span className="text-sm text-gray-500">{year}</span>
+            <span className="text-sm text-gray-500">{formatYear(year)}</span>
           </div>
 
           {/* Mileage */}
@@ -153,7 +169,9 @@ export default function CarCard({
               height={20}
               className="w-5 h-5 opacity-60"
             />
-            <span className="text-sm text-gray-500">{mileage}</span>
+            <span className="text-sm text-gray-500">
+              {formatMileage(mileage)}
+            </span>
           </div>
 
           {/* Location (Right side in RTL) */}
@@ -169,16 +187,18 @@ export default function CarCard({
           </div>
 
           {/* Trim (Left side in RTL) */}
-          <div className="flex items-center gap-1">
-            <Image
-              src="/assets/car_specs_icon.svg"
-              alt="trim"
-              width={20}
-              height={20}
-              className="w-5 h-5 opacity-60"
-            />
-            <span className="text-sm text-gray-500">{trim}</span>
-          </div>
+          {trim && (
+            <div className="flex items-center gap-1">
+              <Image
+                src="/assets/car_specs_icon.svg"
+                alt="trim"
+                width={20}
+                height={20}
+                className="w-5 h-5 opacity-60"
+              />
+              <span className="text-sm text-gray-500">{trim}</span>
+            </div>
+          )}
         </div>
       </div>
 

@@ -1,13 +1,13 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import Image from "next/image";
 import CarCard from "./CarCard";
 import MaxWidthWrapper from "./common/MaxWidthWrapper";
-import { initialCars } from "@/mock-data/cars";
 import FilterToolbar from "./common/FilterToolbar";
-import Link from "next/link";
 import ShowMoreLink from "./common/ShowMoreLink";
+import Spinner from "./common/Spinner";
+import { useCars } from "@/hooks/useCars";
+import type { Car } from "@/lib/api/types";
 
 type CarGridProps = {
   id?: string;
@@ -15,43 +15,61 @@ type CarGridProps = {
   isFeaturedMode?: boolean;
 };
 
+/** Client-side cap on the number of cards rendered for either grid. */
+const DISPLAY_LIMIT = 9;
+
 export default function CarGrid({
   id,
   title,
   isFeaturedMode = false,
 }: CarGridProps) {
-  // filte toolbar states
+  // Filter toolbar state — unchanged from the previous mock-data version.
   const [searchTerm, setSearchTerm] = useState("");
   const [sortBy, setSortBy] = useState("high-to-low");
   const [selectedModel, setSelectedModel] = useState("all");
-  const [filteredCars, setFilteredCars] = useState(initialCars);
+  const [filteredCars, setFilteredCars] = useState<Car[]>([]);
 
-  const getFilteredCars = () => {
-    return initialCars
+  const { cars, isLoading, error, mutate } = useCars({
+    isFeatured: isFeaturedMode,
+  });
+
+  /**
+   * Derive the list rendered in the grid: filter by `searchTerm` and
+   * `selectedModel`, sort by price, then cap at 9 cards.
+   *
+   * `carBrand?.name ?? car.brand` and `carModel?.name ?? car.model` resolve
+   * the same Arabic display strings the backend stores in the relational
+   * `carBrand` / `carModel` refs (preferred) or falls back to the legacy
+   * text columns when those refs are missing.
+   */
+  const getFilteredCars = (): Car[] => {
+    return cars
       .filter((car) => {
-        if (isFeaturedMode && !car.isFeatured) return false;
+        const brandLabel = car.carBrand?.name ?? car.brand;
+        const modelLabel = car.carModel?.name ?? car.model;
+        const trimLabel = car.trim ?? "";
 
         const matchesSearch =
-          car.brand.includes(searchTerm) ||
-          car.model.includes(searchTerm) ||
-          car.trim.includes(searchTerm);
+          brandLabel.includes(searchTerm) ||
+          modelLabel.includes(searchTerm) ||
+          trimLabel.includes(searchTerm);
 
         const matchesModel =
-          selectedModel === "all" || car.brand === selectedModel;
+          selectedModel === "all" || brandLabel === selectedModel;
 
         return matchesSearch && matchesModel;
       })
       .sort((a, b) => {
-        const priceA = parseFloat(a.price.replace(/,/g, ""));
-        const priceB = parseFloat(b.price.replace(/,/g, ""));
-        if (sortBy === "high-to-low") return priceB - priceA;
-        return priceA - priceB;
-      });
+        if (sortBy === "high-to-low") return b.price - a.price;
+        return a.price - b.price;
+      })
+      .slice(0, DISPLAY_LIMIT);
   };
 
   useEffect(() => {
     setFilteredCars(getFilteredCars());
-  }, [selectedModel, sortBy]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [cars, selectedModel, sortBy]);
 
   return (
     <section
@@ -80,11 +98,40 @@ export default function CarGrid({
           searchAction={() => setFilteredCars(getFilteredCars())}
         />
 
-        {/* Cars Grid layout */}
-        {filteredCars.length > 0 ? (
+        {/* Cars Grid / Loading / Error / Empty */}
+        {error ? (
+          <div className="flex flex-col items-center justify-center min-h-[400px] gap-4 text-center">
+            <p className="text-red-500 font-medium">
+              حدث خطأ أثناء تحميل السيارات
+            </p>
+            <button
+              onClick={() => mutate()}
+              className="bg-primary-500 hover:bg-primary-600 text-white font-semibold text-sm px-5 py-2.5 rounded-xl transition-colors"
+            >
+              حاول مرة أخرى
+            </button>
+          </div>
+        ) : isLoading ? (
+          <div className="flex items-center justify-center min-h-[400px]">
+            <Spinner variant="primary" />
+          </div>
+        ) : filteredCars.length > 0 ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-4 w-full mt-4">
-            {filteredCars.map((car, idx) => (
-              <CarCard key={idx} {...car} />
+            {filteredCars.map((car) => (
+              <CarCard
+                key={car.id}
+                id={car.id}
+                image={car.images[0]}
+                brand={car.carBrand?.name ?? car.brand}
+                model={car.carModel?.name ?? car.model}
+                price={car.price}
+                year={car.year}
+                mileage={car.mileage}
+                trim={car.trim}
+                location={car.address}
+                isFeatured={car.isFeatured}
+                isCertified={car.inspectionPhotos.length > 0}
+              />
             ))}
           </div>
         ) : (

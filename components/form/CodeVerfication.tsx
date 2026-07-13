@@ -1,44 +1,46 @@
-import { useEffect, useRef, useState, useTransition } from "react";
+"use client";
+
+import { useEffect, useRef } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { z } from "zod";
-import { cn, fakePromise } from "@/lib/utils";
+import { cn } from "@/lib/utils";
 import { verifyCodeSchema, VerifyCodeSchemaType } from "@/shared/schemas";
 
-const time = 30; // in seconds
+type CodeVerificationProps = {
+  /**
+   * E.164-formatted phone the OTP was sent to. Used only to render a
+   * masked hint like `***4567` — the code itself is consumed by the
+   * parent state machine in the next step.
+   */
+  phone: string;
+  /**
+   * Called when the user submits a 4-digit code. The handler receives
+   * the raw 4-digit string. The parent advances to Step 3 (new password)
+   * on this callback. No API call is made here — the backend consumes
+   * the OTP only via the final `reset-password` endpoint.
+   */
+  onSuccess: (otpCode: string) => void;
+};
 
-const CodeVerification = () => {
+const CodeVerification = ({ phone, onSuccess }: CodeVerificationProps) => {
   const inputsRef = useRef<(HTMLInputElement | null)[]>([]);
-  const [timer, setTimer] = useState(time);
 
   const {
     handleSubmit,
     setValue,
     watch,
-    reset,
     formState: { errors },
   } = useForm<VerifyCodeSchemaType>({
     resolver: zodResolver(verifyCodeSchema),
     defaultValues: { code: "" },
   });
 
-  const [isPending, startTransition] = useTransition();
-
   const code = watch("code");
-
-  const intervalRef = useRef<NodeJS.Timeout | null>(null);
 
   // focus first
   useEffect(() => {
     inputsRef.current[0]?.focus();
   }, []);
-
-  // timer
-  useEffect(() => {
-    if (timer === 0) return;
-    intervalRef.current = setInterval(() => setTimer((p) => p - 1), 1000);
-    return () => clearInterval(intervalRef?.current || 0);
-  }, [timer]);
 
   const handleChange = (value: string, index: number) => {
     if (!/^\d?$/.test(value)) return;
@@ -77,22 +79,12 @@ const CodeVerification = () => {
     inputsRef.current[Math.min(pasted.length, 3)]?.focus();
   };
 
-  const handleResend = () => setTimer(time);
-
-  const stopTimer = () => {
-    if (intervalRef.current) {
-      clearInterval(intervalRef.current);
-      intervalRef.current = null;
-    }
-  };
-
+  // Step 2 of the forget-password flow is purely local: we surface the
+  // typed code to the parent and let it advance to Step 3. The backend
+  // does not expose a separate "verify the OTP only" endpoint for
+  // password reset — the code is consumed by `reset-password` later.
   const onSubmit = (data: VerifyCodeSchemaType) => {
-    // console.log(data.code);
-    startTransition(async () => {
-      stopTimer();
-      await fakePromise();
-      reset(); // clear all input
-    });
+    onSuccess(data.code);
   };
 
   return (
@@ -104,7 +96,7 @@ const CodeVerification = () => {
         </h2>
 
         <p className="text-neutral-600 text-center py-[32px]">
-          من فضلك أدخل الرمز الذي تم إرساله إلى ******45
+          من فضلك أدخل الرمز الذي تم إرساله إلى ***{phone.slice(-4)}
         </p>
       </div>
 
@@ -142,24 +134,10 @@ const CodeVerification = () => {
         )} */}
       </div>
 
-      {/* Timer */}
-      <div className="text-center text-sm space-y-3 mb-8">
-        <p>
-          لم يتم إرسال الكود؟{" "}
-          <button
-            className="text-primary-500 font-medium cursor-pointer"
-            onClick={handleResend}
-          >
-            إعادة الإرسال
-          </button>
-        </p>
-        <span>00:{timer}</span>
-      </div>
-
       {/* Submit */}
       <button
         type="submit"
-        disabled={code.length !== 4 || isPending}
+        disabled={code.length !== 4}
         className={cn(
           "w-full py-3 rounded-2xl font-bold transition-opacity disabled:hover:opacity-100 disabled:cursor-auto hover:opacity-90 cursor-pointer",
           code.length !== 4
@@ -167,7 +145,7 @@ const CodeVerification = () => {
             : "bg-blue-500 text-white",
         )}
       >
-        {isPending ? <span className="spinner" /> : "إرسال"}
+        متابعة
       </button>
     </form>
   );

@@ -1,4 +1,5 @@
 "use client";
+import { useState } from "react";
 import { VerficationCodeSvg } from "@/components/svg/Svgs";
 import LeftSideHero from "@/components/form/LeftSideHero";
 import Logo from "@/components/form/Logo";
@@ -6,7 +7,16 @@ import ChangePassword from "@/components/form/ChangePassword";
 import CodeVerification from "@/components/form/CodeVerfication";
 import PhoneOrEmail from "@/components/form/PhoneOrEmail";
 
+type ForgetPasswordStep = "phone" | "code" | "password";
+
 export default function ForgetPasswordPage() {
+  // Step state for the 3-step forget-password flow.
+  // The `phone` and `otpCode` are threaded forward to the next step's
+  // component so each step knows what it received from the previous.
+  const [step, setStep] = useState<ForgetPasswordStep>("phone");
+  const [phone, setPhone] = useState<string>("");
+  const [otpCode, setOtpCode] = useState<string>("");
+
   return (
     <div className="flex min-h-screen bg-white">
       {/* Right Side - Form */}
@@ -18,15 +28,31 @@ export default function ForgetPasswordPage() {
             <VerficationCodeSvg />
           </div>
 
-          {/* form steps */}
-          {/* step 1 */}
-          <PhoneOrEmail />
+          {/* step 1: phone or email */}
+          {step === "phone" && (
+            <PhoneOrEmail
+              onSuccess={(phoneE164) => {
+                setPhone(phoneE164);
+                setStep("code");
+              }}
+            />
+          )}
 
-          {/* step 2 */}
-          {/* <CodeVerification /> */}
+          {/* step 2: verification code */}
+          {step === "code" && (
+            <CodeVerification
+              phone={phone}
+              onSuccess={(code) => {
+                setOtpCode(code);
+                setStep("password");
+              }}
+            />
+          )}
 
-          {/* step 3 */}
-          {/* <ChangePassword /> */}
+          {/* step 3: new password */}
+          {step === "password" && (
+            <ChangePassword phone={phone} otpCode={otpCode} />
+          )}
         </div>
       </div>
 

@@ -9,6 +9,114 @@ import MenuButton from "./MenuButton";
 import { cn } from "@/lib/utils";
 import { usePathname } from "next/navigation";
 import Logo from "./Logo";
+import { useAuth } from "@/hooks/useAuth";
+import { LogOut, User as UserIcon } from "lucide-react";
+
+/**
+ * Auth-aware action slot rendered where the static "تسجيل الدخول" link
+ * used to live. Three branches:
+ *   - `isLoading === true` → skeleton
+ *   - `isAuthenticated === true` → user chip + logout button
+ *   - otherwise → the original "تسجيل الدخول" link
+ *
+ * Extracted as its own component so the desktop and mobile-drawer
+ * variants stay in lockstep without duplicating branching logic.
+ */
+function AuthActions({
+  variant,
+  onNavigate,
+}: {
+  variant: "desktop" | "mobile";
+  onNavigate?: () => void;
+}) {
+  const { user, isLoading, isAuthenticated, logout } = useAuth();
+
+  if (isLoading) {
+    if (variant === "desktop") {
+      return (
+        <div
+          aria-hidden
+          className="w-20 h-8 rounded-2xl bg-white/20 animate-pulse"
+        />
+      );
+    }
+    return (
+      <div
+        aria-hidden
+        className="w-full h-12 rounded-2xl bg-gray-200 animate-pulse"
+      />
+    );
+  }
+
+  if (isAuthenticated && user) {
+    const displayName = user.firstName ?? "حسابي";
+    const handleLogout = () => {
+      void logout();
+      onNavigate?.();
+    };
+
+    if (variant === "desktop") {
+      return (
+        <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 px-2 py-2 rounded-2xl bg-white/10 border border-white/20">
+            <UserIcon className="size-6 text-white" aria-hidden />
+            {/* <span className="text-white font-medium text-sm">
+              {displayName}
+            </span> */}
+          </div>
+          {/* <button
+            type="button"
+            onClick={handleLogout}
+            className="flex items-center gap-1.5 text-white hover:text-white/80 font-medium text-sm transition-colors duration-200 px-2 py-1.5 rounded-2xl hover:bg-white/10 cursor-pointer"
+            aria-label="تسجيل الخروج"
+          >
+            <LogOut className="size-4" aria-hidden />
+            <span>تسجيل الخروج</span>
+          </button> */}
+        </div>
+      );
+    }
+
+    return (
+      <div className="flex flex-col gap-3">
+        <div className="w-full py-3 px-4 border border-gray-200 rounded-2xl text-gray-700 font-bold text-base flex items-center gap-2">
+          <UserIcon className="size-5 text-primary-500" aria-hidden />
+          <span>{displayName}</span>
+        </div>
+        <button
+          type="button"
+          onClick={handleLogout}
+          className="w-full text-center py-3 border border-gray-200 rounded-2xl text-gray-700 hover:bg-gray-50 font-bold text-base transition-colors flex items-center justify-center gap-2"
+        >
+          <LogOut className="size-5" aria-hidden />
+          <span>تسجيل الخروج</span>
+        </button>
+      </div>
+    );
+  }
+
+  // Logged-out state — preserve the exact link/classes the Header used
+  // before this phase.
+  if (variant === "desktop") {
+    return (
+      <Link
+        href="/auth/login"
+        className="text-white hover:text-white/80 font-medium text-sm transition-colors duration-200"
+      >
+        تسجيل الدخول
+      </Link>
+    );
+  }
+  return (
+    <Link
+      href="/auth/login"
+      onClick={onNavigate}
+      className="w-full text-center py-3 border border-gray-200 rounded-2xl text-gray-700 hover:bg-gray-50 font-bold text-base transition-colors"
+    >
+      تسجيل الدخول
+    </Link>
+  );
+}
 
 export default function Header() {
   const [activeNavlinkIdx, setActiveNavlinkIdx] = useState<number | null>(0);
@@ -139,12 +247,7 @@ export default function Header() {
             <button className="text-white hover:text-white/80 transition-colors p-2 rounded-full hover:bg-white/10 cursor-pointer">
               <SearchIcon />
             </button>
-            <Link
-              href="/auth/login"
-              className="text-white hover:text-white/80 font-medium text-sm transition-colors duration-200"
-            >
-              تسجيل الدخول
-            </Link>
+            <AuthActions variant="desktop" />
             <Link
               href="/sell"
               className="bg-primary-500 hover:bg-primary-600 text-white font-bold text-[16px] px-6 py-3 rounded-2xl flex items-center gap-2 transition-colors duration-200"
@@ -190,13 +293,7 @@ export default function Header() {
 
           {/* Drawer Actions */}
           <div className="flex flex-col gap-4 mt-8">
-            <Link
-              href="/auth/login"
-              onClick={() => setMenuOpen(false)}
-              className="w-full text-center py-3 border border-gray-200 rounded-2xl text-gray-700 hover:bg-gray-50 font-bold text-base transition-colors"
-            >
-              تسجيل الدخول
-            </Link>
+            <AuthActions variant="mobile" onNavigate={() => setMenuOpen(false)} />
             <Link
               href="/sell"
               onClick={() => setMenuOpen(false)}

@@ -3,32 +3,34 @@
 import { useState, useTransition } from "react";
 import Image from "next/image";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import {
   CallIcon,
   EyeIcon,
   EyeSlashIcon,
   KeyIcon,
-  MailIcon,
   UserIcon,
 } from "@/components/svg/Svgs";
 import Input from "@/components/form/Input";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { signupSchema, SignupSchemaType } from "@/shared/schemas";
-import { fakePromise } from "@/lib/utils";
+import { useAuth } from "@/hooks/useAuth";
 import LeftSideHero from "@/components/form/LeftSideHero";
 import Logo from "@/components/form/Logo";
 import Spinner from "@/components/common/Spinner";
 
 export default function SignupPage() {
+  const router = useRouter();
+  const { register: registerUser } = useAuth();
   const [showPassword, setShowPassword] = useState(false);
   const [showPasswordConfirmation, setShowPasswordConfirmation] =
     useState(false);
+  const [serverError, setServerError] = useState<string | null>(null);
 
   const {
     register,
     handleSubmit,
-    reset,
     formState: { errors },
   } = useForm<SignupSchemaType>({
     resolver: zodResolver(signupSchema),
@@ -38,10 +40,24 @@ export default function SignupPage() {
 
   // == [ Submit Action ] == //
   const onSubmit = (data: SignupSchemaType) => {
-    // console.log(data);
+    setServerError(null);
+    const phoneE164 = `+20${data.phoneNumber}`;
     startTransition(async () => {
-      await fakePromise();
-      reset(); // clear all input
+      const result = await registerUser({
+        phone: phoneE164,
+        password: data.password,
+        firstName: data.firstName,
+        lastName: data.lastName,
+      });
+      if (result.success) {
+        router.push(
+          `/auth/verify-otp?phone=${encodeURIComponent(
+            phoneE164,
+          )}&from=signup`,
+        );
+        return;
+      }
+      setServerError(result.error);
     });
   };
   // == [ Submit Action ] == //
@@ -67,13 +83,13 @@ export default function SignupPage() {
             >
               {/* Fields */}
               <div className="flex flex-col gap-6 w-full">
-                {/* full name */}
+                {/* first name */}
                 <Input
-                  label="الأسم بالكامل"
-                  placeholder="أدخل اسمك"
+                  label="الاسم الأول"
+                  placeholder="أدخل اسمك الأول"
                   type="text"
-                  {...register("fullName")}
-                  error={errors.fullName?.message}
+                  {...register("firstName")}
+                  error={errors.firstName?.message}
                   children={
                     <>
                       <span className="absolute right-3 top-1/2 -translate-y-1/2 text-foreground">
@@ -83,17 +99,17 @@ export default function SignupPage() {
                   }
                 />
 
-                {/* email */}
+                {/* last name */}
                 <Input
-                  label="البريد الالكتروني"
-                  placeholder="أدخل البريد الالكتروني"
+                  label="اسم العائلة"
+                  placeholder="أدخل اسم العائلة"
                   type="text"
-                  {...register("email")}
-                  error={errors.email?.message}
+                  {...register("lastName")}
+                  error={errors.lastName?.message}
                   children={
                     <>
                       <span className="absolute right-3 top-1/2 -translate-y-1/2 text-foreground">
-                        <MailIcon />
+                        <UserIcon />
                       </span>
                     </>
                   }
@@ -110,7 +126,7 @@ export default function SignupPage() {
                   children={
                     <>
                       <span className="absolute left-3 top-1/2 -translate-y-1/2 font-medium text-sm">
-                        +966
+                        +20
                       </span>
                       <span className="absolute right-3 top-1/2 -translate-y-1/2 text-foreground">
                         <CallIcon />
@@ -182,6 +198,11 @@ export default function SignupPage() {
 
               {/* Buttons */}
               <div className="flex flex-col gap-2 w-full">
+                {serverError && (
+                  <p className="text-red-500 text-sm text-center">
+                    {serverError}
+                  </p>
+                )}
                 <button
                   type="submit"
                   className="bg-foreground text-white rounded-2xl min-h-[48px] font-semibold text-sm w-full transition-opacity hover:opacity-90 cursor-pointer"

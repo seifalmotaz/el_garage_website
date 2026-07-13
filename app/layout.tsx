@@ -3,6 +3,7 @@ import "./globals.css";
 import localFont from "next/font/local";
 import Header from "@/components/common/Header";
 import Footer from "@/components/common/Footer";
+import Providers from "@/components/providers/Providers";
 
 const font = localFont({
   src: [
@@ -45,9 +46,11 @@ export default function RootLayout({
   return (
     <html lang="ar" dir="rtl" className={`${font.variable} h-full antialiased`}>
       <body className="min-h-full flex flex-col font-sans bg-white text-gray-900">
-        <Header />
-        {children}
-        <Footer />
+        <Providers>
+          <Header />
+          {children}
+          <Footer />
+        </Providers>
       </body>
     </html>
   );

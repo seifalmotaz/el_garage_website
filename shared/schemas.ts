@@ -1,9 +1,15 @@
 import z from "zod";
 
 // ===== utilities ===== //
+/**
+ * Local 10-digit phone number (no country code, no leading `+`).
+ * The form's visual input shows only the local number; the submit
+ * handler prepends the country code (e.g. `+20` for Egypt) before
+ * sending the request to the backend, which expects E.164.
+ */
 export const phoneNumberSchema = z
   .string()
-  .regex(/^\+?[1-9]\d{9}$/, "رقم جوال غير صالح");
+  .regex(/^[1-9]\d{9}$/, "رقم جوال غير صالح");
 // ===== utilities ===== //
 //
 //
@@ -11,7 +17,7 @@ export const phoneNumberSchema = z
 // ===== login schema ===== //
 export const loginSchema = z.object({
   phoneNumber: phoneNumberSchema,
-  password: z.string().min(2, "كلمة مرور غير صالحة"),
+  password: z.string().min(6, "كلمة المرور يجب أن تكون 6 أحرف على الأقل"),
 });
 
 export type LoginSchemaType = z.infer<typeof loginSchema>;
@@ -22,11 +28,13 @@ export type LoginSchemaType = z.infer<typeof loginSchema>;
 // ===== signup schema ===== //
 export const signupSchema = z
   .object({
-    fullName: z.string().min(2, "الاسم بالكامل مطلوب"),
-    email: z.string().email("بريد غير صالح"),
+    firstName: z.string().min(2, "الاسم الأول مطلوب"),
+    lastName: z.string().min(2, "اسم العائلة مطلوب"),
     phoneNumber: phoneNumberSchema,
-    password: z.string().min(2, "كلمة مرور غير صالحة"),
-    passwordConfirmation: z.string().min(2, "كلمة مرور غير صالحة"),
+    password: z.string().min(6, "كلمة المرور يجب أن تكون 6 أحرف على الأقل"),
+    passwordConfirmation: z
+      .string()
+      .min(6, "كلمة المرور يجب أن تكون 6 أحرف على الأقل"),
   })
   .refine((data) => data.password === data.passwordConfirmation, {
     message: "تأكيد كلمة المرور غير متطابقة",
@@ -66,8 +74,12 @@ export type VerifyCodeSchemaType = z.infer<typeof verifyCodeSchema>;
 
 export const changePasswordSchema = z
   .object({
-    newPassword: z.string().min(2, "كلمة مرور غير صالحة"),
-    newPasswordConfirmation: z.string().min(2, "كلمة مرور غير صالحة"),
+    newPassword: z
+      .string()
+      .min(6, "كلمة المرور يجب أن تكون 6 أحرف على الأقل"),
+    newPasswordConfirmation: z
+      .string()
+      .min(6, "كلمة المرور يجب أن تكون 6 أحرف على الأقل"),
   })
   .refine((data) => data.newPassword === data.newPasswordConfirmation, {
     message: "تأكيد كلمة المرور غير متطابقة",
