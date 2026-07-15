@@ -80,7 +80,16 @@ function LoginPageInner() {
         password: data.password,
       });
       if (result.success) {
-        router.push("/");
+        // Honour returnUrl from offer/sell/profile gates; only allow
+        // same-origin relative paths (block open redirects).
+        const returnUrl = searchParams.get("returnUrl");
+        const safeReturn =
+          returnUrl &&
+          returnUrl.startsWith("/") &&
+          !returnUrl.startsWith("//")
+            ? returnUrl
+            : "/";
+        router.push(safeReturn);
         return;
       }
       setServerError(result.error);

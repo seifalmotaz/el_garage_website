@@ -3,19 +3,123 @@ import CarCard from "@/components/CarCard";
 import Badge from "@/components/common/Badge";
 import Button from "@/components/common/Button";
 import MaxWidthWrapper from "@/components/common/MaxWidthWrapper";
+import Spinner from "@/components/common/Spinner";
 import { cn } from "@/lib/utils";
-import { negotiations } from "@/mock-data/negotiations";
-import { notifications } from "@/mock-data/notifications";
-import { orders } from "@/mock-data/orders";
-import { wishlist } from "@/mock-data/wishlist";
 import { ChevronLeft } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
-import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { useEffect, useMemo, useState } from "react";
+import { useAuth } from "@/hooks/useAuth";
+import { useCars } from "@/hooks/useCars";
+import { useFavorites } from "@/hooks/useFavorites";
+import { useMyListingRequests } from "@/hooks/useListingRequests";
+import { useNegotiations } from "@/hooks/useNegotiations";
+import {
+  useMarkNotificationRead,
+  useNotifications,
+} from "@/hooks/useNotifications";
+import type { ListingRequestStatus } from "@/lib/api/listing-requests";
+import type { NegotiationStatus } from "@/lib/api/negotiations";
+import type { Car } from "@/lib/api/types";
+
+const CAR_PLACEHOLDER = "/assets/car_placeholder.png";
+
+/**
+ * Map a backend `Car` to the props `CarCard` expects. Mirrors the mapper
+ * used on the car detail page so the wishlist cards render identically
+ * to the public catalog.
+ */
+function mapCarForCard(car: Car) {
+  return {
+    id: car.id,
+    image: car.images[0],
+    brand: car.carBrand?.name ?? car.brand,
+    model: car.carModel?.name ?? car.model,
+    price: car.price,
+    year: car.year,
+    mileage: car.mileage,
+    trim: car.trim,
+    location: car.address,
+    isFeatured: car.isFeatured,
+  };
+}
+
+/** Tab bucket for `طلباتي` orders derived from a listing-request status. */
+type OrderTab = "current" | "received" | "cancelled";
+
+function listingRequestTab(status: ListingRequestStatus): OrderTab {
+  switch (status) {
+    case "PENDING":
+    case "ASSIGNED":
+    case "IN_INSPECTION":
+    case "INSPECTED":
+      return "current";
+    case "APPROVED":
+      return "received";
+    case "CANCELLED":
+    case "REJECTED":
+      return "cancelled";
+  }
+}
+
+/** Arabic label for a negotiation status. */
+function negotiationLabel(status: NegotiationStatus): string {
+  switch (status) {
+    case "PENDING":
+    case "CONNECTED":
+      return "قيد التفاوض";
+    case "COMPLETED":
+      return "مكتمل";
+    case "CANCELLED":
+      return "ملغي";
+  }
+}
+
+/** Badge variant matching the existing `Badge` component API. */
+function negotiationBadgeStatus(
+  status: NegotiationStatus,
+): "completed" | "canceled" | "pending" {
+  switch (status) {
+    case "COMPLETED":
+      return "completed";
+    case "CANCELLED":
+      return "canceled";
+    case "PENDING":
+    case "CONNECTED":
+      return "pending";
+  }
+}
+
+/**
+ * Format an ISO timestamp for the order/notification cards. Falls back
+ * to the raw string when the runtime cannot parse it.
+ */
+function formatDateTime(iso: string): string {
+  try {
+    const d = new Date(iso);
+    if (Number.isNaN(d.getTime())) return iso;
+    return d.toLocaleString("ar-EG", {
+      day: "numeric",
+      month: "long",
+      year: "numeric",
+      hour: "numeric",
+      minute: "2-digit",
+      hour12: true,
+    });
+  } catch {
+    return iso;
+  }
+}
+
+/** Concatenate a user's first and last name safely (handles null parts). */
+function fullName(firstName: string | null, lastName: string | null): string {
+  return [firstName, lastName].filter(Boolean).join(" ").trim();
+}
 
 const Banner = () => {
   return (
-    <div className="relative w-full lg:h-[427px] h-[375px] overflow-hidden flex flex-col justify-end text-center pb-8 md:pb-0">
+    <div className="relative w-full lg:h-[320px] h-[280px] overflow-hidden flex flex-col justify-end text-center pb-8 md:pb-0">
       {/* Background Image */}
       <Image
         src="/images/car-details/banner.png"
@@ -253,6 +357,34 @@ const LogOutIcon = () => (
 );
 
 const profilePage = () => {
+  const router = useRouter();
+  const { user, isLoading: isAuthLoading, isAuthenticated, logout } =
+    useAuth();
+
+  // Data hooks — fire-and-forget; the layout doesn't gate on each one
+  // individually so we can render shells while requests resolve. The
+  // auth-gated hooks (`useMyListingRequests`, `useNegotiations`,
+  // `useNotifications`) receive `enabled = isAuthenticated` so they
+  // skip the network round-trip until the auth bootstrap resolves and
+  // confirms a session — SWR treats a `null` key as "do not fetch".
+  const { requests: orders } = useMyListingRequests(isAuthenticated);
+  const { negotiations } = useNegotiations(isAuthenticated);
+  const { data: notificationsData, mutate: notificationsMutate } =
+    useNotifications({}, isAuthenticated);
+  const { favorites } = useFavorites();
+  const { cars } = useCars();
+  const { markRead } = useMarkNotificationRead();
+
+  // Redirect to /auth/login (with returnUrl) once the auth bootstrap is
+  // done and we're still unauthenticated.
+  useEffect(() => {
+    if (!isAuthLoading && !isAuthenticated) {
+      router.push(
+        `/auth/login?returnUrl=${encodeURIComponent("/profile")}`,
+      );
+    }
+  }, [isAuthLoading, isAuthenticated, router]);
+
   const [activeSection, setActiveSection] = useState(0);
   const [activeOrderTab, setActiveOrderTab] = useState(0);
   const [activeNegTab, setActiveNegTab] = useState(0);
@@ -268,6 +400,71 @@ const profilePage = () => {
 
   const tabs = ["الحالية", "المستلمة", "الملغية"];
 
+  // Group orders by tab once. `orders` already comes from `useMemo`'d
+  // `requests`, so this filter chain is cheap.
+  const ordersByTab = useMemo(() => {
+    const buckets: Record<OrderTab, typeof orders> = {
+      current: [],
+      received: [],
+      cancelled: [],
+    };
+    for (const order of orders) {
+      buckets[listingRequestTab(order.status)].push(order);
+    }
+    return buckets;
+  }, [orders]);
+
+  // Group negotiations by tab — mirrors the original "الحالية / المستلمة /
+  // الملغية" labels in the JSX.
+  const negotiationsByTab = useMemo(() => {
+    return {
+      current: negotiations.filter(
+        (n) => n.status === "PENDING" || n.status === "CONNECTED",
+      ),
+      received: negotiations.filter((n) => n.status === "COMPLETED"),
+      cancelled: negotiations.filter((n) => n.status === "CANCELLED"),
+    };
+  }, [negotiations]);
+
+  // Resolve the favorited car list. `favorites` is an array of car
+  // UUIDs (from `localStorage`), `cars` is the public catalog. We
+  // intersect by id and map to CarCard props.
+  const wishlistCars = useMemo(() => {
+    if (favorites.length === 0) return [];
+    const favSet = new Set(favorites);
+    return cars.filter((c) => favSet.has(c.id)).map(mapCarForCard);
+  }, [cars, favorites]);
+
+  // Flatten the paginated notifications envelope.
+  const notifications = notificationsData?.data ?? [];
+
+  // While the auth bootstrap is in flight, or after we've decided the
+  // user isn't authenticated (and are about to redirect), show a
+  // spinner so we don't flash the unauthenticated profile layout.
+  if (isAuthLoading || !isAuthenticated || !user) {
+    return (
+      <div className="relative flex flex-col min-h-screen bg-gray-50">
+        <Banner />
+        <div className="flex-1 flex items-center justify-center py-24">
+          <Spinner variant="primary" />
+        </div>
+      </div>
+    );
+  }
+
+  const handleLogout = () => {
+    void logout();
+  };
+
+  const handleNotificationClick = async (id: string, isRead: boolean) => {
+    if (isRead) return;
+    await markRead(id);
+    // Revalidate the SWR cache so the bell dot / list update without a
+    // full remount. Fire-and-forget — failures are surfaced via the
+    // mark-read hook's own `error` field.
+    notificationsMutate();
+  };
+
   return (
     <main className="">
       <Banner />
@@ -279,14 +476,16 @@ const profilePage = () => {
             <div className="w-[292px] h-full flex flex-col gap-6">
               <div className="bg-white rounded-[24px] flex flex-col items-center border border-gray-200 p-[32px]">
                 <Image
-                  src={"/avatar.svg"}
+                  src={user.avatar ?? "/avatar.svg"}
                   alt="avatar"
                   width={75}
                   height={75}
                 />
                 <div className="space-y-1 text-center mt-[12px] mb-[24px]">
-                  <h1 className="font-semibold text-[20px]">أدم علي</h1>
-                  <h3 className="font-medium text-sm">201025647981+</h3>
+                  <h1 className="font-semibold text-[20px]">
+                    {fullName(user.firstName, user.lastName) || "حسابي"}
+                  </h1>
+                  <h3 className="font-medium text-sm">{user.phone}</h3>
                 </div>
 
                 <Button variant="black">تعديل الملف الشخصي</Button>
@@ -317,7 +516,11 @@ const profilePage = () => {
               </div>
 
               <div className="flex gap-3">
-                <button className="bg-white py-[15px] px-2 rounded-2xl text-gray-500 flex items-center gap-1 text-sm flex-1 hover:opacity-85 hover:text-black duration">
+                <button
+                  type="button"
+                  onClick={handleLogout}
+                  className="bg-white py-[15px] px-2 rounded-2xl text-gray-500 flex items-center gap-1 text-sm flex-1 hover:opacity-85 hover:text-black duration cursor-pointer"
+                >
                   <LogOutIcon />
                   تسجيل الخروج
                 </button>
@@ -355,11 +558,11 @@ const profilePage = () => {
 
                   {activeOrderTab === 0 ? (
                     <div className="mt-6 space-y-4">
-                      {orders.map((order, i) => (
-                        <div key={i} className="flex gap-2.5">
+                      {ordersByTab.current.map((order) => (
+                        <div key={order.id} className="flex gap-2.5">
                           <div className="relative w-[177px] aspect-[177/115]">
                             <Image
-                              src={order.image}
+                              src={CAR_PLACEHOLDER}
                               alt="car"
                               className="rounded-2xl aspect-[177/115]"
                               fill
@@ -371,15 +574,13 @@ const profilePage = () => {
                                 {order.brand}-{order.model}
                               </h2>
                               <p className="text-gray-500 text-xs">
-                                {order.date}
+                                {formatDateTime(order.scheduledDate)}
                               </p>
                             </div>
 
                             <div className="flex items-center justify-between">
                               <h2 className="text-primary-500">
-                                <span className="font-semibold">
-                                  {order.price}
-                                </span>{" "}
+                                <span className="font-semibold">—</span>{" "}
                                 <span className="text-primary-400 text-sm">
                                   ج.م
                                 </span>
@@ -396,12 +597,84 @@ const profilePage = () => {
                       ))}
                     </div>
                   ) : activeOrderTab === 1 ? (
-                    <div className="mt-4">
-                      <h1>لا توجد مفاوضات مستلمة</h1>
+                    <div className="mt-6 space-y-4">
+                      {ordersByTab.received.map((order) => (
+                        <div key={order.id} className="flex gap-2.5">
+                          <div className="relative w-[177px] aspect-[177/115]">
+                            <Image
+                              src={CAR_PLACEHOLDER}
+                              alt="car"
+                              className="rounded-2xl aspect-[177/115]"
+                              fill
+                            />
+                          </div>
+                          <div className="flex-1 flex flex-col justify-between border border-[#F2F2F2] rounded-2xl p-3">
+                            <div className="space-y-1 font-sm">
+                              <h2>
+                                {order.brand}-{order.model}
+                              </h2>
+                              <p className="text-gray-500 text-xs">
+                                {formatDateTime(order.scheduledDate)}
+                              </p>
+                            </div>
+
+                            <div className="flex items-center justify-between">
+                              <h2 className="text-primary-500">
+                                <span className="font-semibold">—</span>{" "}
+                                <span className="text-primary-400 text-sm">
+                                  ج.م
+                                </span>
+                              </h2>
+                              <Button
+                                variant="secondary"
+                                className="w-[120px] font-medium"
+                              >
+                                تفاصيل الطلب
+                              </Button>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
                     </div>
                   ) : (
-                    <div className="mt-4">
-                      <h1>لا توجد مفاوضات ملغية</h1>
+                    <div className="mt-6 space-y-4">
+                      {ordersByTab.cancelled.map((order) => (
+                        <div key={order.id} className="flex gap-2.5">
+                          <div className="relative w-[177px] aspect-[177/115]">
+                            <Image
+                              src={CAR_PLACEHOLDER}
+                              alt="car"
+                              className="rounded-2xl aspect-[177/115]"
+                              fill
+                            />
+                          </div>
+                          <div className="flex-1 flex flex-col justify-between border border-[#F2F2F2] rounded-2xl p-3">
+                            <div className="space-y-1 font-sm">
+                              <h2>
+                                {order.brand}-{order.model}
+                              </h2>
+                              <p className="text-gray-500 text-xs">
+                                {formatDateTime(order.scheduledDate)}
+                              </p>
+                            </div>
+
+                            <div className="flex items-center justify-between">
+                              <h2 className="text-primary-500">
+                                <span className="font-semibold">—</span>{" "}
+                                <span className="text-primary-400 text-sm">
+                                  ج.م
+                                </span>
+                              </h2>
+                              <Button
+                                variant="secondary"
+                                className="w-[120px] font-medium"
+                              >
+                                تفاصيل الطلب
+                              </Button>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
                     </div>
                   )}
                 </>
@@ -425,9 +698,9 @@ const profilePage = () => {
                   </div>
                   {activeNegTab === 0 ? (
                     <div className="mt-6 space-y-4">
-                      {negotiations.map((neg, i) => (
+                      {negotiationsByTab.current.map((neg) => (
                         <div
-                          key={i}
+                          key={neg.id}
                           className="flex justify-between border border-[#F2F2F2] rounded-2xl p-3"
                         >
                           <div className="flex items-center gap-2">
@@ -437,21 +710,17 @@ const profilePage = () => {
 
                             <div className="flex items-start gap-4">
                               <div>
-                                <h3 className="text-sm">{neg.label}</h3>
+                                <h3 className="text-sm">
+                                  {neg.car.brand} {neg.car.model} {neg.car.year}
+                                </h3>
                                 <p className="text-xs text-[#666666]">
-                                  {neg.lastOrder}
+                                  آخر عرض: {neg.initialOffer.toLocaleString("en-US")} ج
                                 </p>
                               </div>
 
                               <Badge
-                                text={neg.status}
-                                status={
-                                  neg.status === "مكتمل"
-                                    ? "completed"
-                                    : neg.status === "ملغي"
-                                      ? "canceled"
-                                      : "pending"
-                                }
+                                text={negotiationLabel(neg.status)}
+                                status={negotiationBadgeStatus(neg.status)}
                               />
                             </div>
                           </div>
@@ -463,27 +732,98 @@ const profilePage = () => {
                       ))}
                     </div>
                   ) : activeNegTab === 1 ? (
-                    <div className="mt-4">
-                      <h1>لا توجد مفاوضات مستلمة</h1>
+                    <div className="mt-6 space-y-4">
+                      {negotiationsByTab.received.map((neg) => (
+                        <div
+                          key={neg.id}
+                          className="flex justify-between border border-[#F2F2F2] rounded-2xl p-3"
+                        >
+                          <div className="flex items-center gap-2">
+                            <div className="size-9 rounded-[14px] bg-[#F2F2F2] flex items-center justify-center">
+                              <NegIcon />
+                            </div>
+
+                            <div className="flex items-start gap-4">
+                              <div>
+                                <h3 className="text-sm">
+                                  {neg.car.brand} {neg.car.model} {neg.car.year}
+                                </h3>
+                                <p className="text-xs text-[#666666]">
+                                  آخر عرض: {neg.initialOffer.toLocaleString("en-US")} ج
+                                </p>
+                              </div>
+
+                              <Badge
+                                text={negotiationLabel(neg.status)}
+                                status={negotiationBadgeStatus(neg.status)}
+                              />
+                            </div>
+                          </div>
+
+                          <div className="border border-[#E5E7EB] size-10 flex items-center justify-center rounded-full cursor-pointer">
+                            <ChevronLeft strokeWidth={1} />
+                          </div>
+                        </div>
+                      ))}
                     </div>
                   ) : (
-                    <div className="mt-4">
-                      <h1>لا توجد مفاوضات ملغية</h1>
+                    <div className="mt-6 space-y-4">
+                      {negotiationsByTab.cancelled.map((neg) => (
+                        <div
+                          key={neg.id}
+                          className="flex justify-between border border-[#F2F2F2] rounded-2xl p-3"
+                        >
+                          <div className="flex items-center gap-2">
+                            <div className="size-9 rounded-[14px] bg-[#F2F2F2] flex items-center justify-center">
+                              <NegIcon />
+                            </div>
+
+                            <div className="flex items-start gap-4">
+                              <div>
+                                <h3 className="text-sm">
+                                  {neg.car.brand} {neg.car.model} {neg.car.year}
+                                </h3>
+                                <p className="text-xs text-[#666666]">
+                                  آخر عرض: {neg.initialOffer.toLocaleString("en-US")} ج
+                                </p>
+                              </div>
+
+                              <Badge
+                                text={negotiationLabel(neg.status)}
+                                status={negotiationBadgeStatus(neg.status)}
+                              />
+                            </div>
+                          </div>
+
+                          <div className="border border-[#E5E7EB] size-10 flex items-center justify-center rounded-full cursor-pointer">
+                            <ChevronLeft strokeWidth={1} />
+                          </div>
+                        </div>
+                      ))}
                     </div>
                   )}
                 </>
               ) : activeSection === 2 ? (
                 <div className="grid grid-cols-2 gap-4 mt-4">
-                  {wishlist.map((car, i) => (
-                    <CarCard key={i} {...car} />
+                  {wishlistCars.map((car) => (
+                    <CarCard key={car.id} {...car} />
                   ))}
                 </div>
               ) : activeSection === 3 ? (
                 <div className="space-y-4 mt-4">
-                  {notifications.map((n, i) => (
+                  {notifications.map((n) => (
                     <div
-                      key={i}
-                      className="flex justify-between border border-[#F2F2F2] rounded-2xl p-3"
+                      key={n.id}
+                      role="button"
+                      tabIndex={0}
+                      onClick={() => handleNotificationClick(n.id, n.isRead)}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter" || e.key === " ") {
+                          e.preventDefault();
+                          handleNotificationClick(n.id, n.isRead);
+                        }
+                      }}
+                      className="flex justify-between border border-[#F2F2F2] rounded-2xl p-3 cursor-pointer"
                     >
                       <div className="flex items-center gap-2">
                         <div className="size-9 rounded-[14px] bg-[#F2F2F2] flex items-center justify-center">
@@ -491,12 +831,14 @@ const profilePage = () => {
                         </div>
 
                         <div>
-                          <h3 className="text-sm">{n.label}</h3>
+                          <h3 className="text-sm">{n.title}</h3>
                           <p className="text-xs text-[#666666]">{n.body}</p>
                         </div>
                       </div>
 
-                      <span className="text-xs text-[#666666]">{n.time}</span>
+                      <span className="text-xs text-[#666666]">
+                        {formatDateTime(n.createdAt)}
+                      </span>
                     </div>
                   ))}
                 </div>

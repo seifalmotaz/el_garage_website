@@ -5,16 +5,17 @@ const Map = dynamic(() => import("@/components/common/Map"), {
   ssr: false,
 });
 
-import { useState, useRef, useEffect, useTransition } from "react";
+import { useState, useEffect, useTransition, useMemo, useRef } from "react";
 import Image from "next/image";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { useSWRConfig } from "swr";
 import CircularProgress from "@/components/common/CircularProgress";
-import Select from "@/components/form/Select";
+import BrandLogo from "@/components/common/BrandLogo";
+import Select, { type Option } from "@/components/form/Select";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { model_options } from "@/constants/car-filters";
 import NumberInput from "@/components/form/NumberInput";
-import ChassisInput from "@/components/form/ChassisInput";
 import Textarea from "@/components/form/Textarea";
 import {
   Carousel,
@@ -23,9 +24,13 @@ import {
   CarouselNavigation,
 } from "@/components/common/Carousel";
 import { carSellStepsSchema, CarSellStepsSchemaType } from "@/shared/schemas";
-import { fakePromise } from "@/lib/utils";
 import Spinner from "@/components/common/Spinner";
 import PageBanner from "@/components/common/PageBanner";
+import { useAuth } from "@/hooks/useAuth";
+import { useBrands } from "@/hooks/useBrands";
+import { useBrandModels } from "@/hooks/useBrandModels";
+import { createListingRequest } from "@/lib/api/listing-requests";
+import { ApiError } from "@/lib/api/errors";
 
 const CarIcon = () => (
   <svg
@@ -279,34 +284,11 @@ const Step0 = ({ setStep }: { setStep: (step: number) => void }) => (
   </div>
 );
 
-// Egyptian Cities & Brands Mock Data matching cars browse page
-const brands = [
-  { label: "تويوتا", value: "Toyota" },
-  { label: "بي إم دبليو", value: "BMW" },
-  { label: "مرسيدس بنز", value: "Mercedes" },
-  { label: "بورش", value: "Porsche" },
-  { label: "أودي", value: "Audi" },
-  { label: "هيونداي", value: "Hyundai" },
-  { label: "كيا", value: "Kia" },
-  { label: "هوندا", value: "Honda" },
-  { label: "لاند روفر", value: "Land Rover" },
-  { label: "شيري", value: "Chery" },
-  { label: "ميني كوبر", value: "Mini Cooper" },
-];
-
-// const brandModels: Record<string, string[]> = {
-//   تويوتا: ["كورولا هايلاند", "ياريس", "لاند كروزر", "كامري"],
-//   "بي إم دبليو": ["320i M Sport", "X5", "520i", "740i"],
-//   "مرسيدس بنز": ["C200 AMG Line", "E300 AMG", "S500", "A200"],
-//   بورش: ["كايين كابريو", "باناميرا", "911 كاريرا"],
-//   أودي: ["A4 Highline", "Q8 Sportback", "A6"],
-//   هيونداي: ["توسان Smart Plus", "إلنترا CN7", "أكسنت HCI"],
-//   كيا: ["سبورتاج Topline", "سيراتو", "سورينتو"],
-//   هوندا: ["سيفيك الرياضية", "أكورد e:HEV", "CR-V"],
-//   "لاند روفر": ["رينج روفر فوج اس اي", "رينج روفر سبورت", "ديفندر"],
-//   شيري: ["تيجو 8 برو", "تيجو 7", "أريزو 5"],
-//   "ميني كوبر": ["S Countryman", "hatch 3 doors"],
-// };
+// Fallback coordinates matching the `Map` component's default (Cairo). Used
+// when the browser geolocation request is denied or unavailable, so the
+// API still receives a valid latitude/longitude pair at submit time.
+const DEFAULT_LATITUDE = 30.0444;
+const DEFAULT_LONGITUDE = 31.2357;
 
 const years = Array.from({ length: 37 }, (_, i) => ({
   label: String(2026 - i),
@@ -406,10 +388,31 @@ const ActionsRow = ({
 );
 
 export default function SellCarPage() {
+  const router = useRouter();
+  const { mutate: globalMutate } = useSWRConfig();
+  const { isAuthenticated } = useAuth();
+  const { brands } = useBrands();
+
   const [step, setStep] = useState(0); // 0: Intro, 1: Car Info, 2: Location, 3: Schedule, 4: Review, 5: Success
 
   // Map state Simulation
   const [isLocating, setIsLocating] = useState(false);
+
+  // Lat/lng captured for the listing-request POST. Defaults match the
+  // `Map` component's fallback so the API receives valid coordinates even
+  // if the user never grants browser geolocation. The page's "تحدد موقعي
+  // الحالي تلقائياً" button overwrites these with the real position.
+  const [coords, setCoords] = useState<{ latitude: number; longitude: number }>({
+    latitude: DEFAULT_LATITUDE,
+    longitude: DEFAULT_LONGITUDE,
+  });
+
+  // Track the currently selected brand id so we can fetch its models via
+  // `useBrandModels`. The form's `brand` field stores the brand name
+  // (matching what `createListingRequest` expects as a string); we look
+  // the id up here without forcing an extra field onto the schema.
+  const [selectedBrandId, setSelectedBrandId] = useState<string | null>(null);
+  const { models: apiModels } = useBrandModels(selectedBrandId);
 
   // form validation
   const {
@@ -434,20 +437,103 @@ export default function SellCarPage() {
   const formData = getValues();
 
   const [isPending, startTransition] = useTransition();
+  const [submitError, setSubmitError] = useState<string | null>(null);
 
   const datesList = generateInspectionDates();
 
-  // Reset Model when Brand changes
-  // useEffect(() => {
-  //   setModel("");
-  // }, [brand]);
+  // Derive brand options and model options from the API hooks. The form
+  // stores the brand/model *name* (the API accepts strings), and we map
+  // back to the brand id separately to drive `useBrandModels`. The brand
+  // options also carry `logo` so the dropdown can render brand visuals
+  // and the trigger can show the selected brand's logo.
+  type BrandOption = Option & { logo?: string | null };
+  const brandOptions = useMemo<BrandOption[]>(
+    () => brands.map((b) => ({ label: b.name, value: b.name, logo: b.logo })),
+    [brands],
+  );
+  const modelOptions = useMemo<Option[]>(
+    () => apiModels.map((m) => ({ label: m.name, value: m.name })),
+    [apiModels],
+  );
+
+  // When the selected brand name changes, resolve it to a brand id so the
+  // model dropdown can populate. If the brand disappears from the list
+  // (e.g. stale SWR cache) we drop the id and clear the model selection
+  // so the user never submits a model that doesn't belong to their brand.
+  useEffect(() => {
+    if (!brandWatch) {
+      setSelectedBrandId(null);
+      return;
+    }
+    const match = brands.find((b) => b.name === brandWatch);
+    setSelectedBrandId(match?.id ?? null);
+    if (!match) {
+      setValue("step1.model", "", { shouldValidate: true });
+    }
+  }, [brandWatch, brands, setValue]);
+
+  // Reset model when the brand id itself changes (user picked a different
+  // brand). Comparing on the id avoids resetting while SWR is reloading
+  // the same brand's data.
+  const previousBrandIdRef = useRef<string | null>(null);
+  useEffect(() => {
+    if (
+      previousBrandIdRef.current &&
+      previousBrandIdRef.current !== selectedBrandId
+    ) {
+      setValue("step1.model", "", { shouldValidate: true });
+    }
+    previousBrandIdRef.current = selectedBrandId;
+  }, [selectedBrandId, setValue]);
 
   // == [ Submit Action ] == //
   const onSubmit = (data: CarSellStepsSchemaType) => {
-    console.log(data);
+    setSubmitError(null);
+
+    // Auth gate: an unauthenticated submit would 401 the backend. Redirect
+    // to login with a returnUrl so the user lands back on /sell after
+    // signing in. We do this before the transition so the redirect fires
+    // immediately instead of waiting on a doomed request.
+    if (!isAuthenticated) {
+      router.push(
+        `/auth/login?returnUrl=${encodeURIComponent("/sell")}`,
+      );
+      return;
+    }
+
     startTransition(async () => {
-      await fakePromise();
-      setStep((s) => s + 1);
+      try {
+        await createListingRequest({
+          brand: data.step1.brand,
+          model: data.step1.model,
+          year: Number(data.step1.year),
+          mileage: Number(data.step1.mileage),
+          latitude: coords.latitude,
+          longitude: coords.longitude,
+          address: data.step2.address,
+          scheduledDate: data.step3.date,
+          scheduledTime: data.step3.appointment,
+        });
+        // Refresh the "my listing requests" cache so /profile shows the
+        // new request without a manual reload.
+        await globalMutate("/listing-requests/mine");
+        setStep((s) => s + 1); // Move to success step (5)
+      } catch (err) {
+        if (err instanceof ApiError) {
+          // Token may have expired between the auth check and the POST.
+          if (err.status === 401) {
+            router.push(
+              `/auth/login?returnUrl=${encodeURIComponent("/sell")}`,
+            );
+            return;
+          }
+          setSubmitError(err.message || "تعذر إرسال الطلب");
+        } else if (err instanceof Error) {
+          setSubmitError(err.message);
+        } else {
+          setSubmitError("تعذر إرسال الطلب");
+        }
+      }
     });
   };
   // == [ Submit Action ] == //
@@ -457,6 +543,19 @@ export default function SellCarPage() {
     setAddress(
       "جمهورية مصر العربية، محافظة القاهرة، مصر الجديدة، شارع الثورة، مبنى 108",
     );
+    if (typeof navigator !== "undefined" && navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        (pos) => {
+          setCoords({
+            latitude: pos.coords.latitude,
+            longitude: pos.coords.longitude,
+          });
+        },
+        // Permission denied or unavailable → keep the fallback coords so
+        // the API still receives a valid lat/lng pair.
+        undefined,
+      );
+    }
   };
 
   // Step Navigations
@@ -472,11 +571,15 @@ export default function SellCarPage() {
     }
 
     if (isValid) {
+      // Clear any stale submit error from the previous attempt.
+      setSubmitError(null);
       setStep((prev) => (prev + 1) as 1 | 2 | 3);
     }
   };
 
   const handleBack = () => {
+    // Clear any stale submit error when the user goes back to edit.
+    setSubmitError(null);
     if (step > 0) setStep(step - 1);
   };
 
@@ -571,12 +674,12 @@ export default function SellCarPage() {
             </div>
 
             {/* Validation Alert Box */}
-            {/* {error && (
+            {submitError && (
               <div className="bg-red-50 border border-red-200 text-red-700 text-sm font-semibold p-4 rounded-xl text-right flex items-center gap-2 animate-fade-in">
                 <span className="w-2 h-2 rounded-full bg-red-600 shrink-0"></span>
-                <span>{error}</span>
+                <span>{submitError}</span>
               </div>
-            )} */}
+            )}
 
             {/* Main White Card for Forms */}
             <form
@@ -596,24 +699,51 @@ export default function SellCarPage() {
                   </div>
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    {/* Brand select */}
+                    {/* Brand select — populated from /car-brands via useBrands */}
                     <Select
                       label="الماركة"
                       placeholder="اختر الماركة"
-                      options={brands}
+                      options={brandOptions}
                       {...register("step1.brand")}
                       value={brandWatch}
                       error={errors.step1?.brand?.message}
+                      searchable
+                      searchPlaceholder="ابحث عن ماركة"
+                      emptyMessage="لا توجد ماركات مطابقة"
+                      renderOption={(opt) => {
+                        const logo = (opt as BrandOption).logo ?? null;
+                        return (
+                          <span className="flex items-center gap-2.5 w-full">
+                            <BrandLogo logo={logo} name={opt.label} />
+                            <span className="truncate">{opt.label}</span>
+                          </span>
+                        );
+                      }}
+                      renderTrigger={(selected) => {
+                        if (!selected) return null;
+                        const logo = (selected as BrandOption).logo ?? null;
+                        return (
+                          <span className="flex items-center gap-2.5 w-full">
+                            <BrandLogo logo={logo} name={selected.label} />
+                            <span className="truncate">{selected.label}</span>
+                          </span>
+                        );
+                      }}
                     />
 
-                    {/* Model select */}
+                    {/* Model select — populated from /car-brands/:id/models via useBrandModels */}
                     <Select
                       label="الموديل"
-                      placeholder="اختر الموديل"
-                      options={model_options}
+                      placeholder={
+                        selectedBrandId ? "اختر الموديل" : "اختر الماركة أولاً"
+                      }
+                      options={modelOptions}
                       {...register("step1.model")}
                       value={modelWatch}
                       error={errors.step1?.model?.message}
+                      searchable
+                      searchPlaceholder="ابحث عن موديل"
+                      emptyMessage="لا توجد موديلات مطابقة"
                     />
 
                     {/* Year select */}
@@ -632,15 +762,6 @@ export default function SellCarPage() {
                       {...register("step1.mileage")}
                       error={errors.step1?.mileage?.message}
                     />
-
-                    <div className="md:col-span-2">
-                      {/* Chassis VIN (Egyptian 17 Chars) */}
-                      <ChassisInput
-                        label="رقم الشاسية"
-                        {...register("step1.chassisNumber")}
-                        error={errors.step1?.chassisNumber?.message}
-                      />
-                    </div>
                   </div>
 
                   <ActionsRow handleNext={handleNext} handleBack={handleBack} />
@@ -863,12 +984,6 @@ export default function SellCarPage() {
                           <span className="text-gray-500">الكيلو مترات</span>
                           <span className="font-bold text-gray-900">
                             {formData.step1.mileage} كم
-                          </span>
-                        </div>
-                        <div className="flex justify-between items-center border-t border-gray-50 pt-2.5">
-                          <span className="font-mono font-bold text-gray-900 uppercase tracking-wide">
-                            <span className="text-gray-500">رقم الشاسيه</span>
-                            {formData.step1.chassisNumber}
                           </span>
                         </div>
                       </div>

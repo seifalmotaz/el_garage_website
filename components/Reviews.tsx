@@ -1,326 +1,137 @@
 "use client";
-import { reviews } from "@/constants/reviews";
+
 import Image from "next/image";
 import MaxWidthWrapper from "./common/MaxWidthWrapper";
 import {
   Carousel,
   CarouselContent,
   CarouselItem,
-  CarouselNavigation,
 } from "./common/Carousel";
+import { useTestimonials } from "@/hooks/useTestimonials";
 
-function ArrowIcon({
-  className,
-  strokeColor = "currentColor",
-}: {
-  className?: string;
-  strokeColor?: string;
-}) {
-  return (
-    <svg
-      viewBox="0 0 20.4545 20.4545"
-      fill="none"
-      xmlns="http://www.w3.org/2000/svg"
-      className={className}
-    >
-      <path
-        d="M12.7841 16.9773L7.22727 11.4205C6.57102 10.7642 6.57102 9.69034 7.22727 9.03409L12.7841 3.47727"
-        stroke={strokeColor}
-        strokeWidth="1.27841"
-        strokeMiterlimit="10"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-    </svg>
-  );
-}
+const FALLBACK_BG = "/assets/review_car_placeholder.png";
 
 export default function Reviews() {
+  const { testimonials, isLoading, error, mutate } = useTestimonials();
+
   return (
     <section
       id="reviews"
       className="bg-white py-16 flex flex-col items-center gap-8 w-full border-b border-gray-100"
     >
       <MaxWidthWrapper className="w-full flex flex-col gap-6">
-        {/* Title & Navigation Controls */}
         <div className="flex items-center justify-between border-b border-gray-200/50 pb-4">
           <h2 className="text-[#0C295A] font-bold text-2xl md:text-3xl">
             اراء عملائنا
           </h2>
         </div>
 
-        {/* <div className="grid grid-cols-1 md:grid-cols-3 gap-6 w-full mt-4"> */}
-        <Carousel dir="rtl">
-          <CarouselContent className="">
-            {reviews.map((review, idx) => (
-              <CarouselItem
-                key={idx}
-                className="lg:basis-1/3 md:basis-1/2 basis-1/1 relative pl-3 last:pl-0 overflow-hidden  transition-all rounded-2xl duration-300 h-[370px]   select-none group"
-              >
-                <div className="relative h-full px-5 py-8 rounded-2xl overflow-hidden flex flex-col justify-end shadow-sm hover:shadow-md">
-                  {/* Background Car Photo */}
-                  <div className="absolute inset-0 z-0">
-                    <Image
-                      src={review.bgImage}
-                      alt={review.name}
-                      fill
-                      className="object-cover group-hover:scale-102 transition-transform duration-300"
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-t from-[#002EC1]/90 to-transparent" />
-                  </div>
+        {isLoading && (
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 w-full">
+            {[0, 1, 2].map((i) => (
+              <div
+                key={i}
+                className="h-[370px] rounded-2xl bg-gray-100 animate-pulse"
+              />
+            ))}
+          </div>
+        )}
 
-                  {/* Reviewer Details & Quote */}
-                  <div className="relative z-10 text-right text-white flex flex-col gap-4">
-                    {/* Reviewer Profile */}
-                    <div className="flex items-start justify-start gap-3">
-                      {/* Composited layered SVG avatar badge */}
-                      <div className="bg-[#EBF1FF] border border-white p-1.5 rounded-full relative w-11 h-11 flex items-center justify-start shrink-0">
-                        {review.avatars[0].includes("review_avatar_1") ? (
-                          // Female Avatar (Sara, Fatima)
-                          <div className="relative w-6 h-[30px] shrink-0">
-                            <img
-                              src={review.avatars[0]}
-                              alt=""
-                              style={{
-                                position: "absolute",
-                                left: "1.67px",
-                                top: "0px",
-                                width: "20.657px",
-                                height: "20.038px",
-                              }}
-                            />
-                            <img
-                              src={review.avatars[1]}
-                              alt=""
-                              style={{
-                                position: "absolute",
-                                left: "0px",
-                                top: "20.91px",
-                                width: "24px",
-                                height: "8.652px",
-                              }}
-                            />
-                            <img
-                              src={review.avatars[2]}
-                              alt=""
-                              style={{
-                                position: "absolute",
-                                left: "9.87px",
-                                top: "16.02px",
-                                width: "4.252px",
-                                height: "6.97px",
-                              }}
-                            />
-                            <img
-                              src={review.avatars[3]}
-                              alt=""
-                              style={{
-                                position: "absolute",
-                                left: "9.87px",
-                                top: "17.77px",
-                                width: "4.252px",
-                                height: "2.268px",
-                              }}
-                            />
-                            <img
-                              src={review.avatars[4]}
-                              alt=""
-                              style={{
-                                position: "absolute",
-                                left: "6.33px",
-                                top: "2.87px",
-                                width: "11.333px",
-                                height: "15.831px",
-                              }}
-                            />
-                            <img
-                              src={review.avatars[5]}
-                              alt=""
-                              style={{
-                                position: "absolute",
-                                left: "4.21px",
-                                top: "10.82px",
-                                width: "3.1px",
-                                height: "3.1px",
-                              }}
-                            />
-                            <img
-                              src={review.avatars[6]}
-                              alt=""
-                              style={{
-                                position: "absolute",
-                                left: "4.55px",
-                                top: "11.16px",
-                                width: "1.308px",
-                                height: "1.308px",
-                              }}
-                            />
-                            <img
-                              src={review.avatars[7]}
-                              alt=""
-                              style={{
-                                position: "absolute",
-                                left: "16.69px",
-                                top: "10.82px",
-                                width: "3.1px",
-                                height: "3.1px",
-                              }}
-                            />
-                            <img
-                              src={review.avatars[8]}
-                              alt=""
-                              style={{
-                                position: "absolute",
-                                left: "18.14px",
-                                top: "11.16px",
-                                width: "1.308px",
-                                height: "1.308px",
-                              }}
-                            />
-                            <img
-                              src={review.avatars[9]}
-                              alt=""
-                              style={{
-                                position: "absolute",
-                                left: "5.76px",
-                                top: "1.97px",
-                                width: "12.476px",
-                                height: "7.496px",
-                              }}
-                            />
-                          </div>
-                        ) : (
-                          // Male Avatar (Ahmed)
-                          <div className="relative w-[26.4px] h-[30px] shrink-0">
-                            <img
-                              src={review.avatars[0]}
-                              alt=""
-                              style={{
-                                position: "absolute",
-                                left: "0px",
-                                top: "20.41px",
-                                width: "26.389px",
-                                height: "9.513px",
-                              }}
-                            />
-                            <img
-                              src={review.avatars[1]}
-                              alt=""
-                              style={{
-                                position: "absolute",
-                                left: "10.86px",
-                                top: "15.03px",
-                                width: "4.675px",
-                                height: "7.663px",
-                              }}
-                            />
-                            <img
-                              src={review.avatars[2]}
-                              alt=""
-                              style={{
-                                position: "absolute",
-                                left: "10.86px",
-                                top: "16.95px",
-                                width: "4.675px",
-                                height: "2.494px",
-                              }}
-                            />
-                            <img
-                              src={review.avatars[3]}
-                              alt=""
-                              style={{
-                                position: "absolute",
-                                left: "6.96px",
-                                top: "0.52px",
-                                width: "12.461px",
-                                height: "17.407px",
-                              }}
-                            />
-                            <img
-                              src={review.avatars[4]}
-                              alt=""
-                              style={{
-                                position: "absolute",
-                                left: "4.63px",
-                                top: "9.3px",
-                                width: "3.408px",
-                                height: "3.408px",
-                              }}
-                            />
-                            <img
-                              src={review.avatars[5]}
-                              alt=""
-                              style={{
-                                position: "absolute",
-                                left: "5.01px",
-                                top: "9.68px",
-                                width: "1.438px",
-                                height: "1.438px",
-                              }}
-                            />
-                            <img
-                              src={review.avatars[6]}
-                              alt=""
-                              style={{
-                                position: "absolute",
-                                left: "18.35px",
-                                top: "9.3px",
-                                width: "3.408px",
-                                height: "3.408px",
-                              }}
-                            />
-                            <img
-                              src={review.avatars[7]}
-                              alt=""
-                              style={{
-                                position: "absolute",
-                                left: "19.94px",
-                                top: "9.68px",
-                                width: "1.438px",
-                                height: "1.438px",
-                              }}
-                            />
-                            <img
-                              src={review.avatars[8]}
-                              alt=""
-                              style={{
-                                position: "absolute",
-                                left: "6.51px",
-                                top: "0px",
-                                width: "13.368px",
-                                height: "7.633px",
-                              }}
-                            />
-                          </div>
-                        )}
-                      </div>
+        {!isLoading && error && (
+          <div className="flex flex-col items-center gap-3 py-12 text-center">
+            <p className="text-sm text-gray-500">
+              تعذر تحميل آراء العملاء
+            </p>
+            <button
+              type="button"
+              onClick={() => mutate()}
+              className="bg-primary-500 hover:bg-primary-600 text-white text-xs font-semibold py-2.5 px-6 rounded-xl transition-colors cursor-pointer"
+            >
+              حاول مرة أخرى
+            </button>
+          </div>
+        )}
 
-                      <div className="flex flex-col gap-0.5">
-                        <h4 className="font-medium text-base text-white">
-                          {review.name}
-                        </h4>
-                        <p className="text-white/70 text-sm font-normal">
-                          {review.carInfo}
-                        </p>
-                      </div>
+        {!isLoading && !error && testimonials.length === 0 && (
+          <p className="text-center text-sm text-gray-400 py-12">
+            لا توجد آراء حالياً
+          </p>
+        )}
+
+        {!isLoading && !error && testimonials.length > 0 && (
+          <Carousel dir="rtl">
+            <CarouselContent className="">
+              {testimonials.map((review) => (
+                <CarouselItem
+                  key={review.id}
+                  className="lg:basis-1/3 md:basis-1/2 basis-1/1 relative pl-3 last:pl-0 overflow-hidden transition-all rounded-2xl duration-300 min-h-[320px] md:min-h-[370px] select-none group"
+                >
+                  <div className="relative min-h-[320px] md:min-h-[370px] h-full px-5 py-8 rounded-2xl overflow-hidden flex flex-col justify-end shadow-sm hover:shadow-md">
+                    <div className="absolute inset-0 z-0">
+                      <Image
+                        src={review.bgImage || FALLBACK_BG}
+                        alt={review.name}
+                        fill
+                        className="object-cover group-hover:scale-102 transition-transform duration-300"
+                      />
+                      <div className="absolute inset-0 bg-gradient-to-t from-[#002EC1]/90 to-transparent" />
                     </div>
 
-                    {/* Comment Text */}
-                    <p className="text-base font-normal leading-relaxed">
-                      {review.comment}
-                    </p>
+                    <div className="relative z-10 text-right text-white flex flex-col gap-4">
+                      <div className="flex items-start justify-start gap-3">
+                        <div className="bg-[#EBF1FF] border border-white p-1.5 rounded-full relative w-11 h-11 flex items-center justify-center shrink-0 overflow-hidden">
+                          {review.avatar ? (
+                            // eslint-disable-next-line @next/next/no-img-element
+                            <img
+                              src={review.avatar}
+                              alt={review.name}
+                              className="w-full h-full object-cover rounded-full"
+                            />
+                          ) : (
+                            <span className="text-[#002EC1] font-bold text-sm">
+                              {review.name.charAt(0)}
+                            </span>
+                          )}
+                        </div>
+                        <div className="flex flex-col gap-0.5 min-w-0">
+                          <h3 className="font-bold text-base leading-tight">
+                            {review.name}
+                          </h3>
+                          {review.carInfo && (
+                            <p className="text-white/80 text-xs leading-snug line-clamp-2">
+                              {review.carInfo}
+                            </p>
+                          )}
+                        </div>
+                      </div>
+
+                      <p className="text-sm md:text-base font-medium leading-relaxed">
+                        {review.comment}
+                      </p>
+
+                      {review.rating != null && (
+                        <div className="flex items-center gap-1 justify-start">
+                          {Array.from({ length: 5 }).map((_, i) => (
+                            <span
+                              key={i}
+                              className={
+                                i < review.rating!
+                                  ? "text-yellow-300"
+                                  : "text-white/30"
+                              }
+                            >
+                              ★
+                            </span>
+                          ))}
+                        </div>
+                      )}
+                    </div>
                   </div>
-                </div>
-              </CarouselItem>
-            ))}
-          </CarouselContent>
-          <CarouselNavigation
-            className="absolute top-0 left-0 -translate-y-20"
-            classNameButton="bg-zinc-800 *:stroke-zinc-50 dark:bg-zinc-200 dark:*:stroke-zinc-800"
-            alwaysShow
-          />
-        </Carousel>
-        {/* </div> */}
+                </CarouselItem>
+              ))}
+            </CarouselContent>
+          </Carousel>
+        )}
       </MaxWidthWrapper>
     </section>
   );

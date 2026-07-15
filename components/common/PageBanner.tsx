@@ -19,7 +19,7 @@ const PageBanner = ({
   );
 
   return (
-    <div className="relative w-full lg:h-[427px] h-[375px] overflow-hidden flex flex-col justify-end text-center pb-8 md:pb-0">
+    <div className="relative w-full lg:h-[320px] h-[280px] overflow-hidden flex flex-col justify-end text-center pb-8 md:pb-0">
       <Image
         src={image}
         alt="banner"

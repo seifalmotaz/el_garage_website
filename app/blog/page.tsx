@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo, useEffect, useTransition } from "react";
+import { useState, useMemo, useTransition } from "react";
 import Image from "next/image";
 import PageBanner from "@/components/common/PageBanner";
 import MaxWidthWrapper from "@/components/common/MaxWidthWrapper";
@@ -9,102 +9,9 @@ import ShowMoreLink from "@/components/common/ShowMoreLink";
 import Dropdown from "@/components/common/Dropdown";
 import Button from "@/components/common/Button";
 import Link from "next/link";
-import { fakePromise } from "@/lib/utils";
 import NotFoundFeedback from "@/components/common/NotFoundFeedback";
-
-// Mock articles data
-export const initialArticles = [
-  {
-    id: 1,
-    title: "إزاي تفحص سيارة مستعملة قبل الشراء؟",
-    date: "9 أغسطس 2025",
-    timestamp: 1754697600, // For sorting
-    excerpt:
-      "شراء سيارة مستعملة مغامرة تحتاج حذر شديد، لأن 70% من العربيات المستعملة في مصر بتحمل عيوب مخفية زي تصليح إطار، غرق، أو عداد معدل. التشيك ليست دي هتخليك تكشف العيوب بدري قبل ما تدفع فلوسك—من فحص الهيكل والدهان اللي بيظهر الحوادث...",
-    image: "/assets/blog_placeholder.png",
-  },
-  {
-    id: 2,
-    title: "أهم 10 أسئلة لازم تسألهم قبل شراء عربية مستعملة",
-    date: "8 أغسطس 2025",
-    timestamp: 1754611200,
-    excerpt:
-      "أسئلة بتفلتر أي مخاطرة قبل ما تشتري: تاريخ الصيانة والحوادث، أسباب البيع، حالة الكيلومترات، وتكاليف الإصلاح المتوقعة—عشان قرارك يبقى مبني على معلومات مش انطباع.",
-    image: "/assets/blog_placeholder.png",
-  },
-  {
-    id: 3,
-    title: "كيف تبيع سيارتك المستعملة بسرعة وبأعلى سعر",
-    date: "7 أغسطس 2025",
-    timestamp: 1754524800,
-    excerpt:
-      "خطة بيع عملية من غير لف: تجهيز العربية وتصويرها صح، تسعير واقعي، كتابة إعلان مقنع، والرد على المشترين بذكاء—علشان تبيع أسرع وبسعر أفضل وبأقل مجهود.",
-    image: "/assets/blog_placeholder.png",
-  },
-  {
-    id: 4,
-    title: "أفضل السيارات المستعملة في مصر تحت سعر 300 ألف جنيه",
-    date: "6 أغسطس 2025",
-    timestamp: 1754438400,
-    excerpt:
-      "تبحث عن سيارة اقتصادية وموثوقة بسعر مناسب؟ جمعنا لك قائمة بأفضل السيارات المستعملة في السوق المصري تحت 300 ألف جنيه مع استهلاك بنزين موفر وتوافر قطع الغيار.",
-    image: "/assets/blog_placeholder.png",
-  },
-  {
-    id: 5,
-    title: "كيف تكشف تلاعب عداد الكيلومترات في السيارات المستعملة؟",
-    date: "5 أغسطس 2025",
-    timestamp: 1754352000,
-    excerpt:
-      "عداد المسافات هو أول ما ينظر إليه المشتري، لكنه للأسف الأكثر عرضة للتلاعب. إليك طرق كشف عداد السيارة الحقيقي وفحص علامات التلف داخل المقصورة.",
-    image: "/assets/blog_placeholder.png",
-  },
-  {
-    id: 6,
-    title: "مقارنة بين ناقل الحركة الأوتوماتيك والمانيوال: أيهما أفضل لك؟",
-    date: "4 أغسطس 2025",
-    timestamp: 1754265600,
-    excerpt:
-      "بين راحة الأوتوماتيك في الزحام وتوفير المانيوال في الوقود وصيانته السهلة، أيهما يناسب قيادتك وميزانيتك؟ قمنا بتحليل الفروق لمساعدتك في اتخاذ القرار.",
-    image: "/assets/blog_placeholder.png",
-  },
-  {
-    id: 7,
-    title: "علامات تلف مساعدين السيارة وكيفية فحصها بنفسك",
-    date: "3 أغسطس 2025",
-    timestamp: 1754179200,
-    excerpt:
-      "المساعدين هم المسؤولون عن ثبات السيارة وراحتها على الطريق. تعرف على أهم علامات التلف مثل تسريب الزيت أو تأرجح السيارة وطريقة فحصها البسيطة.",
-    image: "/assets/blog_placeholder.png",
-  },
-  {
-    id: 8,
-    title: "كيف تشتري سيارة مستعملة بالتقسيط في مصر؟",
-    date: "2 أغسطس 2025",
-    timestamp: 1754092800,
-    excerpt:
-      "دليلك الشامل لخطوات وشروط تقسيط السيارات المستعملة في البنوك والشركات المصرية، مع نصائح لحساب الفائدة والمصاريف الإدارية وتجنب التعثر.",
-    image: "/assets/blog_placeholder.png",
-  },
-  {
-    id: 9,
-    title: "أهم النصائح للحفاظ على موتور سيارتك في الصيف",
-    date: "1 أغسطس 2025",
-    timestamp: 1754006400,
-    excerpt:
-      "درجات الحرارة المرتفعة هي العدو الأول لمحرك السيارة. نصائح أساسية لفحص دورة التبريد، واختيار لزوجة الزيت المناسبة لحماية المحرك من السخونة.",
-    image: "/assets/blog_placeholder.png",
-  },
-  {
-    id: 10,
-    title: "جدول الصيانات الدورية للسيارات: متى تغير الزيت والسيور؟",
-    date: "30 يوليو 2025",
-    timestamp: 1753833600,
-    excerpt:
-      "دليل الصيانات الوقائية لسيارتك من تغيير زيت المحرك والفرامل، وفحص سيور الكاتينة والمجموعة، إلى صيانة التكييف لضمان أطول عمر افتراضي لسيارتك.",
-    image: "/assets/blog_placeholder.png",
-  },
-];
+import { useArticles } from "@/hooks/useArticles";
+import type { Article } from "@/lib/api/articles";
 
 export const CalendarIcon = ({ color = "#1A1A1A" }: { color?: string }) => (
   <svg
@@ -187,68 +94,91 @@ export const CalendarIcon = ({ color = "#1A1A1A" }: { color?: string }) => (
   </svg>
 );
 
+/** Number of articles per page on the listing. */
+const ITEMS_PER_PAGE = 9;
+
+/**
+ * Render an ISO date in the same Arabic shape the mock data used so the
+ * UI is unchanged when the API is wired up.
+ */
+function formatArabicDate(iso: string | null): string {
+  if (!iso) return "";
+  const date = new Date(iso);
+  if (Number.isNaN(date.getTime())) return iso;
+  try {
+    return new Intl.DateTimeFormat("ar-EG-u-nu-latn", {
+      day: "numeric",
+      month: "long",
+      year: "numeric",
+    }).format(date);
+  } catch {
+    return iso;
+  }
+}
+
+type SortKey = "newest" | "oldest";
+
+/**
+ * Map the local sort key to a backend-compatible sort signal. Since the
+ * public articles endpoint returns paginated data ordered by recency
+ * by default, "oldest" simply inverts the client-side array.
+ */
+function sortArticles(articles: Article[], sort: SortKey): Article[] {
+  // The backend already returns newest-first; for "oldest" we flip it.
+  if (sort === "oldest") return [...articles].reverse();
+  return articles;
+}
+
 export default function BlogPage() {
+  const [searchInput, setSearchInput] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
-  const [searchInput, setSearchInput] = useState(""); // local input state for the search button
-  const [sortBy, setSortBy] = useState("newest");
-  const [filteredArticles, setFilteredArticles] = useState(initialArticles);
+  const [sortBy, setSortBy] = useState<SortKey>("newest");
   const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 9;
 
   const [isPending, startTransition] = useTransition();
 
-  // Search submit handler
-  const handleSearchSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    setSearchQuery(searchInput);
-    setCurrentPage(1);
-  };
+  const { data, isLoading, error, mutate } = useArticles({
+    limit: 100, // fetch a large page so client-side search/sort covers a realistic window
+    page: 1,
+    search: searchQuery || undefined,
+  });
 
-  const SearchSubmit = () => {
-    startTransition(async () => {
-      await fakePromise();
-      setFilteredArticles(getFilteredArticles());
+  const allArticles = data?.data ?? [];
+  const sortedArticles = useMemo(
+    () => sortArticles(allArticles, sortBy),
+    [allArticles, sortBy],
+  );
+
+  // Server returns up to 100 most recent (filtered by search). Paginate
+  // client-side so we don't refetch on every page flip.
+  const totalPages = Math.max(
+    1,
+    Math.ceil(sortedArticles.length / ITEMS_PER_PAGE),
+  );
+
+  const paginatedArticles = useMemo(() => {
+    const startIdx = (currentPage - 1) * ITEMS_PER_PAGE;
+    return sortedArticles.slice(startIdx, startIdx + ITEMS_PER_PAGE);
+  }, [sortedArticles, currentPage]);
+
+  // Featured article — first item from the unfiltered list, or null while
+  // loading. We always show the most-recently-published article as the
+  // featured one regardless of the active search filter.
+  const featuredArticle = allArticles[0] ?? null;
+
+  const handleSearchSubmit = (e?: React.FormEvent) => {
+    e?.preventDefault();
+    startTransition(() => {
+      setSearchQuery(searchInput.trim());
+      setCurrentPage(1);
     });
   };
 
-  useEffect(() => {
-    setFilteredArticles(getFilteredArticles());
-  }, [sortBy]);
-
-  // Filter and sort articles
-  const getFilteredArticles = () => {
-    let result = [...initialArticles];
-
-    // Filter by search query
-    if (searchQuery.trim() !== "") {
-      const q = searchQuery.toLowerCase();
-      result = result.filter(
-        (article) =>
-          article.title.toLowerCase().includes(q) ||
-          article.excerpt.toLowerCase().includes(q),
-      );
-    }
-
-    // Sort
-    if (sortBy === "newest") {
-      result.sort((a, b) => b.timestamp - a.timestamp);
-    } else if (sortBy === "oldest") {
-      result.sort((a, b) => a.timestamp - b.timestamp);
-    }
-
-    return result;
+  const handleReset = () => {
+    setSearchInput("");
+    setSearchQuery("");
+    setCurrentPage(1);
   };
-
-  // Featured article (always the absolute newest one from the initial list)
-  const featuredArticle = initialArticles[0];
-
-  // Pagination logic
-  const totalPages = Math.ceil(filteredArticles.length / itemsPerPage);
-
-  const paginatedArticles = useMemo(() => {
-    const startIdx = (currentPage - 1) * itemsPerPage;
-    return filteredArticles.slice(startIdx, startIdx + itemsPerPage);
-  }, [filteredArticles, currentPage]);
 
   return (
     <div className="relative flex flex-col min-h-screen bg-white">
@@ -264,34 +194,47 @@ export default function BlogPage() {
               {/* Date */}
               <div className="flex items-center gap-1.5 text-sm mb-4">
                 <CalendarIcon />
-                <span className="v">{featuredArticle.date}</span>
+                <span className="v">
+                  {featuredArticle
+                    ? formatArabicDate(
+                        featuredArticle.publishedAt ?? featuredArticle.createdAt,
+                      )
+                    : "—"}
+                </span>
               </div>
 
               <div className="space-y-2 mb-12.5">
                 {/* Title */}
                 <h2 className="text-2xl md:text-3xl lg:text-4xl font-bold text-[#1A1A1A] leading-tight">
-                  {featuredArticle.title}
+                  {featuredArticle?.title ?? "جاري تحميل المقالات..."}
                 </h2>
 
                 {/* Excerpt */}
                 <p className="text-gray-500 text-sm md:text-base leading-relaxed">
-                  {featuredArticle.excerpt}
+                  {featuredArticle?.description ?? ""}
                 </p>
               </div>
 
               {/* Read More Link */}
-              <ShowMoreLink text="اقرء المزيد" href="#" />
+              {featuredArticle && (
+                <ShowMoreLink
+                  text="اقرء المزيد"
+                  href={`/blog/${featuredArticle.id}`}
+                />
+              )}
             </div>
 
             {/* Featured Image */}
-            <div className="flex-1 lg:aspect-572/548 aspect-16/8 relative rounded-2xl overflow-hidden group">
-              <Image
-                src={featuredArticle.image}
-                alt={featuredArticle.title}
-                fill
-                priority
-                className="object-cover group-hover:scale-102 transition-transform duration-500"
-              />
+            <div className="flex-1 lg:aspect-572/548 aspect-16/8 relative rounded-2xl overflow-hidden group bg-gray-100">
+              {featuredArticle?.image ? (
+                <Image
+                  src={featuredArticle.image}
+                  alt={featuredArticle.title}
+                  fill
+                  priority
+                  className="object-cover group-hover:scale-102 transition-transform duration-500"
+                />
+              ) : null}
             </div>
           </div>
         </MaxWidthWrapper>
@@ -302,16 +245,19 @@ export default function BlogPage() {
             <div className="flex flex-col justify-between gap-8 w-full md:flex-row md:items-end">
               {/* Right side filters: Model & Sorting */}
               <div className="flex flex-row items-center sm:gap-8 gap-2 w-full md:w-auto md:flex-initial">
-                {/* Model Dropdown */}
+                {/* Sort Dropdown */}
                 <Dropdown
                   label="ترتيب حسب"
                   placeholder=""
                   option={sortBy}
                   options={[
-                    { label: "الأقدم", value: "newest" },
-                    { label: "الأحدث", value: "oldest" },
+                    { label: "الأحدث", value: "newest" },
+                    { label: "الأقدم", value: "oldest" },
                   ]}
-                  setOption={(val) => setSortBy(val)}
+                  setOption={(val) => {
+                    setSortBy(val as SortKey);
+                    setCurrentPage(1);
+                  }}
                   className={"md:w-[282px]"}
                   variant="white"
                 />
@@ -327,8 +273,11 @@ export default function BlogPage() {
                     <input
                       type="text"
                       placeholder="بتدور على ايه !"
-                      value={searchQuery}
-                      onChange={(e) => setSearchQuery(e.target.value)}
+                      value={searchInput}
+                      onChange={(e) => setSearchInput(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter") handleSearchSubmit();
+                      }}
                       className="w-full h-full text-right outline-none text-xs pr-7 font-light text-gray-800"
                     />
                     <Image
@@ -342,7 +291,7 @@ export default function BlogPage() {
                   <Button
                     isLoading={isPending}
                     disabled={isPending}
-                    onClick={SearchSubmit}
+                    onClick={() => handleSearchSubmit()}
                     spinnerVariant={"primary"}
                     className="bg-white border border-gray-200 hover:bg-primary-50 text-primary-500 font-semibold w-[120px]"
                   >
@@ -357,7 +306,28 @@ export default function BlogPage() {
         {/* Articles Grid */}
         <section className="mb-12">
           <MaxWidthWrapper>
-            {paginatedArticles.length > 0 ? (
+            {error ? (
+              <div className="bg-white border border-gray-100 rounded-2xl p-16 flex flex-col items-center justify-center gap-4 text-center">
+                <p className="text-sm text-red-600">
+                  تعذر تحميل المقالات
+                </p>
+                <button
+                  onClick={() => mutate()}
+                  className="bg-primary-500 hover:bg-primary-600 text-white text-xs font-semibold py-2.5 px-6 rounded-xl mt-2 transition-colors cursor-pointer"
+                >
+                  حاول مرة أخرى
+                </button>
+              </div>
+            ) : isLoading && paginatedArticles.length === 0 ? (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {Array.from({ length: 6 }).map((_, i) => (
+                  <div
+                    key={i}
+                    className="bg-gray-100 border border-gray-100 rounded-3xl overflow-hidden flex flex-col h-[420px] relative animate-pulse"
+                  />
+                ))}
+              </div>
+            ) : paginatedArticles.length > 0 ? (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 {paginatedArticles.map((article) => (
                   <Link
@@ -367,12 +337,14 @@ export default function BlogPage() {
                   >
                     {/* Image Background */}
                     <div className="relative w-full h-full">
-                      <Image
-                        src={article.image}
-                        alt={article.title}
-                        fill
-                        className="object-cover group-hover:scale-102 transition-transform duration-300"
-                      />
+                      {article.image && (
+                        <Image
+                          src={article.image}
+                          alt={article.title}
+                          fill
+                          className="object-cover group-hover:scale-102 transition-transform duration-300"
+                        />
+                      )}
 
                       {/* Shadow overlay for contrast */}
                       <div className="absolute inset-0 bg-gradient-to-t from-[#06142d] via-[#06142d]/60 to-transparent z-10" />
@@ -384,7 +356,9 @@ export default function BlogPage() {
                       <div className="flex items-center justify-start gap-1.5 opacity-80">
                         <CalendarIcon color="white" />
                         <span className="text-sm leading-[21px]">
-                          {article.date}
+                          {formatArabicDate(
+                            article.publishedAt ?? article.createdAt,
+                          )}
                         </span>
                       </div>
 
@@ -394,7 +368,7 @@ export default function BlogPage() {
                           {article.title}
                         </h3>
                         <p className="text-white/70 text-xs md:text-sm leading-relaxed line-clamp-2">
-                          {article.excerpt}
+                          {article.description ?? ""}
                         </p>
                       </div>
                     </div>
@@ -402,13 +376,7 @@ export default function BlogPage() {
                 ))}
               </div>
             ) : (
-              <NotFoundFeedback
-                resetHandler={() => {
-                  setSearchQuery("");
-                  setSearchInput("");
-                  setFilteredArticles(getFilteredArticles());
-                }}
-              />
+              <NotFoundFeedback resetHandler={handleReset} />
             )}
           </MaxWidthWrapper>
         </section>

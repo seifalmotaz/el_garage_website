@@ -26,9 +26,6 @@ export const AUTH_STORAGE_KEY = "elgarage_auth";
 /** Default base URL when `NEXT_PUBLIC_API_URL` is not set. */
 const DEFAULT_API_URL = "https://elgarage-back.seifalmotaz.com/api/v1";
 
-/** Internal header that flags a request as an already-retried request. */
-const RETRY_HEADER = "x-elgarage-retry";
-
 /** Token pair persisted in localStorage. */
 export type StoredAuth = {
   accessToken: string;
@@ -38,6 +35,11 @@ export type StoredAuth = {
 /** Extended init that accepts a plain JSON-serializable body. */
 export type FetcherInit = Omit<RequestInit, "body"> & {
   body?: BodyInit | object | null;
+  /**
+   * When true, never attach Authorization and never run refresh-on-401.
+   * Use for public CMS reads (articles, banners, FAQ, testimonials).
+   */
+  public?: boolean;
 };
 
 /**
@@ -281,36 +283,51 @@ export async function fetcher<T>(
 
   // Start with the caller's headers, then layer our defaults and the
   // token-derived Authorization header on top.
+  const isPublic = init?.public === true;
+
   const headers: Record<string, string> = mergeHeaders(init?.headers);
   headers["Accept"] = "application/json";
   if (prepared.contentType) {
     headers["Content-Type"] = prepared.contentType;
   }
-  if (!headers["Authorization"]) {
+  // Public CMS endpoints must not send Bearer tokens — an expired/invalid
+  // token can confuse proxies or intermediate layers, and refresh-on-401
+  // must not gate anonymous content (blog list, banners, FAQ).
+  if (!isPublic && !headers["Authorization"]) {
     const stored = readStoredAuth();
     if (stored?.accessToken) {
       headers["Authorization"] = `Bearer ${stored.accessToken}`;
     }
   }
+  if (isPublic) {
+    delete headers["Authorization"];
+  }
+
+  // Strip custom `public` flag so it is not passed to fetch.
+  const { public: _publicFlag, body: _body, ...restInit } = init ?? {};
+  void _publicFlag;
+  void _body;
 
   const baseFetchInit: RequestInit = {
-    ...init,
+    ...restInit,
     headers,
     body: prepared.body as BodyInit | null | undefined,
   };
 
   let response = await fetch(url, baseFetchInit);
 
-  // 401 → one-time refresh + retry. If this is already the retried request
-  // (RETRY_HEADER present), fall through to normal error handling.
-  if (response.status === 401 && headers[RETRY_HEADER] !== "1") {
+  // 401 → one-time refresh + retry (authenticated routes only).
+  // never send a custom header on the wire. Custom headers trigger a CORS
+  // preflight and production `Access-Control-Allow-Headers` does not include
+  // `x-elgarage-retry` (see backend/src/main.ts), which blocked public GETs
+  // like /articles after a failed refresh.
+  if (response.status === 401 && !isPublic) {
     const refreshed = await attemptRefresh();
     if (refreshed) {
       writeStoredAuth(refreshed);
       const retryHeaders: Record<string, string> = {
         ...headers,
         Authorization: `Bearer ${refreshed.accessToken}`,
-        [RETRY_HEADER]: "1",
       };
       const retryInit: RequestInit = {
         ...baseFetchInit,
@@ -319,8 +336,15 @@ export async function fetcher<T>(
       response = await fetch(url, retryInit);
     } else {
       // Refresh failed → drop the tokens so the UI can show the
-      // logged-out state on the next render.
+      // logged-out state on the next render. Retry once without auth
+      // so wrongly-protected public data can still load.
       clearStoredAuth();
+      const anonHeaders = { ...headers };
+      delete anonHeaders["Authorization"];
+      response = await fetch(url, {
+        ...baseFetchInit,
+        headers: anonHeaders,
+      });
     }
   }
 

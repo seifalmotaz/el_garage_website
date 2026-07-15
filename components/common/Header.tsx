@@ -3,14 +3,110 @@
 import { useEffect, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { SearchIcon, TagIcon } from "../svg/Svgs";
+import { TagIcon } from "../svg/Svgs";
 import MaxWidthWrapper from "./MaxWidthWrapper";
 import MenuButton from "./MenuButton";
 import { cn } from "@/lib/utils";
 import { usePathname } from "next/navigation";
 import Logo from "./Logo";
 import { useAuth } from "@/hooks/useAuth";
-import { LogOut, User as UserIcon } from "lucide-react";
+import {
+  Car as CarIcon,
+  HelpCircle,
+  House,
+  LogOut,
+  Mail,
+  Newspaper,
+  Sparkles,
+  User as UserIcon,
+  UserPlus,
+} from "lucide-react";
+
+/**
+ * Compact auth / profile card pinned at the top of the mobile drawer.
+ * Mirrors the Sylandr inspiration: avatar on the left, copy + CTA on
+ * the right under RTL. Three states: skeleton, signed-in, signed-out.
+ */
+function DrawerProfileCard({ onNavigate }: { onNavigate?: () => void }) {
+  const { user, isLoading, isAuthenticated, logout } = useAuth();
+
+  if (isLoading) {
+    return (
+      <div
+        aria-hidden
+        className="w-full h-20 rounded-2xl bg-gray-100 animate-pulse"
+      />
+    );
+  }
+
+  if (isAuthenticated && user) {
+    const displayName = user.firstName ?? "حسابي";
+    const initial = (user.firstName?.[0] ?? "؟").toUpperCase();
+    return (
+      <div className="w-full bg-primary-50 border border-primary-100 rounded-2xl p-3 flex items-center gap-3">
+        <Link
+          href="/profile"
+          onClick={onNavigate}
+          aria-label="الملف الشخصي"
+          className="size-11 rounded-full bg-primary-500 text-white text-base font-bold flex items-center justify-center shrink-0"
+        >
+          {initial}
+        </Link>
+        <div className="flex-1 min-w-0">
+          <Link
+            href="/profile"
+            onClick={onNavigate}
+            className="block text-gray-900 font-bold text-sm truncate"
+          >
+            {displayName}
+          </Link>
+        </div>
+        <button
+          type="button"
+          onClick={() => {
+            void logout();
+            onNavigate?.();
+          }}
+          aria-label="تسجيل الخروج"
+          className="size-9 rounded-full border border-gray-200 text-gray-500 hover:bg-white flex items-center justify-center transition-colors cursor-pointer"
+        >
+          <LogOut className="size-4" aria-hidden />
+        </button>
+      </div>
+    );
+  }
+
+  return (
+    <div className="w-full bg-green-50 border border-green-100 rounded-2xl p-3 flex items-center gap-3">
+      <div className="size-11 rounded-full bg-white border border-green-100 flex items-center justify-center shrink-0">
+        <UserPlus className="size-5 text-primary-500" aria-hidden />
+      </div>
+      <div className="flex-1 min-w-0">
+        <p className="text-gray-900 font-bold text-sm">تسجيل دخول</p>
+        <p className="text-gray-500 text-xs">
+          ليس لديك حساب؟{" "}
+          <Link
+            href="/auth/signup"
+            onClick={onNavigate}
+            className="text-green-600 hover:text-green-700 font-bold"
+          >
+            إنشاء حساب
+          </Link>
+        </p>
+      </div>
+    </div>
+  );
+}
+
+/** Small inline icon used to the right of each nav row in the mobile drawer. */
+const navIcon: Record<string, typeof House> = {
+  "/": House,
+  "/cars": CarIcon,
+  "/cars/featured": Sparkles,
+  "/blog": Newspaper,
+  "/faq": HelpCircle,
+  "/contact": Mail,
+};
 
 /**
  * Auth-aware action slot rendered where the static "تسجيل الدخول" link
@@ -58,12 +154,16 @@ function AuthActions({
     if (variant === "desktop") {
       return (
         <div className="flex items-center gap-2">
-          <div className="flex items-center gap-2 px-2 py-2 rounded-2xl bg-white/10 border border-white/20">
+          <Link
+            href="/profile"
+            aria-label="الملف الشخصي"
+            className="flex items-center gap-2 px-2 py-2 rounded-2xl bg-white/10 border border-white/20 hover:bg-white/20 transition-colors"
+          >
             <UserIcon className="size-6 text-white" aria-hidden />
             {/* <span className="text-white font-medium text-sm">
               {displayName}
             </span> */}
-          </div>
+          </Link>
           {/* <button
             type="button"
             onClick={handleLogout}
@@ -79,10 +179,14 @@ function AuthActions({
 
     return (
       <div className="flex flex-col gap-3">
-        <div className="w-full py-3 px-4 border border-gray-200 rounded-2xl text-gray-700 font-bold text-base flex items-center gap-2">
+        <Link
+          href="/profile"
+          onClick={onNavigate}
+          className="w-full py-3 px-4 border border-gray-200 rounded-2xl text-gray-700 hover:bg-gray-50 font-bold text-base flex items-center gap-2 transition-colors"
+        >
           <UserIcon className="size-5 text-primary-500" aria-hidden />
           <span>{displayName}</span>
-        </div>
+        </Link>
         <button
           type="button"
           onClick={handleLogout}
@@ -244,9 +348,6 @@ export default function Header() {
 
           {/* Desktop Left: Actions - Hidden on Mobile */}
           <div className="hidden lg:flex items-center gap-4">
-            <button className="text-white hover:text-white/80 transition-colors p-2 rounded-full hover:bg-white/10 cursor-pointer">
-              <SearchIcon />
-            </button>
             <AuthActions variant="desktop" />
             <Link
               href="/sell"
@@ -270,28 +371,35 @@ export default function Header() {
         {/* {menuOpen && ( */}
         <div
           className={cn(
-            "lg:hidden fixed inset-0 bg-white overscroll-contain overflow-y-auto z-40 flex flex-col justify-between pt-24 px-8 pb-12 shadow-2xl duration-300",
+            "lg:hidden fixed inset-0 bg-white overscroll-contain overflow-y-auto z-40 flex flex-col justify-between pt-24 px-8 pb-12 shadow-2xl transition-transform duration-300",
             menuOpen ? "translate-x-0" : "translate-x-full",
           )}
         >
-          {/* Drawer Links */}
-          <div className="flex flex-col gap-6 text-start mt-6">
-            {navItems.map((item, idx) => (
-              <Link
-                key={idx}
-                href={item.href}
-                onClick={() => setMenuOpen(false)}
-                className={cn(
-                  "text-gray-800 hover:text-primary-500 font-bold text-xl transition-colors py-2 border-b border-gray-100",
-                  activeNavlinkIdx === idx ? "text-primary-500" : "",
-                )}
-              >
-                {item.label}
-              </Link>
-            ))}
+          <div className="flex flex-col gap-2">
+            {navItems.map((item, idx) => {
+              const Icon = navIcon[item.href];
+              return (
+                <Link
+                  key={idx}
+                  href={item.href}
+                  onClick={() => setMenuOpen(false)}
+                  className={cn(
+                    "flex items-center gap-3 py-2 border-b border-gray-100 transition-colors text-start",
+                    activeNavlinkIdx === idx
+                      ? "text-primary-500"
+                      : "text-gray-800 hover:text-primary-500",
+                  )}
+                >
+                  {Icon ? (
+                    <Icon className="size-5 text-gray-500" aria-hidden />
+                  ) : null}
+                  <span className="font-bold text-xl">{item.label}</span>
+                </Link>
+              );
+            })}
           </div>
 
-          {/* Drawer Actions */}
+          {/* Drawer actions — unchanged from the original */}
           <div className="flex flex-col gap-4 mt-8">
             <AuthActions variant="mobile" onNavigate={() => setMenuOpen(false)} />
             <Link

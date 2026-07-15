@@ -5,6 +5,7 @@ import CarGrid from "../components/CarGrid";
 import Blog from "../components/Blog";
 import Reviews from "../components/Reviews";
 import InspectionBanner from "../components/InspectionBanner";
+import MarketingBanner from "../components/MarketingBanner";
 import FAQ from "../components/FAQ";
 
 export default function Home() {
@@ -16,6 +17,9 @@ export default function Home() {
       <main className="flex-1 flex flex-col">
         {/* Hero Section */}
         <Hero />
+
+        {/* CMS marketing banners (position = web) */}
+        <MarketingBanner />
 
         {/* Why El Garage */}
         <WhyUs />

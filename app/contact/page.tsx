@@ -15,11 +15,12 @@ import {
   UserIcon,
   YoutubeIcon,
 } from "@/components/svg/Svgs";
-import { fakePromise } from "@/lib/utils";
+import { submitContact, type ContactMessageType } from "@/lib/api/contact";
+import { ApiError } from "@/lib/api/errors";
 import { contactSchema, ContactSchemaType } from "@/shared/schemas";
 import { zodResolver } from "@hookform/resolvers/zod";
 import Link from "next/link";
-import { useTransition } from "react";
+import { useState, useTransition } from "react";
 import { useForm } from "react-hook-form";
 
 const PhoneIcon = () => (
@@ -109,13 +110,38 @@ const page = () => {
   const messageTypeWatch = watch("messageType");
 
   const [isPending, startTransition] = useTransition();
+  const [submitStatus, setSubmitStatus] = useState<
+    { type: "success"; message: string } | { type: "error"; message: string } | null
+  >(null);
 
   // == [ Submit Action ] == //
   const onSubmit = (data: ContactSchemaType) => {
-    // console.log(data);
+    setSubmitStatus(null);
+    // The form collects a 10-digit local phone number; the backend
+    // expects E.164, so prepend the Egyptian country code before sending.
+    const phoneWithCountryCode = `+20${data.phoneNumber}`;
+    const { phoneNumber: _phoneNumber, ...rest } = data;
+    void _phoneNumber;
     startTransition(async () => {
-      await fakePromise();
-      reset(); // clear all input
+      try {
+        const res = await submitContact({
+          ...rest,
+          phone: phoneWithCountryCode,
+          // The form schema types `messageType` as `string`, but the
+          // backend enum only accepts one of these three values. The
+          // <Select> only emits the matching Arabic→enum pair, so we
+          // narrow here at the API boundary.
+          messageType: rest.messageType as ContactMessageType,
+        });
+        setSubmitStatus({ type: "success", message: res.message });
+        reset(); // clear all input
+      } catch (err) {
+        const message =
+          err instanceof ApiError
+            ? err.message
+            : "حدث خطأ غير متوقع، حاول مرة أخرى";
+        setSubmitStatus({ type: "error", message });
+      }
     });
   };
   // == [ Submit Action ] == //
@@ -208,6 +234,21 @@ const page = () => {
                 onSubmit={handleSubmit(onSubmit)}
                 className="flex flex-col gap-[72px]"
               >
+                {/* Submit status banner */}
+                {submitStatus && (
+                  <div
+                    role="status"
+                    aria-live="polite"
+                    className={`text-sm rounded-xl px-4 py-3 border ${
+                      submitStatus.type === "success"
+                        ? "bg-green-50 border-green-200 text-green-800"
+                        : "bg-red-50 border-red-200 text-red-800"
+                    }`}
+                  >
+                    {submitStatus.message}
+                  </div>
+                )}
+
                 {/* Fields */}
                 <div className="flex flex-col gap-8 w-full">
                   {/* full name */}
@@ -270,9 +311,9 @@ const page = () => {
                     placeholder="حدد نوع الرسالة"
                     label="نوع الرسالة"
                     options={[
-                      { label: "نوع 1", value: "1" },
-                      { label: "نوع 2", value: "2" },
-                      { label: "نوع 3", value: "3" },
+                      { label: "اقتراح", value: "suggestion" },
+                      { label: "شكوى", value: "complaint" },
+                      { label: "استفسار", value: "inquiry" },
                     ]}
                     {...register("messageType")}
                     value={messageTypeWatch}

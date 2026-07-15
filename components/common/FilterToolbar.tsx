@@ -1,8 +1,14 @@
-import { model_options } from "@/constants/car-filters";
-import Dropdown from "./Dropdown";
+import Dropdown, { type Option } from "./Dropdown";
 import Image from "next/image";
 import Button from "./Button";
 import { cn } from "@/lib/utils";
+
+const SORT_OPTIONS: Option[] = [
+  { label: "السعر - من الاعلى الي الاقل", value: "high-to-low" },
+  { label: "السعر - من الاقل الي الاعلى", value: "low-to-high" },
+  { label: "الأحدث", value: "newest" },
+  { label: "الأقدم", value: "oldest" },
+];
 
 const FilterToolbar = ({
   selectedModel,
@@ -12,6 +18,7 @@ const FilterToolbar = ({
   searchTerm,
   setSearchTerm,
   searchAction,
+  modelOptions = [],
   isLeftCol = false,
   isPending = false,
 }: {
@@ -22,9 +29,15 @@ const FilterToolbar = ({
   searchTerm: string;
   setSearchTerm: (value: string) => void;
   searchAction: () => void;
+  modelOptions?: Option[];
   isLeftCol?: boolean;
   isPending?: boolean;
 }) => {
+  const modelDropdownOptions: Option[] = [
+    { label: "كل الموديلات", value: "all" },
+    ...modelOptions,
+  ];
+
   return (
     <div
       className={cn(
@@ -32,17 +45,13 @@ const FilterToolbar = ({
         isLeftCol ? "2xl:flex-row 2xl:items-end" : "md:flex-row md:items-end",
       )}
     >
-      {/* Right side filters: Model & Sorting */}
       <div className="flex flex-row items-center sm:gap-8 gap-2 w-full md:w-auto md:flex-initial">
-        {/* Model Dropdown */}
         <Dropdown
           label="الموديل"
           placeholder="حدد الموديل"
           option={selectedModel}
-          options={[{ label: "كل الموديلات", value: "all" }, ...model_options]}
-          setOption={(val) => {
-            setSelectedModel(val);
-          }}
+          options={modelDropdownOptions}
+          setOption={setSelectedModel}
           className={isLeftCol ? "2xl:w-[252px] w-full" : "w-[252px]"}
           variant="white"
         />
@@ -51,21 +60,13 @@ const FilterToolbar = ({
           label="ترتيب حسب"
           placeholder=""
           option={sortBy}
-          options={[
-            { label: "السعر - من الاعلى الي الاقل", value: "high-to-low" },
-            { label: "السعر - من الاقل الي الاعلى", value: "low-to-high" },
-            { label: "الأقدم", value: "newest" },
-            { label: "الأحدث", value: "oldest" },
-          ]}
-          setOption={(val) => {
-            setSortBy(val);
-          }}
+          options={SORT_OPTIONS}
+          setOption={setSortBy}
           className={isLeftCol ? "2xl:w-[252px] w-full" : "w-[252px]"}
           variant="white"
         />
       </div>
 
-      {/* Left side: Search input */}
       <div
         className={cn(
           "flex flex-col gap-2 text-right w-full",
@@ -82,6 +83,12 @@ const FilterToolbar = ({
               placeholder="بتدور على ايه !"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") {
+                  e.preventDefault();
+                  searchAction();
+                }
+              }}
               className="w-full h-full text-right outline-none text-xs pr-7 font-light text-gray-800"
             />
             <Image
@@ -93,10 +100,11 @@ const FilterToolbar = ({
             />
           </div>
           <Button
+            type="button"
             onClick={searchAction}
             isLoading={isPending}
             disabled={isPending}
-            spinnerVariant={"primary"}
+            spinnerVariant="primary"
             className="bg-white border border-gray-200 hover:bg-primary-50 text-primary-500 font-semibold w-[120px]"
           >
             بحث

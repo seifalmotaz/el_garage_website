@@ -33,9 +33,10 @@ export type UseCarsResult = {
 /**
  * Fetch the public car catalog.
  *
- * @param params Optional filter — currently only `isFeatured`. Defaults to
- *               an empty object so callers without filters get the full
- *               published list.
+ * @param params Optional filter matching `GetCarsParams` (brand, model,
+ *               price/year/mileage ranges, transmission, search,
+ *               isFeatured, specs). Defaults to an empty object so
+ *               callers without filters get the full published list.
  */
 export function useCars(params: GetCarsParams = {}): UseCarsResult {
   const { data, error, isLoading, mutate } = useSWR<Car[]>(

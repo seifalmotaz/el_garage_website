@@ -3,6 +3,7 @@
 import { useState, useMemo, use } from "react";
 import Image from "next/image";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import CarCard from "../../../components/CarCard";
 import MaxWidthWrapper from "@/components/common/MaxWidthWrapper";
 import { TriArrow } from "@/components/svg/Svgs";
@@ -12,6 +13,44 @@ import {
   CarouselItem,
 } from "@/components/common/Carousel";
 import SimilarCars from "@/components/sections/SimilarCars";
+import Spinner from "@/components/common/Spinner";
+import Car360EntryButton from "@/components/car-360/Car360EntryButton";
+import Car360Modal from "@/components/car-360/Car360Modal";
+import { useCar } from "@/hooks/useCar";
+import { useCars } from "@/hooks/useCars";
+import { useAuth } from "@/hooks/useAuth";
+import { createNegotiation } from "@/lib/api/negotiations";
+import { formatMileage, formatPrice, formatYear } from "@/lib/format";
+import type { Car, CarDetail, InspectionReportResponse } from "@/lib/api/types";
+import { absolutizeUrl } from "@/lib/api/media";
+import { useActiveInspectionVersion } from "@/hooks/useActiveInspectionVersion";
+import {
+  isInspectionPass,
+  type InspectionAnswerOption,
+} from "@/lib/inspection-semantics";
+
+/** One row inside a section accordion (pass or issue). */
+type InspectionLine = {
+  text: string;
+  /** `true` → green ✓, `false` → orange ! */
+  ok: boolean;
+};
+
+/** One accordion section in the sidebar inspection card. */
+type InspectionSectionView = {
+  key: string;
+  title: string;
+  iconSrc: string;
+  goodCount: number;
+  issueCount: number;
+  lines: InspectionLine[];
+};
+
+type CarFeatureView = {
+  id: string;
+  name: string;
+  iconUrl: string;
+};
 
 type CarType = {
   brand: string;
@@ -32,171 +71,234 @@ type CarType = {
   engineSize: string;
   tankCapacity: string;
   images: string[];
-  features: string[];
+  features: CarFeatureView[];
   description: string;
+  has360View: boolean;
+  hasInspectionReport: boolean;
+  carId: string;
+  sellerPhone: string | null;
+  /** Formatted inspection date for the card header, or null. */
+  inspectionDateLabel: string | null;
+  /** Grouped inspection sections from `inspectionReport.responses`. */
+  inspectionSections: InspectionSectionView[];
+  /** Absolute URL of the generated inspection PDF, or null if not yet generated. */
+  inspectionPdfUrl: string | null;
 };
 
-// Mock car database
-const carsData: Record<string, CarType> = {
-  "bmw-x5": {
-    brand: "بي إم دبليو",
-    model: "X5",
-    price: "620,000",
-    originalPrice: "660,000",
-    discountText: "خصم 40 ألف ج.م",
-    installment: "12,444",
-    year: "2023",
-    mileage: "45,000 كم",
-    trim: "Highline",
-    location: "الاسكندرية",
-    condition: "مستعملة",
-    transmission: "أوتوماتيك",
-    fuelType: "بنزين",
-    color: "أسود",
-    hp: "335",
-    engineSize: "3000 سي سي",
-    tankCapacity: "80 لتر",
-    images: [
-      "/assets/why_cars.png",
-      "/assets/car_placeholder.png",
-      "/assets/why_cars.png",
-      "/assets/car_placeholder.png",
-      "/assets/why_cars.png",
-      "/assets/car_placeholder.png",
-      "/assets/why_cars.png",
-    ],
-    features: [
-      "فتحة سقف بانوراما",
-      "شاشة تعمل باللمس",
-      "حساسات ركن",
-      "كاميرا 360",
-      "مثبت سرعة ذكي",
-      "فرش جلد فاخر",
-    ],
-    description:
-      "بي إم دبليو X5 موديل 2023 فئة Highline بحالة المصنع بالكامل. صيانة دورية بالتوكيل، بدون رش أو دهانات تجميلية. تأتي بمحرك 3.0 لتر تيربو بقوة 335 حصان وتكييف هواء رباعي المناطق.",
-  },
-  "range-rover": {
-    brand: "لاند روفر",
-    model: "رينج روفر فوج اس اي",
-    price: "6,200,000",
-    originalPrice: "6,240,000",
-    discountText: "خصم 40 ألف ج.م",
-    installment: "124,444",
-    year: "2020",
-    mileage: "45,000 كم",
-    trim: "Highline",
-    location: "الاسكندرية",
-    condition: "مستعملة",
-    transmission: "أوتوماتيك",
-    fuelType: "بنزين",
-    color: "رمادي",
-    hp: "400",
-    engineSize: "3000 سي سي",
-    tankCapacity: "90 لتر",
-    images: [
-      "/assets/car_placeholder.png",
-      "/assets/why_cars.png",
-      "/assets/car_placeholder.png",
-    ],
-    features: [
-      "نظام دفع رباعي",
-      "تعليق هوائي",
-      "فتحة سقف بانوراما",
-      "مقاعد مساج كهربائية",
-      "أبواب شفط",
-      "نظام صوتي ميريديان",
-    ],
-    description:
-      "لاند روفر رينج روفر فوج اس اي بحالة ممتازة وصيانات توكيل منتظمة. السيارة فابريكا بالكامل وخالية من أي خدوش.",
-  },
-  "mercedes-c200": {
-    brand: "مرسيدس بنز",
-    model: "C200 AMG Line",
-    price: "3,850,000",
-    installment: "78,500",
-    year: "2022",
-    mileage: "28,000 كم",
-    trim: "AMG",
-    location: "القاهرة",
-    condition: "مستعملة",
-    transmission: "أوتوماتيك",
-    fuelType: "بنزين",
-    color: "أبيض",
-    hp: "204",
-    engineSize: "1500 سي سي",
-    tankCapacity: "66 لتر",
-    images: ["/assets/car_placeholder.png", "/assets/why_cars.png"],
-    features: [
-      "كت AMG رياضي",
-      "إضاءة داخلية Ambient Light",
-      "شاشة MBUX العملاقة",
-      "شاحن لاسلكي",
-      "سقف بانوراما",
-    ],
-    description:
-      "مرسيدس بنز C200 AMG Line بحالة الزيرو تماماً، صيانة توكيل بالكامل، فابريكا بالكامل بدون أي ملاحظات.",
-  },
-};
+/** Local placeholder path used when a car has no usable image URL. */
+const CAR_PLACEHOLDER = "/assets/car_placeholder.png";
 
-const initialCars = [
-  {
-    id: "range-rover",
-    brand: "لاند روفر",
-    model: "رينج روفر فوج اس اي",
-    price: "6,200,000",
-    installment: "124,444",
-    year: "2020",
-    mileage: "45,000 كم",
-    trim: "Highline",
-    location: "الاسكندرية",
-    isFeatured: true,
-    isCertified: true,
-  },
-  {
-    id: "mercedes-c200",
-    brand: "مرسيدس بنز",
-    model: "C200 AMG Line",
-    price: "3,850,000",
-    installment: "78,500",
-    year: "2022",
-    mileage: "28,000 كم",
-    trim: "AMG",
-    location: "القاهرة",
-    isFeatured: true,
-    isCertified: true,
-  },
-  {
-    id: "toyota-corolla",
-    brand: "تويوتا",
-    model: "كورولا هايلاند",
-    price: "1,250,000",
-    installment: "24,000",
-    year: "2021",
-    mileage: "62,000 كم",
-    trim: "Luxury",
-    location: "الجيزة",
-    isFeatured: false,
-    isCertified: true,
-  },
-  {
-    id: "bmw-320i",
-    brand: "بي إم دبليو",
-    model: "320i M Sport",
-    price: "3,100,000",
-    installment: "62,000",
-    year: "2020",
-    mileage: "54,000 كم",
-    trim: "M Sport",
-    location: "القاهرة",
-    isFeatured: true,
-    isCertified: true,
-  },
-];
+/** Look up a spec value by its spec key (e.g. `"transmission"`, `"fuel"`). */
+function findSpecValue(
+  specs: CarDetail["specifications"],
+  key: string,
+): string | null {
+  const found = specs.find((s) => s.key === key);
+  if (!found) return null;
+  return found.label ?? found.value ?? null;
+}
+
+/** Pick a local icon path for an inspection section title. */
+function sectionIconSrc(title: string, sectionIcon: string | null): string {
+  const t = title.toLowerCase();
+  if (sectionIcon) {
+    // Backend may send codes like "car_body", "brakes" — map a few.
+    const code = sectionIcon.toLowerCase();
+    if (code.includes("engine") || code.includes("motor")) return "/icons/engine.svg";
+    if (code.includes("brake") || code.includes("wheel") || code.includes("tire"))
+      return "/icons/wheel.svg";
+    if (code.includes("road")) return "/icons/road-test.svg";
+    if (code.includes("electronic") || code.includes("obd") || code.includes("file"))
+      return "/icons/file-check.svg";
+    if (code.includes("repair") || code.includes("scratch") || code.includes("defect"))
+      return "/icons/car-repair.svg";
+    if (code.includes("body") || code.includes("car")) return "/icons/car.svg";
+  }
+  if (t.includes("محرك") || t.includes("ناقل")) return "/icons/engine.svg";
+  if (t.includes("فرامل") || t.includes("إطار") || t.includes("اطار"))
+    return "/icons/wheel.svg";
+  if (t.includes("طريق") || t.includes("قيادة")) return "/icons/road-test.svg";
+  if (t.includes("إلكترون") || t.includes("الكترون") || t.includes("كمبيوتر"))
+    return "/icons/file-check.svg";
+  if (t.includes("خدش") || t.includes("عيب") || t.includes("داخل"))
+    return "/icons/car-repair.svg";
+  if (t.includes("هيكل") || t.includes("خارج")) return "/icons/car.svg";
+  return "/icons/car.svg";
+}
+
+/** Format completedAt as e.g. `(14 Jan, 2025)` to match the original mock header. */
+function formatInspectionHeaderDate(iso: string | null): string | null {
+  if (!iso) return null;
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return null;
+  const months = [
+    "Jan",
+    "Feb",
+    "Mar",
+    "Apr",
+    "May",
+    "Jun",
+    "Jul",
+    "Aug",
+    "Sep",
+    "Oct",
+    "Nov",
+    "Dec",
+  ];
+  return `(${d.getDate()} ${months[d.getMonth()]}, ${d.getFullYear()})`;
+}
+
+/**
+ * Group flat `inspectionReport.responses` into accordion sections for the
+ * car-detail sidebar. Status uses dashboard-style option semantics
+ * (`lib/inspection-semantics.ts`), not raw answerValue guessing.
+ */
+function mapInspectionSections(
+  report: InspectionReportResponse | null | undefined,
+  catalog?: Map<string, InspectionAnswerOption[]>,
+): InspectionSectionView[] {
+  if (!report?.responses?.length) return [];
+
+  const groups = new Map<
+    string,
+    {
+      title: string;
+      icon: string | null;
+      order: number;
+      lines: InspectionLine[];
+      goodCount: number;
+      issueCount: number;
+    }
+  >();
+
+  for (const response of report.responses) {
+    const title = response.section?.trim() || "أخرى";
+    if (!groups.has(title)) {
+      groups.set(title, {
+        title,
+        icon: response.sectionIcon,
+        order: response.sectionOrder ?? 999,
+        lines: [],
+        goodCount: 0,
+        issueCount: 0,
+      });
+    }
+    const group = groups.get(title)!;
+    if (
+      response.sectionOrder !== undefined &&
+      response.sectionOrder < group.order
+    ) {
+      group.order = response.sectionOrder;
+    }
+    const ok = isInspectionPass({
+      answerValue: response.answerValue,
+      answerText: response.answerText,
+      questionKey: response.questionKey,
+      semanticType: response.semanticType,
+      catalog,
+    });
+    const text =
+      response.questionText?.trim() ||
+      response.notes?.trim() ||
+      response.answerText?.trim() ||
+      response.answerValue;
+    group.lines.push({ text, ok });
+    if (ok) group.goodCount += 1;
+    else group.issueCount += 1;
+  }
+
+  return Array.from(groups.values())
+    .sort((a, b) => a.order - b.order)
+    .map((g, idx) => ({
+      key: `sec-${idx}-${g.title}`,
+      title: g.title === "_unsectioned" ? "أخرى" : g.title,
+      iconSrc: sectionIconSrc(g.title, g.icon),
+      goodCount: g.goodCount,
+      issueCount: g.issueCount,
+      lines: g.lines,
+    }));
+}
+
+/**
+ * Map a backend `CarDetail` to the local `CarType` view model.
+ *
+ * @param catalog Optional questionKey → answer options map from the
+ *   public inspection version catalog (same source the dashboard uses
+ *   to resolve semanticType).
+ */
+function mapCarToView(
+  car: CarDetail,
+  catalog?: Map<string, InspectionAnswerOption[]>,
+): CarType {
+  const fallbackImages = [CAR_PLACEHOLDER];
+  const transmission = findSpecValue(car.specifications, "transmission");
+  const fuel = findSpecValue(car.specifications, "fuel");
+  const color = findSpecValue(car.specifications, "color");
+  const hp = findSpecValue(car.specifications, "horsepower");
+  const engineSize = findSpecValue(car.specifications, "engine");
+  const tankCapacity = findSpecValue(car.specifications, "tank");
+  return {
+    brand: car.carBrand?.name ?? car.brand,
+    model: car.carModel?.name ?? car.model,
+    price: formatPrice(car.price),
+    installment: "15,000", // No backend installment field yet — keep a non-zero default so the pill renders.
+    year: formatYear(car.year),
+    mileage: formatMileage(car.mileage),
+    trim: car.trim ?? "",
+    location: car.address,
+    // Backend has no explicit condition flag — used cars with mileage > 0 are
+    // treated as "مستعملة"; new/zero-mileage listings surface as "جديدة".
+    condition: car.mileage > 0 ? "مستعملة" : "جديدة",
+    transmission: transmission ?? "أوتوماتيك",
+    fuelType: fuel ?? "بنزين",
+    color: color ?? "أسود",
+    hp: hp ?? "180",
+    engineSize: engineSize ?? "1600 سي سي",
+    tankCapacity: tankCapacity ?? "60 لتر",
+    images: car.images.length > 0 ? car.images : fallbackImages,
+    features: car.features.map((feature) => ({
+      id: feature.id,
+      name: feature.name,
+      iconUrl: absolutizeUrl(feature.iconUrl) ?? "/car-feat.svg",
+    })),
+    description: car.description ?? "",
+    has360View: car.has360View,
+    hasInspectionReport: Boolean(car.inspectionReport),
+    carId: car.id,
+    sellerPhone: car.seller?.phone ?? null,
+    inspectionDateLabel: formatInspectionHeaderDate(
+      car.inspectionReport?.completedAt ?? null,
+    ),
+    inspectionSections: mapInspectionSections(car.inspectionReport, catalog),
+    inspectionPdfUrl: absolutizeUrl(car.inspectionReport?.pdfUrl ?? null),
+  };
+}
+
+/**
+ * Map an API `Car` (list shape) to the props `CarCard` expects.
+ *
+ * `useCars` returns the same shape as the detail endpoint minus a few
+ * detail-only fields — the props below are exactly what `CarCard`
+ * declares in its `CarCardProps` interface.
+ */
+function mapCarForCard(car: Car) {
+  return {
+    id: car.id,
+    image: car.images[0],
+    brand: car.carBrand?.name ?? car.brand,
+    model: car.carModel?.name ?? car.model,
+    price: car.price,
+    year: car.year,
+    mileage: car.mileage,
+    trim: car.trim,
+    location: car.address,
+    isFeatured: car.isFeatured,
+  };
+}
 
 const Banner = ({ car }: { car: CarType }) => {
   return (
-    <div className="relative w-full lg:h-[427px] h-[375px] overflow-hidden flex flex-col justify-end text-center pb-8 md:pb-0">
+    <div className="relative w-full lg:h-[320px] h-[280px] overflow-hidden flex flex-col justify-end text-center pb-8 md:pb-0">
       {/* Background Image */}
       <Image
         src="/images/car-details/banner.png"
@@ -248,9 +350,11 @@ const Banner = ({ car }: { car: CarType }) => {
 const MainImagePreview = ({
   car,
   activeImageIdx,
+  onOpen360,
 }: {
   car: CarType;
   activeImageIdx: number;
+  onOpen360?: () => void;
 }) => {
   const [isLiked, setIsLiked] = useState(false);
 
@@ -307,15 +411,10 @@ const MainImagePreview = ({
           </div>
         </div>
 
-        {/* Play Video CTA Button: Visually on the LEFT (DOM 2nd child) */}
-        <button className="pointer-events-auto bg-primary-50 hover:bg-primary-100 text-primary-500 font-semibold text-sm md:px-8 md:py-3.5 py-2 px-3 rounded-full flex items-center gap-2 transition-colors shadow-md cursor-pointer">
-          <div className="relative md:size-8 size-4.5">
-            <Image src="/icons/blue-play.svg" alt="images" fill />
-          </div>
-          <span className="text-primary-500 md:text-lg leading-7 md:font-medium">
-            تشغيل
-          </span>
-        </button>
+        {/* 360° CTA — only when this car has a published 360 package */}
+        {car.has360View && onOpen360 ? (
+          <Car360EntryButton onClick={onOpen360} />
+        ) : null}
       </div>
     </div>
   );
@@ -458,6 +557,32 @@ const PricingArea = ({ car }: { car: CarType }) => {
   );
 };
 
+const FeatureGrid = ({
+  features,
+  className,
+}: {
+  features: CarFeatureView[];
+  className: string;
+}) => (
+  <div className={className}>
+    {features.map((feature) => (
+      <div
+        key={feature.id}
+        className="bg-gray-50 border border-gray-100 text-gray-600 py-3 px-3 rounded-lg flex flex-col justify-center items-center gap-2"
+      >
+        <span className="text-sm text-center leading-5">{feature.name}</span>
+        <Image
+          src={feature.iconUrl}
+          alt=""
+          width={30}
+          height={30}
+          className="size-[30px] object-contain"
+        />
+      </div>
+    ))}
+  </div>
+);
+
 const TabsComponentCard = ({ car }: { car: CarType }) => {
   const [activeTab, setActiveTab] = useState<
     "specs" | "features" | "description"
@@ -565,17 +690,10 @@ const TabsComponentCard = ({ car }: { car: CarType }) => {
           )}
 
           {activeTab === "features" && (
-            <div className="flex flex-wrap gap-2.5">
-              {car.features.map((feature: string, idx: number) => (
-                <span
-                  key={idx}
-                  className="bg-primary-50/60 border border-primary-100/50 text-primary-600 text-xs font-semibold px-4.5 py-2.5 rounded-xl flex items-center gap-2"
-                >
-                  <span className="w-1.5 h-1.5 rounded-full bg-primary-500"></span>
-                  {feature}
-                </span>
-              ))}
-            </div>
+            <FeatureGrid
+              features={car.features}
+              className="grid grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3"
+            />
           )}
 
           {activeTab === "description" && (
@@ -671,22 +789,14 @@ const TabsComponentCardInMobile = ({ car }: { car: CarType }) => {
           </Link>
         </div>
 
-        <div className="grid grid-cols-3 gap-x-2 gap-y-3">
-          {car.features.map((feature: string, idx: number) => (
-            <div
-              key={idx}
-              className="bg-gray-50 text-gray-600 py-2 px-3 rounded-md flex flex-col justify-center items-center gap-1"
-            >
-              <span className="text-sm text-center">{feature}</span>
-
-              <Image src={"/car-feat.svg"} alt="feat" width={30} height={30} />
-            </div>
-          ))}
-        </div>
+        <FeatureGrid
+          features={car.features}
+          className="grid grid-cols-3 gap-x-2 gap-y-3"
+        />
       </div>
       <div className="p-3 rounded-2xl border border-[#F2F2F2] bg-white">
         <h3 className="text-primary-500 text-sm leading-[150%] mb-4">
-          مميزات السيارة
+          الوصف
         </h3>
         <div>
           <p className="text-gray-800 text-sm leading-[190%]">
@@ -728,39 +838,6 @@ const CertificationFooterBanner = () => {
   );
 };
 
-const getCarData = (id: string) => {
-  if (carsData[id]) return carsData[id];
-
-  // Dynamic lookup fallback
-  const carFromList = initialCars.find((c) => c.id === id);
-
-  if (carFromList) {
-    return {
-      brand: carFromList.brand,
-      model: carFromList.model,
-      price: carFromList.price,
-      installment: carFromList.installment || "15,000",
-      year: carFromList.year,
-      mileage: carFromList.mileage,
-      trim: carFromList.trim,
-      location: carFromList.location,
-      condition: "مستعملة",
-      transmission: "أوتوماتيك",
-      fuelType: "بنزين",
-      color: "أسود",
-      hp: "180",
-      engineSize: "1600 سي سي",
-      tankCapacity: "60 لتر",
-      images: ["/assets/car_placeholder.png", "/assets/why_cars.png"],
-      features: ["شاشة تعمل باللمس", "حساسات ركن", "مثبت سرعة", "كاميرا خلفية"],
-      description: `${carFromList.brand} ${carFromList.model} موديل ${carFromList.year} بحالة ممتازة وخاضعة لفحص الجراج الاحترافي.`,
-    };
-  }
-
-  // Default to BMW X5
-  return carsData["bmw-x5"];
-};
-
 export default function CarDetailPage({
   params,
 }: {
@@ -768,25 +845,41 @@ export default function CarDetailPage({
 }) {
   const resolvedParams = use(params);
   const id = resolvedParams.id;
-  const car = useMemo(() => getCarData(id), [id]);
+  const router = useRouter();
+  const { isAuthenticated } = useAuth();
+
+  // Fetch the car detail (current car) and the full catalog (for the
+  // "similar cars" strip below). Both calls use SWR under the hood, so
+  // the SWR provider's deduping + focus-revalidation applies here too.
+  const { car: carDetail, isLoading, error, mutate } = useCar(id);
+  const { cars: allCars } = useCars();
+  // Same catalog the dashboard uses to map answerValue → GOOD/WARN/BAD
+  const { catalog: inspectionCatalog } = useActiveInspectionVersion();
+
+  // Map the API detail to the local view model. The mapping is memoised
+  // so that identical `carDetail` references do not invalidate downstream
+  // `useMemo`s (e.g. the recommended-cars slice below).
+  const car = useMemo(
+    () =>
+      carDetail ? mapCarToView(carDetail, inspectionCatalog) : null,
+    [carDetail, inspectionCatalog],
+  );
 
   // States
   const [activeImageIdx, setActiveImageIdx] = useState(0);
+  const [show360Modal, setShow360Modal] = useState(false);
 
   const [showOfferModal, setShowOfferModal] = useState(false);
 
   const [offerPrice, setOfferPrice] = useState("");
+  const [offerSubmitting, setOfferSubmitting] = useState(false);
+  const [offerError, setOfferError] = useState<string | null>(null);
 
-  // Sidebar Accordion states
+  // Sidebar accordion open state — keys are section keys from the API report.
+  // First section starts open when data arrives (see effect-free init via
+  // deriving defaults when state is empty).
   const [openAccordions, setOpenAccordions] = useState<Record<string, boolean>>(
-    {
-      body: true,
-      engine: false,
-      electronic: false,
-      brakes: false,
-      road: false,
-      defects: false,
-    },
+    {},
   );
 
   const toggleAccordion = (name: string) => {
@@ -796,10 +889,73 @@ export default function CarDetailPage({
     }));
   };
 
-  // Filter similar/recommended cars
+  /** First section open by default until user toggles. */
+  const openStateFor = (key: string, index: number): boolean => {
+    if (key in openAccordions) return Boolean(openAccordions[key]);
+    return index === 0;
+  };
+
+  // Filter similar/recommended cars from the live catalog — exclude the
+  // current car and cap at 3 so the strip matches the original design.
   const recommendedCars = useMemo(() => {
-    return initialCars.filter((c) => c.id !== id).slice(0, 3);
-  }, [id]);
+    return allCars
+      .filter((c) => c.id !== id)
+      .slice(0, 3)
+      .map(mapCarForCard);
+  }, [allCars, id]);
+
+  // ===== Loading / error / not-found guards ===== //
+  //
+  // The original page fell back to a hard-coded mock for unknown IDs; now
+  // we surface real API states with minimal, non-redesigned feedback.
+  if (isLoading) {
+    return (
+      <div className="relative flex flex-col min-h-screen bg-gray-50">
+        <div className="flex-1 flex items-center justify-center py-24">
+          <Spinner variant="primary" />
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="relative flex flex-col min-h-screen bg-gray-50">
+        <div className="flex-1 flex flex-col items-center justify-center gap-4 py-24 text-center">
+          <p className="text-red-500 font-medium">
+            حدث خطأ أثناء تحميل تفاصيل السيارة
+          </p>
+          <button
+            onClick={() => mutate()}
+            className="bg-primary-500 hover:bg-primary-600 text-white font-semibold text-sm px-5 py-2.5 rounded-xl transition-colors"
+          >
+            حاول مرة أخرى
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  if (!car) {
+    return (
+      <div className="relative flex flex-col min-h-screen bg-gray-50">
+        <div className="flex-1 flex flex-col items-center justify-center gap-4 py-24 text-center">
+          <p className="text-gray-700 font-bold text-lg">
+            السيارة غير موجودة
+          </p>
+          <p className="text-gray-500 text-sm">
+            ربما تكون قد انتهت صلاحية الإعلان أو تم حذفه.
+          </p>
+          <Link
+            href="/cars"
+            className="bg-primary-500 hover:bg-primary-600 text-white font-semibold text-sm px-5 py-2.5 rounded-xl transition-colors"
+          >
+            تصفح السيارات
+          </Link>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="relative flex flex-col min-h-screen bg-gray-50">
@@ -817,7 +973,13 @@ export default function CarDetailPage({
             {/* Gallery Wrapper */}
             <div className="flex flex-col gap-4 w-full">
               {/* Main Image Preview */}
-              <MainImagePreview car={car} activeImageIdx={activeImageIdx} />
+              <MainImagePreview
+                car={car}
+                activeImageIdx={activeImageIdx}
+                onOpen360={
+                  car.has360View ? () => setShow360Modal(true) : undefined
+                }
+              />
 
               {/* Thumbnails strip */}
               <ThumbnailsStrip
@@ -863,7 +1025,11 @@ export default function CarDetailPage({
               {/* Call & Whatsapp action rows */}
               <div className="flex items-center gap-3 w-full">
                 <a
-                  href="https://wa.me/201200000000"
+                  href={
+                    car.sellerPhone
+                      ? `https://wa.me/${car.sellerPhone.replace(/\D/g, "")}`
+                      : "https://wa.me/201200000000"
+                  }
                   target="_blank"
                   rel="noopener noreferrer"
                   className="bg-green-50 hover:bg-green-100 border border-green-200 text-green-700 font-bold text-sm h-[48px] rounded-2xl flex items-center justify-center gap-2 flex-1 transition-colors"
@@ -878,7 +1044,7 @@ export default function CarDetailPage({
                 </a>
 
                 <a
-                  href="tel:19900"
+                  href={car.sellerPhone ? `tel:${car.sellerPhone}` : "tel:19900"}
                   className="bg-primary-50 border border-[#D2E0F9] text-primary-600 font-bold text-sm h-[48px] rounded-2xl flex items-center justify-center gap-2 flex-1 transition-colors"
                 >
                   <Image
@@ -892,7 +1058,7 @@ export default function CarDetailPage({
               </div>
             </div>
 
-            {/* Sidebar Inspection Summary Card */}
+            {/* Sidebar Inspection Summary Card — driven by GET /cars/:id inspectionReport */}
             <div className="bg-white border border-gray-100 rounded-[20px] overflow-hidden w-full shadow-2xs">
               {/* Accordion header */}
               <div className="bg-primary-50/80 border-b border-gray-100 px-10 py-4 flex items-center justify-between">
@@ -907,9 +1073,11 @@ export default function CarDetailPage({
                     تقرير الفحص
                   </span>
                 </div>
-                <span className="text-xs text-gray-500 font-medium font-monos">
-                  (14 Jan, 2025)
-                </span>
+                {car.inspectionDateLabel ? (
+                  <span className="text-xs text-gray-500 font-medium font-monos">
+                    {car.inspectionDateLabel}
+                  </span>
+                ) : null}
               </div>
 
               {/* Legends */}
@@ -928,384 +1096,121 @@ export default function CarDetailPage({
                 </div>
               </div>
 
-              {/* Inspected Accordions List */}
+              {/* Inspected Accordions List — real API sections */}
               <div className="p-4 flex flex-col gap-3">
-                {/* 1. Body structure accordion */}
-                <div className="border border-gray-100 rounded-xl overflow-hidden shadow-3xs">
-                  <button
-                    onClick={() => toggleAccordion("body")}
-                    className="w-full bg-gray-50/50 hover:bg-gray-50 px-4 py-3 flex items-center justify-between text-sm text-gray-700 transition-colors cursor-pointer"
-                  >
-                    <div className="flex items-center gap-2">
-                      <Image
-                        src="/icons/car.svg"
-                        alt="body"
-                        width={24}
-                        height={24}
-                        className="opacity-60"
-                      />
-                      <span>هيكل السيارة</span>
-                    </div>
+                {car.inspectionSections.length === 0 ? (
+                  <p className="text-sm text-gray-400 text-center py-6">
+                    لا يتوفر تقرير فحص لهذه السيارة حالياً
+                  </p>
+                ) : (
+                  car.inspectionSections.map((section, index) => {
+                    const isOpen = openStateFor(section.key, index);
+                    return (
+                      <div
+                        key={section.key}
+                        className="border border-gray-100 rounded-xl overflow-hidden shadow-3xs"
+                      >
+                        <button
+                          type="button"
+                          onClick={() => toggleAccordion(section.key)}
+                          className="w-full bg-gray-50/50 hover:bg-gray-50 px-4 py-3 flex items-center justify-between text-sm text-gray-700 transition-colors cursor-pointer"
+                        >
+                          <div className="flex items-center gap-2">
+                            <Image
+                              src={section.iconSrc}
+                              alt=""
+                              width={24}
+                              height={24}
+                              className="opacity-60"
+                            />
+                            <span>{section.title}</span>
+                          </div>
 
-                    <div className="flex gap-2 items-center">
-                      <div className="flex gap-1.5">
-                        <span className="flex items-center justify-center bg-green-50 text-green-500 px-1.5 py-0.5 rounded text-[9px] font-bold border border-green-100/50">
-                          02 ✓
-                        </span>
-                        <span className="flex items-center justify-center bg-orange-50 text-orange-500 px-1.5 py-0.5 rounded text-[9px] font-bold border border-orange-100/50">
-                          01 !
-                        </span>
+                          <div className="flex gap-2 items-center">
+                            <div className="flex gap-1.5">
+                              {section.goodCount > 0 ? (
+                                <span className="flex items-center justify-center bg-green-50 text-green-500 px-1.5 py-0.5 rounded text-[9px] font-bold border border-green-100/50">
+                                  {String(section.goodCount).padStart(2, "0")} ✓
+                                </span>
+                              ) : null}
+                              {section.issueCount > 0 ? (
+                                <span className="flex items-center justify-center bg-orange-50 text-orange-500 px-1.5 py-0.5 rounded text-[9px] font-bold border border-orange-100/50">
+                                  {String(section.issueCount).padStart(2, "0")} !
+                                </span>
+                              ) : null}
+                            </div>
+                            <span className="text-[10px] text-gray-400 font-monos">
+                              <TriArrow open={isOpen} />
+                            </span>
+                          </div>
+                        </button>
+                        {isOpen ? (
+                          <div className="p-3 bg-white border-t border-gray-50 flex flex-col gap-2.5 animate-slide-down">
+                            {section.lines.map((line, lineIdx) => (
+                              <div
+                                key={`${section.key}-line-${lineIdx}`}
+                                className="flex items-start text-xs text-gray-500 gap-2.5"
+                              >
+                                {line.ok ? (
+                                  <span className="w-4.5 h-4.5 rounded-full bg-green-100 text-green-700 flex items-center justify-center text-[10px] font-bold shrink-0 text-center">
+                                    ✓
+                                  </span>
+                                ) : (
+                                  <span className="w-4.5 h-4.5 rounded-full bg-orange-100 text-orange-700 flex items-center justify-center text-[10px] font-bold shrink-0 text-center font-monos">
+                                    !
+                                  </span>
+                                )}
+                                <p className="text-start flex-1">{line.text}</p>
+                              </div>
+                            ))}
+                          </div>
+                        ) : null}
                       </div>
-                      <span className="text-[10px] text-gray-400 font-monos">
-                        <TriArrow open={openAccordions.body} />
-                      </span>
-                    </div>
-                  </button>
-                  {openAccordions.body && (
-                    <div className="p-3 bg-white border-t border-gray-50 flex flex-col gap-2.5 animate-slide-down">
-                      <div className="flex items-start text-xs text-gray-500 gap-2.5">
-                        <span className="w-4.5 h-4.5 rounded-full bg-green-100 text-green-700 flex items-center justify-center text-[10px] font-bold shrink-0 text-center">
-                          ✓
-                        </span>
-                        <p className="text-start flex-1">
-                          جميع ألواح السيارة متناسقة ومطلية
-                        </p>
-                      </div>
-                      <div className="flex items-start text-xs text-gray-500 gap-2.5">
-                        <span className="w-4.5 h-4.5 rounded-full bg-green-100 text-green-700 flex items-center justify-center text-[10px] font-bold shrink-0 text-center">
-                          ✓
-                        </span>
-                        <p className="text-start flex-1">
-                          المرايا الجانبية والخلفية خالية من الخدوش
-                        </p>
-                      </div>
-                      <div className="flex items-start text-xs text-gray-500 gap-2.5">
-                        <span className="w-4.5 h-4.5 rounded-full bg-orange-100 text-orange-700 flex items-center justify-center text-[10px] font-bold shrink-0 text-center font-monos">
-                          !
-                        </span>
-                        <p className="text-start flex-1">
-                          خدش بسيط في الباب الخلفي
-                        </p>
-                      </div>
-                    </div>
-                  )}
-                </div>
-
-                {/* 2. Engine and Transmission accordion */}
-                <div className="border border-gray-100 rounded-xl overflow-hidden shadow-3xs">
-                  <button
-                    onClick={() => toggleAccordion("engine")}
-                    className="w-full bg-gray-50/50 hover:bg-gray-50 px-4 py-3 flex items-center justify-between text-sm text-gray-700 transition-colors cursor-pointer"
-                  >
-                    <div className="flex items-center gap-2">
-                      <Image
-                        src="/icons/engine.svg"
-                        alt="engine"
-                        width={24}
-                        height={24}
-                        className="opacity-60"
-                      />
-                      <span>المحرك وناقل الحركة</span>
-                    </div>
-                    <div className="flex gap-2 items-center">
-                      <div className="flex gap-1.5">
-                        <span className="flex items-center justify-center bg-green-50 text-green-700 px-1.5 py-0.5 rounded text-[9px] font-bold border border-green-100/50">
-                          04 ✓
-                        </span>
-                      </div>
-                      <span className="text-[10px] text-gray-400 font-monos">
-                        <TriArrow open={openAccordions.engine} />
-                      </span>
-                    </div>
-                  </button>
-                  {openAccordions.engine && (
-                    <div className="p-3 bg-white border-t border-gray-50 flex flex-col gap-2.5 animate-slide-down">
-                      <div className="flex items-start text-xs text-gray-500 gap-2.5">
-                        <span className="w-4.5 h-4.5 rounded-full bg-green-100 text-green-700 flex items-center justify-center text-[10px] font-bold shrink-0 text-center">
-                          ✓
-                        </span>
-                        <p className="text-start flex-1">
-                          أداء وسحب المحرك ممتاز وفي الحدود الطبيعية
-                        </p>
-                      </div>
-                      <div className="flex items-start text-xs text-gray-500 gap-2.5">
-                        <span className="w-4.5 h-4.5 rounded-full bg-green-100 text-green-700 flex items-center justify-center text-[10px] font-bold shrink-0 text-center">
-                          ✓
-                        </span>
-                        <p className="text-start flex-1">
-                          ناقل الحركة يعمل بسلاسة ونعومة
-                        </p>
-                      </div>
-                      <div className="flex items-start text-xs text-gray-500 gap-2.5">
-                        <span className="w-4.5 h-4.5 rounded-full bg-green-100 text-green-700 flex items-center justify-center text-[10px] font-bold shrink-0 text-center">
-                          ✓
-                        </span>
-                        <p className="text-start flex-1">
-                          لا توجد آثار تسريب زيوت أو سوائل تبريد
-                        </p>
-                      </div>
-                      <div className="flex items-start text-xs text-gray-500 gap-2.5">
-                        <span className="w-4.5 h-4.5 rounded-full bg-green-100 text-green-700 flex items-center justify-center text-[10px] font-bold shrink-0 text-center">
-                          ✓
-                        </span>
-                        <p className="text-start flex-1">
-                          شمعات الاحتراق والوصلات الكهربائية سليمة
-                        </p>
-                      </div>
-                    </div>
-                  )}
-                </div>
-
-                {/* 3. Electronic check accordion */}
-                <div className="border border-gray-100 rounded-xl overflow-hidden shadow-3xs">
-                  <button
-                    onClick={() => toggleAccordion("electronic")}
-                    className="w-full bg-gray-50/50 hover:bg-gray-50 px-4 py-3 flex items-center justify-between text-sm text-gray-700 transition-colors cursor-pointer"
-                  >
-                    <div className="flex items-center gap-2">
-                      <Image
-                        src="/icons/file-check.svg"
-                        alt="electronic"
-                        width={24}
-                        height={24}
-                        className="opacity-60"
-                      />
-                      <span>الفحص الإلكتروني</span>
-                    </div>
-                    <div className="flex gap-2 items-center">
-                      <div className="flex gap-1.5">
-                        <span className="flex items-center justify-center bg-green-50 text-green-700 px-1.5 py-0.5 rounded text-[9px] font-bold border border-green-100/50">
-                          02 ✓
-                        </span>
-                        <span className="flex items-center justify-center bg-orange-50 text-orange-600 px-1.5 py-0.5 rounded text-[9px] font-bold border border-orange-100/50">
-                          01 !
-                        </span>
-                      </div>
-                      <span className="text-[10px] text-gray-400">
-                        <TriArrow open={openAccordions.electronic} />
-                      </span>
-                    </div>
-                  </button>
-                  {openAccordions.electronic && (
-                    <div className="p-3 bg-white border-t border-gray-50 flex flex-col gap-2.5 animate-slide-down">
-                      <div className="flex items-start text-xs text-gray-500 gap-2.5">
-                        <span className="w-4.5 h-4.5 rounded-full bg-green-100 text-green-700 flex items-center justify-center text-[10px] font-bold shrink-0 text-center">
-                          ✓
-                        </span>
-                        <p className="text-start flex-1">
-                          فحص كمبيوتر الأعطال (OBD) - خالي من المشاكل
-                        </p>
-                      </div>
-                      <div className="flex items-start text-xs text-gray-500 gap-2.5">
-                        <span className="w-4.5 h-4.5 rounded-full bg-green-100 text-green-700 flex items-center justify-center text-[10px] font-bold shrink-0 text-center">
-                          ✓
-                        </span>
-                        <p className="text-start flex-1">
-                          سلامة البطارية ونظام شحن الدينامو
-                        </p>
-                      </div>
-                      <div className="flex items-start text-xs text-gray-500 gap-2.5">
-                        <span className="w-4.5 h-4.5 rounded-full bg-orange-100 text-orange-700 flex items-center justify-center text-[10px] font-bold shrink-0 text-center font-monos">
-                          !
-                        </span>
-                        <p className="text-start flex-1">
-                          تحديث برمجي مطلوب لوحدة الشاشة الترفيهية
-                        </p>
-                      </div>
-                    </div>
-                  )}
-                </div>
-
-                {/* 4. Brakes & Tires accordion */}
-                <div className="border border-gray-100 rounded-xl overflow-hidden shadow-3xs">
-                  <button
-                    onClick={() => toggleAccordion("brakes")}
-                    className="w-full bg-gray-50/50 hover:bg-gray-50 px-4 py-3 flex items-center justify-between text-sm text-gray-700 transition-colors cursor-pointer"
-                  >
-                    <div className="flex items-center gap-2">
-                      <Image
-                        src="/icons/wheel.svg"
-                        alt="brakes"
-                        width={24}
-                        height={24}
-                        className="opacity-60"
-                      />
-                      <span>الإطارات والفرامل</span>
-                    </div>
-                    <div className="flex gap-2 items-center">
-                      <div className="flex gap-1.5">
-                        <span className="flex items-center justify-center bg-green-50 text-green-700 px-1.5 py-0.5 rounded text-[9px] font-bold border border-green-100/50">
-                          02 ✓
-                        </span>
-                        <span className="flex items-center justify-center bg-orange-50 text-orange-600 px-1.5 py-0.5 rounded text-[9px] font-bold border border-orange-100/50">
-                          01 !
-                        </span>
-                      </div>
-                      <span className="text-[10px] text-gray-400 font-monos">
-                        <TriArrow open={openAccordions.brakes} />
-                      </span>
-                    </div>
-                  </button>
-                  {openAccordions.brakes && (
-                    <div className="p-3 bg-white border-t border-gray-50 flex flex-col gap-2.5 animate-slide-down">
-                      <div className="flex items-start text-xs text-gray-500 gap-2.5">
-                        <span className="w-4.5 h-4.5 rounded-full bg-green-100 text-green-700 flex items-center justify-center text-[10px] font-bold shrink-0 text-center">
-                          ✓
-                        </span>
-                        <p className="text-start flex-1">
-                          سمك تيل الفرامل الخلفي بنسبة 70%
-                        </p>
-                      </div>
-                      <div className="flex items-start text-xs text-gray-500 gap-2.5">
-                        <span className="w-4.5 h-4.5 rounded-full bg-green-100 text-green-700 flex items-center justify-center text-[10px] font-bold shrink-0 text-center">
-                          ✓
-                        </span>
-                        <p className="text-start flex-1">
-                          نقشة وحالة الإطارات الأربعة بحالة جيدة
-                        </p>
-                      </div>
-                      <div className="flex items-start text-xs text-gray-500 gap-2.5">
-                        <span className="w-4.5 h-4.5 rounded-full bg-orange-100 text-orange-700 flex items-center justify-center text-[10px] font-bold shrink-0 text-center font-monos">
-                          !
-                        </span>
-                        <p className="text-start flex-1">
-                          تيل الفرامل الأمامي يحتاج لتغيير بعد 5,000 كم
-                        </p>
-                      </div>
-                    </div>
-                  )}
-                </div>
-
-                {/* 5. Road test accordion */}
-                <div className="border border-gray-100 rounded-xl overflow-hidden shadow-3xs">
-                  <button
-                    onClick={() => toggleAccordion("road")}
-                    className="w-full bg-gray-50/50 hover:bg-gray-50 px-4 py-3 flex items-center justify-between text-sm text-gray-700 transition-colors cursor-pointer"
-                  >
-                    <div className="flex items-center gap-2">
-                      <Image
-                        src="/icons/road-test.svg"
-                        alt="road test"
-                        width={24}
-                        height={24}
-                        className="opacity-60"
-                      />
-                      <span>اختبار الطريق</span>
-                    </div>
-                    <div className="flex gap-2 items-center">
-                      <div className="flex gap-1.5">
-                        <span className="flex items-center justify-center bg-green-50 text-green-700 px-1.5 py-0.5 rounded text-[9px] font-bold border border-green-100/50">
-                          02 ✓
-                        </span>
-                        <span className="flex items-center justify-center bg-orange-50 text-orange-600 px-1.5 py-0.5 rounded text-[9px] font-bold border border-orange-100/50">
-                          01 !
-                        </span>
-                      </div>
-                      <span className="text-[10px] text-gray-400 font-monos">
-                        <TriArrow open={openAccordions.road} />
-                      </span>
-                    </div>
-                  </button>
-                  {openAccordions.road && (
-                    <div className="p-3 bg-white border-t border-gray-50 flex flex-col gap-2.5 animate-slide-down">
-                      <div className="flex items-start text-xs text-gray-500 gap-2.5">
-                        <span className="w-4.5 h-4.5 rounded-full bg-green-100 text-green-700 flex items-center justify-center text-[10px] font-bold shrink-0 text-center">
-                          ✓
-                        </span>
-                        <p className="text-start flex-1">
-                          توجيه وثبات السيارة على السرعات ممتاز
-                        </p>
-                      </div>
-                      <div className="flex items-start text-xs text-gray-500 gap-2.5">
-                        <span className="w-4.5 h-4.5 rounded-full bg-green-100 text-green-700 flex items-center justify-center text-[10px] font-bold shrink-0 text-center">
-                          ✓
-                        </span>
-                        <p className="text-start flex-1">
-                          استجابة الفرامل الفورية أثناء الطوارئ
-                        </p>
-                      </div>
-                      <div className="flex items-start text-xs text-gray-500 gap-2.5">
-                        <span className="w-4.5 h-4.5 rounded-full bg-orange-100 text-orange-700 flex items-center justify-center text-[10px] font-bold shrink-0 text-center font-monos">
-                          !
-                        </span>
-                        <p className="text-start flex-1">
-                          صوت خفيف من المساعد الأمامي عند المنحنيات القوية
-                        </p>
-                      </div>
-                    </div>
-                  )}
-                </div>
-
-                {/* 6. Scratches and defects accordion */}
-                <div className="border border-gray-100 rounded-xl overflow-hidden shadow-3xs">
-                  <button
-                    onClick={() => toggleAccordion("defects")}
-                    className="w-full bg-gray-50/50 hover:bg-gray-50 px-4 py-3 flex items-center justify-between text-sm text-gray-700 transition-colors cursor-pointer"
-                  >
-                    <div className="flex items-center gap-2">
-                      <Image
-                        src="/icons/car-repair.svg"
-                        alt="defects"
-                        width={18}
-                        height={18}
-                        className="w-4.5 h-4.5 opacity-60"
-                      />
-                      <span>الخدوش والعيوب</span>
-                    </div>
-                    <div className="flex gap-2 items-center">
-                      <div className="flex gap-1.5">
-                        <span className="flex items-center justify-center bg-green-50 text-green-700 px-1.5 py-0.5 rounded text-[9px] font-bold border border-green-100/50">
-                          02 ✓
-                        </span>
-                        <span className="flex items-center justify-center bg-orange-50 text-orange-600 px-1.5 py-0.5 rounded text-[9px] font-bold border border-orange-100/50">
-                          01 !
-                        </span>
-                      </div>
-                      <span className="text-[10px] text-gray-400 font-monos">
-                        <TriArrow open={openAccordions.defects} />
-                      </span>
-                    </div>
-                  </button>
-                  {openAccordions.defects && (
-                    <div className="p-3 bg-white border-t border-gray-50 flex flex-col gap-2.5 animate-slide-down">
-                      <div className="flex items-start text-xs text-gray-500 gap-2.5">
-                        <span className="w-4.5 h-4.5 rounded-full bg-green-100 text-green-700 flex items-center justify-center text-[10px] font-bold shrink-0 text-center">
-                          ✓
-                        </span>
-                        <p className="text-start flex-1">
-                          الزجاج الأمامي والخلفي أصلي وخالي من الشروخ
-                        </p>
-                      </div>
-                      <div className="flex items-start text-xs text-gray-500 gap-2.5">
-                        <span className="w-4.5 h-4.5 rounded-full bg-green-100 text-green-700 flex items-center justify-center text-[10px] font-bold shrink-0 text-center">
-                          ✓
-                        </span>
-                        <p className="text-start flex-1">
-                          الفرش الداخلي للسيارة بحالة الوكالة
-                        </p>
-                      </div>
-                      <div className="flex items-start text-xs text-gray-500 gap-2.5">
-                        <span className="w-4.5 h-4.5 rounded-full bg-orange-100 text-orange-700 flex items-center justify-center text-[10px] font-bold shrink-0 text-center font-monos">
-                          !
-                        </span>
-                        <p className="text-start flex-1">
-                          خدش سطحية خفيفة في الجانب الأيسر للصدام الخلفي
-                        </p>
-                      </div>
-                    </div>
-                  )}
-                </div>
+                    );
+                  })
+                )}
               </div>
 
-              {/* View full report link */}
-              <div className="bg-gray-50/80 border-t border-gray-100 px-5 py-3.5 text-center">
+              {/* View full report link + Download PDF */}
+              <div className="bg-gray-50/80 border-t border-gray-100 px-5 py-3.5 flex flex-col items-center gap-2">
                 <Link
-                  href="/inspection-report"
+                  href={
+                    car.hasInspectionReport
+                      ? `/inspection-report?carId=${encodeURIComponent(car.carId)}`
+                      : "/inspection-report"
+                  }
                   className="text-xs text-primary-500 font-bold hover:underline flex items-center justify-center gap-1.5 cursor-pointer"
                 >
                   <span>عرض تقرير الفحص بالكامل</span>
                   <span>←</span>
                 </Link>
+                {car.inspectionPdfUrl ? (
+                  <a
+                    href={car.inspectionPdfUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    download
+                    className="text-xs text-gray-500 hover:text-primary-500 font-medium flex items-center justify-center gap-1.5 cursor-pointer transition-colors"
+                  >
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      width="14"
+                      height="14"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      aria-hidden="true"
+                    >
+                      <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                      <polyline points="7 10 12 15 17 10" />
+                      <line x1="12" y1="15" x2="12" y2="3" />
+                    </svg>
+                    <span>تحميل التقرير كـ PDF</span>
+                  </a>
+                ) : null}
               </div>
             </div>
           </div>
@@ -1314,6 +1219,16 @@ export default function CarDetailPage({
         {/* Similar Cars Section */}
         <SimilarCars recommendedCars={recommendedCars} />
       </main>
+
+      {/* Fullscreen 360° viewer — loads frames only when opened */}
+      {car.has360View ? (
+        <Car360Modal
+          carId={car.carId}
+          title={`${car.brand} ${car.model}`}
+          open={show360Modal}
+          onClose={() => setShow360Modal(false)}
+        />
+      ) : null}
 
       {/* Offer Modal */}
       {showOfferModal && (
@@ -1364,22 +1279,66 @@ export default function CarDetailPage({
                 إلغاء
               </button>
               <button
-                onClick={() => {
+                onClick={async () => {
+                  setOfferError(null);
                   if (!offerPrice.trim()) {
-                    alert("برجاء إدخال عرض السعر المقترح أولاً.");
+                    setOfferError("برجاء إدخال عرض السعر المقترح أولاً.");
                     return;
                   }
-                  setShowOfferModal(false);
-                  alert(
-                    `تم إرسال عرضك بقيمة ${offerPrice} ج.م بنجاح! سنتواصل معك في غضون 24 ساعة.`,
-                  );
-                  setOfferPrice("");
+                  // Strip thousands separators / currency noise — the
+                  // backend expects a plain integer / decimal.
+                  const sanitized = offerPrice
+                    .replace(/[^\d.]/g, "")
+                    .trim();
+                  const parsed = Number(sanitized);
+                  if (!sanitized || Number.isNaN(parsed) || parsed < 0) {
+                    setOfferError("برجاء إدخال قيمة رقمية صحيحة.");
+                    return;
+                  }
+
+                  // Unauthenticated → bounce to login with a returnUrl so
+                  // the user lands back here after sign-in.
+                  if (!isAuthenticated) {
+                    const returnUrl = `/cars/${car.carId}`;
+                    setShowOfferModal(false);
+                    router.push(
+                      `/auth/login?returnUrl=${encodeURIComponent(returnUrl)}`,
+                    );
+                    return;
+                  }
+
+                  setOfferSubmitting(true);
+                  try {
+                    await createNegotiation({
+                      carId: car.carId,
+                      initialOffer: parsed,
+                    });
+                    setShowOfferModal(false);
+                    setOfferPrice("");
+                    alert(
+                      `تم إرسال عرضك بقيمة ${offerPrice} ج.م بنجاح! سنتواصل معك في غضون 24 ساعة.`,
+                    );
+                  } catch (err) {
+                    const message =
+                      err instanceof Error
+                        ? err.message
+                        : "تعذر إرسال العرض، حاول مرة أخرى.";
+                    setOfferError(message);
+                  } finally {
+                    setOfferSubmitting(false);
+                  }
                 }}
-                className="px-6 py-2.5 rounded-xl bg-primary-500 hover:bg-primary-600 text-white text-sm font-semibold cursor-pointer shadow-md"
+                disabled={offerSubmitting}
+                className="px-6 py-2.5 rounded-xl bg-primary-500 hover:bg-primary-600 text-white text-sm font-semibold cursor-pointer shadow-md disabled:opacity-60 disabled:cursor-not-allowed"
               >
-                إرسال العرض
+                {offerSubmitting ? "جاري الإرسال..." : "إرسال العرض"}
               </button>
             </div>
+            {offerError && (
+              <p className="text-red-500 text-xs text-center -mt-2">
+                {offerError}
+              </p>
+            )}
           </div>
         </div>
       )}

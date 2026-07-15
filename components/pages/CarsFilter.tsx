@@ -1,19 +1,44 @@
 "use client";
 
-import { useState, useMemo, useEffect, useTransition } from "react";
+import { Suspense, useState, useMemo } from "react";
 import Image from "next/image";
+import { useSearchParams } from "next/navigation";
 import CarCard from "../../components/CarCard";
 import FilterToolbar from "@/components/common/FilterToolbar";
+import FilterAccordion from "@/components/common/FilterAccordion";
+import ShowMoreToggle from "@/components/common/ShowMoreToggle";
+import ActiveFilterChips, {
+  type FilterChip,
+} from "@/components/filters/ActiveFilterChips";
+import BrandModelFilter from "@/components/filters/BrandModelFilter";
 import RangeInput from "@/components/form/RangeInput";
 import Checkbox from "@/components/form/Checkbox";
 import Button from "@/components/common/Button";
 import Logo from "@/components/common/Logo";
 import SimilarCars from "@/components/sections/SimilarCars";
-import { cn, fakePromise } from "@/lib/utils";
+import Spinner from "../common/Spinner";
+import { cn } from "@/lib/utils";
 import PageBanner from "../common/PageBanner";
 import Pagination from "../common/Pagination";
 import NotFoundFeedback from "../common/NotFoundFeedback";
 import MaxWidthWrapper from "../common/MaxWidthWrapper";
+import { useCars } from "@/hooks/useCars";
+import { useBrands } from "@/hooks/useBrands";
+import { useBrandModels } from "@/hooks/useBrandModels";
+import { useSpecTypes } from "@/hooks/useSpecTypes";
+import { useFeatureSections } from "@/hooks/useFeatureSections";
+import type { Car, CarSpecification } from "@/lib/api/types";
+import {
+  dedicatedSpecOptions,
+  matchesFeatures,
+  parseCarFilters,
+  SIDEBAR_DEDICATED_SPEC_KEYS,
+  sidebarSpecTypes,
+  toApiParams,
+} from "@/lib/car-filters";
+
+const BRAND_VISIBLE_COUNT = 6;
+const FEATURE_VISIBLE_COUNT = 4;
 
 export type CarsFilterTitleType = "browseCars" | "bestSeller" | "featuredCars";
 
@@ -23,6 +48,67 @@ const getArabicPageTitle = (pageTitle: CarsFilterTitleType) => {
     : pageTitle === "bestSeller"
       ? "الأكثر مبيعاً"
       : "السيارات المميزة";
+};
+
+// Aliases for transmission / fuel filter options. Backend `key` is
+// case-insensitive and `value`/`label` may come back in either Arabic or
+// English; mapping both sides keeps the filter from emptying the grid
+// when only one spelling is in the spec payload.
+const SPEC_OPTION_ALIASES: Record<string, string[]> = {
+  "أوتوماتيك": ["أوتوماتيك", "اتوماتيك", "automatic", "auto"],
+  "مانيوال": ["مانيوال", "manual", "يدوي"],
+  "بنزين": ["بنزين", "petrol", "gasoline"],
+  "ديزل": ["ديزل", "diesel"],
+  "كهرباء": ["كهرباء", "electric", "ev"],
+  "هجين": ["هجين", "hybrid"],
+};
+
+// Map a UI option to the spec `key` prefix we expect. Used to prefer specs
+// whose key actually describes the filter category before falling back to
+// a generic name/label match.
+const SPEC_OPTION_KEY_PREFIX: Record<string, string> = {
+  "أوتوماتيك": "transmission",
+  "مانيوال": "transmission",
+  "بنزين": "fuel",
+  "ديزل": "fuel",
+  "كهرباء": "fuel",
+  "هجين": "fuel",
+};
+
+const aliasesFor = (option: string): string[] =>
+  SPEC_OPTION_ALIASES[option] ?? [option];
+
+const keyPrefixFor = (option: string): string | undefined =>
+  SPEC_OPTION_KEY_PREFIX[option];
+
+const specMatchesOption = (spec: CarSpecification, option: string): boolean => {
+  const needles = aliasesFor(option).map((a) => a.toLowerCase());
+  const haystacks = [spec.value, spec.label, spec.name]
+    .filter((v): v is string => Boolean(v))
+    .map((v) => v.toLowerCase());
+  return needles.some((needle) =>
+    haystacks.some((hay) => hay.includes(needle)),
+  );
+};
+
+// Best-effort matcher: prefer specs whose `key` aligns with the filter
+// category, but fall back to the legacy name/label/value match when no
+// keyed specs are present so the grid doesn't empty out.
+const carMatchesOptionGroup = (
+  car: Car,
+  options: string[],
+): boolean => {
+  if (options.length === 0) return true;
+  const prefixes = options
+    .map(keyPrefixFor)
+    .filter((p): p is string => Boolean(p));
+  const keyed = prefixes.length
+    ? car.specifications.filter((s) =>
+        prefixes.some((p) => s.key?.toLowerCase().includes(p)),
+      )
+    : [];
+  const pool = keyed.length > 0 ? keyed : car.specifications;
+  return pool.some((spec) => options.some((opt) => specMatchesOption(spec, opt)));
 };
 
 const CheckIcon = () => (
@@ -202,349 +288,244 @@ const Banner = ({ pageTitle }: { pageTitle: CarsFilterTitleType }) => {
   );
 };
 
-const initialCars = [
-  {
-    id: "range-rover",
-    brand: "لاند روفر",
-    model: "رينج روفر فوج اس اي",
-    price: "6,200,000",
-    installment: "124,444",
-    year: "2020",
-    mileage: "45,000 كم",
-    trim: "Highline",
-    location: "الاسكندرية",
-    isFeatured: true,
-    isCertified: true,
-    discountText: "خصم 40 ألف ج.م",
-    image: "/assets/car_placeholder.png",
-    condition: "مستعملة",
-    transmission: "أوتوماتيك",
-    fuelType: "بنزين",
-  },
-  {
-    id: "mercedes-c200",
-    brand: "مرسيدس بنز",
-    model: "C200 AMG Line",
-    price: "3,850,000",
-    installment: "78,500",
-    year: "2022",
-    mileage: "28,000 كم",
-    trim: "AMG",
-    location: "القاهرة",
-    isFeatured: true,
-    isCertified: true,
-    image: "/assets/car_placeholder.png",
-    condition: "مستعملة",
-    transmission: "أوتوماتيك",
-    fuelType: "بنزين",
-  },
-  {
-    id: "toyota-corolla",
-    brand: "تويوتا",
-    model: "كورولا هايلاند",
-    price: "1,250,000",
-    installment: "24,000",
-    year: "2021",
-    mileage: "62,000 كم",
-    trim: "Luxury",
-    location: "الجيزة",
-    isFeatured: false,
-    isCertified: true,
-    discountText: "خصم 15 ألف ج.م",
-    image: "/assets/car_placeholder.png",
-    condition: "مستعملة",
-    transmission: "أوتوماتيك",
-    fuelType: "هجين",
-  },
-  {
-    id: "bmw-320i",
-    brand: "بي إم دبليو",
-    model: "320i M Sport",
-    price: "3,100,000",
-    installment: "62,000",
-    year: "2020",
-    mileage: "54,000 كم",
-    trim: "M Sport",
-    location: "القاهرة",
-    isFeatured: true,
-    isCertified: true,
-    image: "/assets/car_placeholder.png",
-    condition: "مستعملة",
-    transmission: "أوتوماتيك",
-    fuelType: "بنزين",
-  },
-  {
-    id: "hyundai-tucson",
-    brand: "هيونداي",
-    model: "توسان Smart Plus",
-    price: "1,750,000",
-    installment: "35,000",
-    year: "2022",
-    mileage: "38,000 كم",
-    trim: "Smart",
-    location: "الاسكندرية",
-    isFeatured: false,
-    isCertified: true,
-    image: "/assets/car_placeholder.png",
-    condition: "مستعملة",
-    transmission: "أوتوماتيك",
-    fuelType: "بنزين",
-  },
-  {
-    id: "kia-sportage",
-    brand: "كيا",
-    model: "سبورتاج Topline",
-    price: "1,980,000",
-    installment: "39,000",
-    year: "2021",
-    mileage: "49,000 كم",
-    trim: "Topline",
-    location: "المنصورة",
-    isFeatured: false,
-    isCertified: true,
-    discountText: "خصم 10 آلاف ج.م",
-    image: "/assets/car_placeholder.png",
-    condition: "مستعملة",
-    transmission: "أوتوماتيك",
-    fuelType: "بنزين",
-  },
-  {
-    id: "chery-tiggo",
-    brand: "شيري",
-    model: "تيجو 8 برو",
-    price: "1,450,000",
-    installment: "28,500",
-    year: "2023",
-    mileage: "15,000 كم",
-    trim: "Flagship",
-    location: "القاهرة",
-    isFeatured: true,
-    isCertified: true,
-    image: "/assets/car_placeholder.png",
-    condition: "مستعملة",
-    transmission: "أوتوماتيك",
-    fuelType: "بنزين",
-  },
-  {
-    id: "mini-cooper",
-    brand: "ميني كوبر",
-    model: "S Countryman",
-    price: "2,400,000",
-    installment: "48,000",
-    year: "2019",
-    mileage: "71,000 كم",
-    trim: "S",
-    location: "الجيزة",
-    isFeatured: false,
-    isCertified: true,
-    image: "/assets/car_placeholder.png",
-    condition: "مستعملة",
-    transmission: "أوتوماتيك",
-    fuelType: "بنزين",
-  },
-  {
-    id: "porsche-cayenne",
-    brand: "بورش",
-    model: "كايين كابريو",
-    price: "7,500,000",
-    installment: "150,000",
-    year: "2021",
-    mileage: "35,000 كم",
-    trim: "Turbo",
-    location: "القاهرة",
-    isFeatured: true,
-    isCertified: true,
-    image: "/assets/car_placeholder.png",
-    condition: "مستعملة",
-    transmission: "أوتوماتيك",
-    fuelType: "بنزين",
-  },
-  {
-    id: "audi-a4",
-    brand: "أودي",
-    model: "A4 Highline",
-    price: "2,100,000",
-    installment: "42,000",
-    year: "2020",
-    mileage: "50,000 كم",
-    trim: "Luxury",
-    location: "القاهرة",
-    isFeatured: false,
-    isCertified: true,
-    image: "/assets/car_placeholder.png",
-    condition: "مستعملة",
-    transmission: "أوتوماتيك",
-    fuelType: "بنزين",
-  },
-  {
-    id: "honda-civic",
-    brand: "هوندا",
-    model: "سيفيك الرياضية",
-    price: "1,350,000",
-    installment: "27,000",
-    year: "2021",
-    mileage: "40,000 كم",
-    trim: "Sport",
-    location: "الاسكندرية",
-    isFeatured: false,
-    isCertified: true,
-    image: "/assets/car_placeholder.png",
-    condition: "مستعملة",
-    transmission: "أوتوماتيك",
-    fuelType: "بنزين",
-  },
-  {
-    id: "honda-accord",
-    brand: "هوندا",
-    model: "أكورد e:HEV",
-    price: "2,950,000",
-    installment: "59,000",
-    year: "2023",
-    mileage: "8,000 كم",
-    trim: "Advanced",
-    location: "القاهرة",
-    isFeatured: true,
-    isCertified: true,
-    image: "/assets/car_placeholder.png",
-    condition: "جديد",
-    transmission: "أوتوماتيك",
-    fuelType: "هجين",
-  },
-  {
-    id: "bmw-x5",
-    brand: "بي إم دبليو",
-    model: "X5",
-    price: "620,000",
-    installment: "12,444",
-    year: "2023",
-    mileage: "45,000 كم",
-    trim: "Highline",
-    location: "الاسكندرية",
-    isFeatured: true,
-    isCertified: true,
-    discountText: "خصم 40 ألف ج.م",
-    image: "/assets/why_cars.png",
-    condition: "مستعملة",
-    transmission: "أوتوماتيك",
-    fuelType: "بنزين",
-  },
-];
-
-const brands = [
-  { ar: "بي إم دبليو", en: "BMW" },
-  { ar: "مرسيدس بنز", en: "Mercedes" },
-  { ar: "تويوتا", en: "Toyota" },
-  { ar: "بورش", en: "Porsche" },
-  { ar: "أودي", en: "Audi" },
-  { ar: "هيونداي", en: "Hyundai" },
-  { ar: "كيا", en: "Kia" },
-  { ar: "هوندا", en: "Honda" },
-  { ar: "لاند روفر", en: "Land Rover" },
-  { ar: "شيري", en: "Chery" },
-  { ar: "ميني كوبر", en: "Mini Cooper" },
-];
-
-const CarsFilter = ({ pageTitle }: { pageTitle: CarsFilterTitleType }) => {
+const CarsFilterInner = ({ pageTitle }: { pageTitle: CarsFilterTitleType }) => {
   const min_mileage = 0;
   const max_mileage = 150000;
 
-  const [searchTerm, setSearchTerm] = useState("");
+  // Bug 3 (hero search): seed both `searchTerm` and `appliedSearch` from
+  // the `?search=` query so a deep link or hero-banner redirect hits the
+  // API on the very first request.
+  const searchParams = useSearchParams();
+  const initialFilters = parseCarFilters(searchParams);
+  const initialSearch = initialFilters.search ?? "";
+
+  const [searchTerm, setSearchTerm] = useState(initialSearch);
+  const [appliedSearch, setAppliedSearch] = useState(initialSearch);
   const [sortBy, setSortBy] = useState("high-to-low");
-  const [selectedBrands, setSelectedBrands] = useState<string[]>([]);
+  const [allBrandIds, setAllBrandIds] = useState<string[]>(
+    initialFilters.brand && !initialFilters.model ? [initialFilters.brand] : [],
+  );
   const [brandSearch, setBrandSearch] = useState("");
   const [minPrice, setMinPrice] = useState("");
-  const [maxPrice, setMaxPrice] = useState("");
-  const [minMileage, setMinMileage] = useState(min_mileage);
-  const [maxMileage, setMaxMileage] = useState(max_mileage);
-  const [selectedConditions, setSelectedConditions] = useState<string[]>([]);
-  const [selectedTransmissions, setSelectedTransmissions] = useState<string[]>(
-    [],
+  const [maxPrice, setMaxPrice] = useState(
+    initialFilters.maxPrice !== undefined ? String(initialFilters.maxPrice) : "",
   );
-  const [selectedFuelTypes, setSelectedFuelTypes] = useState<string[]>([]);
+  const [minYear, setMinYear] = useState(
+    initialFilters.minYear !== undefined ? String(initialFilters.minYear) : "",
+  );
+  const [maxYear, setMaxYear] = useState(
+    initialFilters.maxYear !== undefined ? String(initialFilters.maxYear) : "",
+  );
+  const [minMileage, setMinMileage] = useState(
+    initialFilters.minMileage ?? min_mileage,
+  );
+  const [maxMileage, setMaxMileage] = useState(
+    initialFilters.maxMileage ?? max_mileage,
+  );
+  const [selectedSpecs, setSelectedSpecs] = useState<Record<string, string>>(
+    initialFilters.specs,
+  );
+  const [selectedFeatures, setSelectedFeatures] = useState<string[]>(
+    initialFilters.features,
+  );
   const [showMobileFilters, setShowMobileFilters] = useState(false);
+  const [showAllBrands, setShowAllBrands] = useState(false);
+  const [selectedModelsByBrand, setSelectedModelsByBrand] = useState<
+    Record<string, string[]>
+  >({});
+  const [expandedBrandIds, setExpandedBrandIds] = useState<string[]>(
+    initialFilters.brand ? [initialFilters.brand] : [],
+  );
+  const [featureSearch, setFeatureSearch] = useState("");
+  const [expandedFeatureSections, setExpandedFeatureSections] = useState<
+    Record<string, boolean>
+  >({});
   const [currentPage, setCurrentPage] = useState(1);
-  const [selectedModel, setSelectedModel] = useState("all");
-  const [filteredCars, setFilteredCars] = useState(initialCars);
+  const [selectedModel, setSelectedModel] = useState(initialFilters.model ?? "all");
 
-  const [isPending, startTransition] = useTransition();
+  const { brands: allBrands, isLoading: brandsLoading } = useBrands();
+  const { specTypes } = useSpecTypes();
+  const { sections: featureSections } = useFeatureSections();
+  const activeBrandIds = useMemo(() => {
+    const ids = new Set([
+      ...allBrandIds,
+      ...Object.keys(selectedModelsByBrand).filter(
+        (id) => (selectedModelsByBrand[id]?.length ?? 0) > 0,
+      ),
+    ]);
+    return [...ids];
+  }, [allBrandIds, selectedModelsByBrand]);
+
+  const singleBrandId =
+    activeBrandIds.length === 1 ? activeBrandIds[0] : null;
+  const { models: brandModels } = useBrandModels(singleBrandId);
+
+  const transmissionOptions = useMemo(
+    () => dedicatedSpecOptions(specTypes, "transmission"),
+    [specTypes],
+  );
+  const fuelOptions = useMemo(
+    () => dedicatedSpecOptions(specTypes, "fuel"),
+    [specTypes],
+  );
+  const dynamicSpecTypes = useMemo(
+    () => sidebarSpecTypes(specTypes),
+    [specTypes],
+  );
+
+  // Map pageTitle to the isFeatured API param. `featuredCars` lists only
+  // featured, `bestSeller` lists only non-featured, `browseCars` lists
+  // everything (param omitted).
+  const isFeaturedParam =
+    pageTitle === "featuredCars"
+      ? true
+      : pageTitle === "bestSeller"
+        ? false
+        : undefined;
+
+  const apiFilters = useMemo(
+    () =>
+      toApiParams({
+        brand: singleBrandId ?? undefined,
+        model: selectedModel !== "all" ? selectedModel : undefined,
+        minYear: minYear !== "" ? Number(minYear) : undefined,
+        maxYear: maxYear !== "" ? Number(maxYear) : undefined,
+        minMileage: minMileage !== min_mileage ? minMileage : undefined,
+        maxMileage: maxMileage !== max_mileage ? maxMileage : undefined,
+        maxPrice: maxPrice !== "" ? Number(maxPrice) : undefined,
+        search: appliedSearch !== "" ? appliedSearch : undefined,
+        specs: selectedSpecs,
+        features: selectedFeatures,
+      }),
+    [
+      singleBrandId,
+      selectedModel,
+      minYear,
+      maxYear,
+      minMileage,
+      maxMileage,
+      min_mileage,
+      max_mileage,
+      maxPrice,
+      appliedSearch,
+      selectedSpecs,
+      selectedFeatures,
+    ],
+  );
+
+  const { cars, isLoading, error, mutate } = useCars({
+    ...apiFilters,
+    minPrice: minPrice !== "" ? Number(minPrice) : undefined,
+    isFeatured: isFeaturedParam,
+  });
+
+  // Bug 5 (similar strip): fetch the featured strip independently so it
+  // doesn't depend on the main grid's current filters / pageTitle.
+  const { cars: similarCarsData } = useCars({ isFeatured: true });
+  const similarCars = useMemo(
+    () => similarCarsData.slice(0, 4),
+    [similarCarsData],
+  );
 
   const carsPerPage = 6;
 
-  // Derive unique models list dynamically
   const models = useMemo(() => {
-    const allModels = initialCars.map((car) => car.model);
-    return Array.from(new Set(allModels)).sort();
-  }, []);
+    if (brandModels.length > 0) {
+      return brandModels.map((m) => m.name).sort();
+    }
+    const allModels = cars.map((car) => car.carModel?.name ?? car.model);
+    return Array.from(new Set(allModels)).filter(Boolean).sort();
+  }, [brandModels, cars]);
 
-  // Derive similar cars (featured cars for carousel)
-  const similarCars = useMemo(() => {
-    return initialCars.filter((car) => car.isFeatured).slice(0, 4);
-  }, []);
+  const selectedTransmissionValues = useMemo(
+    () =>
+      selectedSpecs.transmission
+        ? [selectedSpecs.transmission]
+        : [],
+    [selectedSpecs.transmission],
+  );
 
-  const getFilteredCars = () => {
-    return initialCars
+  const selectedFuelValues = useMemo(
+    () => (selectedSpecs.fuel ? [selectedSpecs.fuel] : []),
+    [selectedSpecs.fuel],
+  );
+
+  const filteredCars = useMemo(() => {
+    return cars
       .filter((car) => {
-        // Search input (brand, model, or trim)
-        if (searchTerm.trim() !== "") {
-          const query = searchTerm.toLowerCase();
-          const match =
-            car.brand.toLowerCase().includes(query) ||
-            car.model.toLowerCase().includes(query) ||
-            car.trim.toLowerCase().includes(query);
-          if (!match) return false;
+        const brandId = car.carBrand?.id;
+        const modelLabel = car.carModel?.name ?? car.model;
+
+        const hasBrandModelFilter =
+          allBrandIds.length > 0 ||
+          Object.values(selectedModelsByBrand).some((models) => models.length > 0);
+
+        if (hasBrandModelFilter) {
+          if (!brandId) return false;
+
+          const matchesAllBrand = allBrandIds.includes(brandId);
+          const specificModels = selectedModelsByBrand[brandId];
+          const matchesSpecificModel =
+            specificModels &&
+            specificModels.length > 0 &&
+            specificModels.includes(modelLabel);
+
+          if (!matchesAllBrand && !matchesSpecificModel) {
+            return false;
+          }
         }
 
-        // Brand checkboxes
-        if (selectedBrands.length > 0 && !selectedBrands.includes(car.brand)) {
-          return false;
-        }
-
-        // Model select (mobile dropdown)
         if (
           selectedModel !== "" &&
           selectedModel !== "all" &&
-          car.model !== selectedModel
+          modelLabel !== selectedModel
         ) {
           return false;
         }
 
-        // Price range min
-        const priceNum = parseFloat(car.price.replace(/,/g, ""));
-        if (minPrice !== "" && priceNum < parseFloat(minPrice)) {
-          return false;
-        }
-
-        // Price range max
-        if (maxPrice !== "" && priceNum > parseFloat(maxPrice)) {
-          return false;
-        }
-
-        // Mileage range
-        const mileageNum = parseInt(car.mileage.replace(/[^0-9]/g, "")) || 0;
-        if (mileageNum > maxMileage || mileageNum < minMileage) {
-          return false;
-        }
-
-        // Condition checkboxes
         if (
-          selectedConditions.length > 0 &&
-          !selectedConditions.includes(car.condition)
+          selectedTransmissionValues.length > 0 &&
+          !car.specifications.some(
+            (spec) =>
+              spec.key === "transmission" &&
+              spec.value !== null &&
+              selectedTransmissionValues.includes(spec.value),
+          )
         ) {
           return false;
         }
 
-        // Transmission checkboxes
         if (
-          selectedTransmissions.length > 0 &&
-          !selectedTransmissions.includes(car.transmission)
+          selectedFuelValues.length > 0 &&
+          !car.specifications.some(
+            (spec) =>
+              spec.key === "fuel" &&
+              spec.value !== null &&
+              selectedFuelValues.includes(spec.value),
+          )
         ) {
           return false;
         }
 
-        // Fuel type toggles
+        for (const [specKey, specValue] of Object.entries(selectedSpecs)) {
+          if (SIDEBAR_DEDICATED_SPEC_KEYS.has(specKey)) continue;
+          if (
+            !car.specifications.some(
+              (spec) =>
+                spec.key === specKey &&
+                spec.value !== null &&
+                spec.value === specValue,
+            )
+          ) {
+            return false;
+          }
+        }
+
         if (
-          selectedFuelTypes.length > 0 &&
-          !selectedFuelTypes.includes(car.fuelType)
+          !matchesFeatures(
+            car.features.map((f) => f.id),
+            selectedFeatures,
+          )
         ) {
           return false;
         }
@@ -552,41 +533,33 @@ const CarsFilter = ({ pageTitle }: { pageTitle: CarsFilterTitleType }) => {
         return true;
       })
       .sort((a, b) => {
-        const priceA = parseFloat(a.price.replace(/,/g, ""));
-        const priceB = parseFloat(b.price.replace(/,/g, ""));
-        const yearA = parseInt(a.year);
-        const yearB = parseInt(b.year);
-
-        if (sortBy === "high-to-low") return priceB - priceA;
-        if (sortBy === "low-to-high") return priceA - priceB;
-        if (sortBy === "newest") return yearB - yearA;
-        if (sortBy === "oldest") return yearA - yearB;
+        if (sortBy === "high-to-low") return b.price - a.price;
+        if (sortBy === "low-to-high") return a.price - b.price;
+        if (sortBy === "newest") return b.year - a.year;
+        if (sortBy === "oldest") return a.year - b.year;
         return 0;
       });
-  };
-
-  // Filter and sort the cars list dynamically based on active filter state
-  useEffect(() => {
-    setFilteredCars(getFilteredCars());
   }, [
-    selectedBrands,
-    minPrice,
-    maxPrice,
-    maxMileage,
-    selectedConditions,
-    selectedTransmissions,
-    selectedFuelTypes,
-    sortBy,
+    cars,
+    allBrandIds,
+    selectedModelsByBrand,
     selectedModel,
+    selectedTransmissionValues,
+    selectedFuelValues,
+    selectedSpecs,
+    selectedFeatures,
+    sortBy,
   ]);
 
   const searchAction = () => {
-    if (searchTerm === "") return;
-    startTransition(async () => {
-      await fakePromise();
-      setFilteredCars(getFilteredCars());
-    });
+    setAppliedSearch(searchTerm.trim());
+    setCurrentPage(1);
   };
+
+  const toolbarModelOptions = useMemo(
+    () => models.map((model) => ({ label: model, value: model })),
+    [models],
+  );
 
   // Calculate pagination variables
   const totalPages = Math.ceil(filteredCars.length / carsPerPage) || 1;
@@ -597,65 +570,337 @@ const CarsFilter = ({ pageTitle }: { pageTitle: CarsFilterTitleType }) => {
     return filteredCars.slice(start, start + carsPerPage);
   }, [filteredCars, activePage, carsPerPage]);
 
-  const handleBrandToggle = (brandAr: string) => {
-    setSelectedBrands((prev) =>
-      prev.includes(brandAr)
-        ? prev.filter((b) => b !== brandAr)
-        : [...prev, brandAr],
-    );
+  const clearBrandFilter = (brandId: string) => {
+    setAllBrandIds((prev) => prev.filter((id) => id !== brandId));
+    setSelectedModelsByBrand((prev) => {
+      const { [brandId]: _, ...rest } = prev;
+      return rest;
+    });
     setCurrentPage(1);
   };
 
-  const handleConditionToggle = (cond: string) => {
-    setSelectedConditions((prev) =>
-      prev.includes(cond) ? prev.filter((c) => c !== cond) : [...prev, cond],
-    );
+  const handleBrandAllToggle = (brandId: string) => {
+    setAllBrandIds((prev) => {
+      if (prev.includes(brandId)) {
+        return prev.filter((id) => id !== brandId);
+      }
+      setSelectedModelsByBrand((models) => {
+        const { [brandId]: _, ...rest } = models;
+        return rest;
+      });
+      return [...prev, brandId];
+    });
+    setSelectedModel("all");
     setCurrentPage(1);
   };
 
-  const handleTransmissionToggle = (trans: string) => {
-    setSelectedTransmissions((prev) =>
-      prev.includes(trans) ? prev.filter((t) => t !== trans) : [...prev, trans],
-    );
+  const handleModelToggle = (brandId: string, modelName: string) => {
+    setAllBrandIds((prev) => prev.filter((id) => id !== brandId));
+    setSelectedModelsByBrand((prev) => {
+      const current = prev[brandId] ?? [];
+      const next = current.includes(modelName)
+        ? current.filter((name) => name !== modelName)
+        : [...current, modelName];
+      if (next.length === 0) {
+        const { [brandId]: _, ...rest } = prev;
+        return rest;
+      }
+      return { ...prev, [brandId]: next };
+    });
+    setSelectedModel("all");
     setCurrentPage(1);
   };
 
-  const handleFuelToggle = (fuel: string) => {
-    setSelectedFuelTypes((prev) =>
-      prev.includes(fuel) ? prev.filter((f) => f !== fuel) : [...prev, fuel],
+  const handleBrandExpandToggle = (brandId: string) => {
+    setExpandedBrandIds((prev) =>
+      prev.includes(brandId)
+        ? prev.filter((id) => id !== brandId)
+        : [...prev, brandId],
+    );
+  };
+
+  const handleDedicatedSpecToggle = (key: string, value: string) => {
+    setSelectedSpecs((prev) => {
+      const next = { ...prev };
+      if (next[key] === value) {
+        delete next[key];
+      } else {
+        next[key] = value;
+      }
+      return next;
+    });
+    setCurrentPage(1);
+  };
+
+  const handleDynamicSpecSelect = (key: string, value: string) => {
+    setSelectedSpecs((prev) => {
+      const next = { ...prev };
+      if (next[key] === value) {
+        delete next[key];
+      } else {
+        next[key] = value;
+      }
+      return next;
+    });
+    setCurrentPage(1);
+  };
+
+  const handleFeatureToggle = (featureId: string) => {
+    setSelectedFeatures((prev) =>
+      prev.includes(featureId)
+        ? prev.filter((id) => id !== featureId)
+        : [...prev, featureId],
     );
     setCurrentPage(1);
   };
 
   const handleSearchSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    setCurrentPage(1);
+    searchAction();
   };
 
   const handleResetAll = () => {
     setSearchTerm("");
-    setSelectedBrands([]);
+    setAppliedSearch("");
+    setAllBrandIds([]);
     setBrandSearch("");
     setMinPrice("");
     setMaxPrice("");
+    setMinYear("");
+    setMaxYear("");
     setMinMileage(min_mileage);
     setMaxMileage(max_mileage);
-    setSelectedConditions([]);
-    setSelectedTransmissions([]);
-    setSelectedFuelTypes([]);
+    setSelectedSpecs({});
+    setSelectedFeatures([]);
     setSortBy("high-to-low");
-    setSelectedModel("");
+    setSelectedModel("all");
+    setSelectedModelsByBrand({});
+    setExpandedBrandIds([]);
+    setShowAllBrands(false);
     setCurrentPage(1);
   };
 
-  // Filter brand list dynamically by brand search query
   const filteredBrandsList = useMemo(() => {
-    return brands.filter(
+    return allBrands.filter(
       (b) =>
-        b.ar.includes(brandSearch) ||
-        b.en.toLowerCase().includes(brandSearch.toLowerCase()),
+        b.name.includes(brandSearch) ||
+        (b.nameEn &&
+          b.nameEn.toLowerCase().includes(brandSearch.toLowerCase())),
     );
-  }, [brandSearch]);
+  }, [allBrands, brandSearch]);
+
+  const visibleBrandsList = useMemo(() => {
+    if (showAllBrands || brandSearch.trim() !== "") {
+      return filteredBrandsList;
+    }
+    const initial = filteredBrandsList.slice(0, BRAND_VISIBLE_COUNT);
+    const selectedHidden = filteredBrandsList.filter(
+      (brand) =>
+        (allBrandIds.includes(brand.id) ||
+          (selectedModelsByBrand[brand.id]?.length ?? 0) > 0) &&
+        !initial.some((item) => item.id === brand.id),
+    );
+    return [...initial, ...selectedHidden];
+  }, [filteredBrandsList, showAllBrands, brandSearch, allBrandIds, selectedModelsByBrand]);
+
+  const hiddenBrandCount = Math.max(
+    0,
+    filteredBrandsList.length - BRAND_VISIBLE_COUNT,
+  );
+
+  const brandModelActiveCount = useMemo(() => {
+    const modelCount = Object.values(selectedModelsByBrand).reduce(
+      (sum, names) => sum + names.length,
+      0,
+    );
+    return allBrandIds.length + modelCount;
+  }, [allBrandIds, selectedModelsByBrand]);
+
+  const featureNameById = useMemo(() => {
+    const map = new Map<string, string>();
+    for (const section of featureSections) {
+      for (const item of section.items) {
+        map.set(item.id, item.name);
+      }
+    }
+    return map;
+  }, [featureSections]);
+
+  const filteredFeatureSections = useMemo(() => {
+    const query = featureSearch.trim().toLowerCase();
+    if (!query) return featureSections;
+
+    return featureSections
+      .map((section) => ({
+        ...section,
+        items: section.items.filter((item) =>
+          item.name.toLowerCase().includes(query),
+        ),
+      }))
+      .filter((section) => section.items.length > 0);
+  }, [featureSections, featureSearch]);
+
+  const activeFilterChips = useMemo((): FilterChip[] => {
+    const chips: FilterChip[] = [];
+
+    for (const brandId of allBrandIds) {
+      const brand = allBrands.find((b) => b.id === brandId);
+      if (!brand) continue;
+      chips.push({
+        id: `brand-all-${brandId}`,
+        label: `${brand.name} · الكل`,
+        onRemove: () => clearBrandFilter(brandId),
+      });
+    }
+
+    for (const [brandId, modelNames] of Object.entries(selectedModelsByBrand)) {
+      if (allBrandIds.includes(brandId)) continue;
+      const brand = allBrands.find((b) => b.id === brandId);
+      for (const modelName of modelNames) {
+        chips.push({
+          id: `model-${brandId}-${modelName}`,
+          label: brand ? `${brand.name} · ${modelName}` : modelName,
+          onRemove: () => handleModelToggle(brandId, modelName),
+        });
+      }
+    }
+
+    if (selectedModel !== "all" && selectedModel !== "") {
+      chips.push({
+        id: "model-toolbar",
+        label: `الموديل: ${selectedModel}`,
+        onRemove: () => {
+          setSelectedModel("all");
+          setCurrentPage(1);
+        },
+      });
+    }
+
+    if (minPrice !== "" || maxPrice !== "") {
+      const parts: string[] = [];
+      if (minPrice !== "") parts.push(`من ${minPrice}`);
+      if (maxPrice !== "") parts.push(`إلى ${maxPrice}`);
+      chips.push({
+        id: "price",
+        label: `السعر: ${parts.join(" ")}`,
+        onRemove: () => {
+          setMinPrice("");
+          setMaxPrice("");
+          setCurrentPage(1);
+        },
+      });
+    }
+
+    if (minYear !== "" || maxYear !== "") {
+      const parts: string[] = [];
+      if (minYear !== "") parts.push(`من ${minYear}`);
+      if (maxYear !== "") parts.push(`إلى ${maxYear}`);
+      chips.push({
+        id: "year",
+        label: `السنة: ${parts.join(" ")}`,
+        onRemove: () => {
+          setMinYear("");
+          setMaxYear("");
+          setCurrentPage(1);
+        },
+      });
+    }
+
+    if (minMileage !== min_mileage || maxMileage !== max_mileage) {
+      chips.push({
+        id: "mileage",
+        label: `الكيلومترات: ${minMileage.toLocaleString()} - ${maxMileage.toLocaleString()}`,
+        onRemove: () => {
+          setMinMileage(min_mileage);
+          setMaxMileage(max_mileage);
+          setCurrentPage(1);
+        },
+      });
+    }
+
+    if (selectedSpecs.transmission) {
+      const label =
+        transmissionOptions.find((o) => o.value === selectedSpecs.transmission)
+          ?.label ?? selectedSpecs.transmission;
+      chips.push({
+        id: "transmission",
+        label: `ناقل الحركة: ${label}`,
+        onRemove: () => handleDedicatedSpecToggle("transmission", selectedSpecs.transmission!),
+      });
+    }
+
+    if (selectedSpecs.fuel) {
+      const label =
+        fuelOptions.find((o) => o.value === selectedSpecs.fuel)?.label ??
+        selectedSpecs.fuel;
+      chips.push({
+        id: "fuel",
+        label: `الوقود: ${label}`,
+        onRemove: () => handleDedicatedSpecToggle("fuel", selectedSpecs.fuel!),
+      });
+    }
+
+    for (const specType of dynamicSpecTypes) {
+      const value = selectedSpecs[specType.key];
+      if (!value) continue;
+      const label =
+        specType.options.find((o) => o.value === value)?.label ?? value;
+      chips.push({
+        id: `spec-${specType.key}`,
+        label: `${specType.name}: ${label}`,
+        onRemove: () => handleDynamicSpecSelect(specType.key, value),
+      });
+    }
+
+    for (const featureId of selectedFeatures) {
+      chips.push({
+        id: `feature-${featureId}`,
+        label: featureNameById.get(featureId) ?? "ميزة",
+        onRemove: () => handleFeatureToggle(featureId),
+      });
+    }
+
+    if (appliedSearch !== "") {
+      chips.push({
+        id: "search",
+        label: `بحث: ${appliedSearch}`,
+        onRemove: () => {
+          setSearchTerm("");
+          setAppliedSearch("");
+          setCurrentPage(1);
+        },
+      });
+    }
+
+    return chips;
+  }, [
+    allBrandIds,
+    allBrands,
+    selectedModelsByBrand,
+    selectedModel,
+    minPrice,
+    maxPrice,
+    minYear,
+    maxYear,
+    minMileage,
+    maxMileage,
+    min_mileage,
+    max_mileage,
+    selectedSpecs,
+    transmissionOptions,
+    fuelOptions,
+    dynamicSpecTypes,
+    selectedFeatures,
+    featureNameById,
+    appliedSearch,
+  ]);
+
+  const toggleFeatureSectionExpanded = (sectionId: string) => {
+    setExpandedFeatureSections((prev) => ({
+      ...prev,
+      [sectionId]: !prev[sectionId],
+    }));
+  };
 
   return (
     <div className="relative flex flex-col min-h-screen bg-white">
@@ -674,6 +919,11 @@ const CarsFilter = ({ pageTitle }: { pageTitle: CarsFilterTitleType }) => {
         >
           <FilterIcon />
           <span>الفلترة</span>
+          {activeFilterChips.length > 0 ? (
+            <span className="min-w-5 h-5 px-1.5 rounded-full bg-primary-500 text-white text-[10px] font-bold flex items-center justify-center mr-auto">
+              {activeFilterChips.length}
+            </span>
+          ) : null}
         </button>
 
         {/* Two-Column Responsive Layout */}
@@ -688,17 +938,23 @@ const CarsFilter = ({ pageTitle }: { pageTitle: CarsFilterTitleType }) => {
           >
             <div
               className={`
-                fixed top-0 right-0 bottom-0 z-50 w-[312px] p-6 overflow-y-auto transition-transform duration-300 ease-in-out flex flex-col gap-6
-                lg:static lg:w-[312px] lg:p-6 lg:rounded-2xl lg:border lg:border-gray-200 lg:bg-gray-50 bg-white lg:translate-x-0
+                fixed top-0 right-0 bottom-0 z-50 w-[312px] p-6 overflow-y-auto transition-transform duration-300 ease-in-out flex flex-col gap-4
+                lg:static lg:overflow-visible lg:w-[312px] lg:p-6 lg:rounded-2xl lg:border lg:border-gray-200 lg:bg-gray-50 bg-white lg:translate-x-0
                 ${showMobileFilters ? "translate-x-0" : "translate-x-full lg:translate-x-0"}
               `}
               onClick={(e) => e.stopPropagation()}
             >
-              {/* Close Button / Title */}
-              <div className="flex items-center justify-between pb-3 border-b border-gray-100">
-                <span className="font-medium text-lg text-gray-900">
-                  الفلترة
-                </span>
+              <div className="flex items-center justify-between pb-3 border-b border-gray-100 shrink-0">
+                <div className="flex items-center gap-2">
+                  <span className="font-medium text-lg text-gray-900">
+                    الفلترة
+                  </span>
+                  {activeFilterChips.length > 0 ? (
+                    <span className="min-w-5 h-5 px-1.5 rounded-full bg-primary-500 text-white text-[10px] font-bold flex items-center justify-center">
+                      {activeFilterChips.length}
+                    </span>
+                  ) : null}
+                </div>
                 <button
                   onClick={() => setShowMobileFilters(false)}
                   className="lg:hidden text-gray-400 hover:text-gray-600 text-xl font-bold p-1 cursor-pointer"
@@ -707,61 +963,40 @@ const CarsFilter = ({ pageTitle }: { pageTitle: CarsFilterTitleType }) => {
                 </button>
               </div>
 
-              {/* Brand Filter */}
-              <div className="flex flex-col gap-3">
-                <label className="text-gray-900 text-sm font-medium text-right leading-[100%]">
-                  الماركة
-                </label>
-                <div className="space-y-1">
-                  <label className="text-gray-900 text-xs font-medium text-right leading-[170%]">
-                    بحث
-                  </label>
-                  <div className="relative bg-white border border-gray-200 rounded-xl h-10 flex items-center justify-between px-3">
-                    <input
-                      type="text"
-                      placeholder="بحث"
-                      value={brandSearch}
-                      onChange={(e) => setBrandSearch(e.target.value)}
-                      className="w-full h-full text-right outline-none text-xs font-light text-gray-800 pr-6 bg-transparent"
-                    />
-                    <Image
-                      src="/assets/search_normal.svg"
-                      alt="search"
-                      width={14}
-                      height={14}
-                      className="absolute right-3 opacity-50"
-                    />
-                  </div>
-                </div>
+              {activeFilterChips.length > 0 ? (
+                <ActiveFilterChips
+                  chips={activeFilterChips}
+                  onClearAll={handleResetAll}
+                  className="lg:hidden"
+                />
+              ) : null}
 
-                <div className="flex flex-col gap-2 max-h-[270px] overflow-y-auto overscroll-contain pr-1">
-                  {filteredBrandsList.length > 0 ? (
-                    filteredBrandsList.map((brand) => {
-                      const isChecked = selectedBrands.includes(brand.ar);
-                      return (
-                        <Checkbox
-                          key={brand.ar}
-                          label={brand.ar}
-                          checked={isChecked}
-                          onChange={() => handleBrandToggle(brand.ar)}
-                        />
-                      );
-                    })
-                  ) : (
-                    <span className="text-xs text-gray-400 text-center py-2">
-                      لا توجد ماركات مطابقة
-                    </span>
-                  )}
-                </div>
-              </div>
+              <FilterAccordion
+                title="الماركة والموديل"
+                defaultOpen
+                activeCount={brandModelActiveCount}
+              >
+                <BrandModelFilter
+                  isLoading={brandsLoading}
+                  search={brandSearch}
+                  onSearchChange={setBrandSearch}
+                  allBrandIds={allBrandIds}
+                  selectedModelsByBrand={selectedModelsByBrand}
+                  expandedBrandIds={expandedBrandIds}
+                  onBrandAllToggle={handleBrandAllToggle}
+                  onModelToggle={handleModelToggle}
+                  onBrandExpandToggle={handleBrandExpandToggle}
+                  visibleBrands={visibleBrandsList}
+                  showAllBrands={showAllBrands}
+                  onShowAllToggle={() => setShowAllBrands((v) => !v)}
+                  hiddenBrandCount={hiddenBrandCount}
+                />
+              </FilterAccordion>
 
-              <hr className="border-gray-100" />
-
-              {/* Price Range Filter */}
-              <div className="flex flex-col gap-3">
-                <label className="text-gray-900 text-sm font-medium text-right leading-[100%]">
-                  نطاق السعر
-                </label>
+              <FilterAccordion
+                title="نطاق السعر"
+                activeCount={minPrice !== "" || maxPrice !== "" ? 1 : 0}
+              >
                 <div className="flex items-center gap-2 w-full">
                   <div className="flex-1">
                     <input
@@ -791,15 +1026,51 @@ const CarsFilter = ({ pageTitle }: { pageTitle: CarsFilterTitleType }) => {
                     />
                   </div>
                 </div>
-              </div>
+              </FilterAccordion>
 
-              <hr className="border-gray-100" />
+              <FilterAccordion
+                title="سنة الإصدار"
+                activeCount={minYear !== "" || maxYear !== "" ? 1 : 0}
+              >
+                <div className="flex items-center gap-2 w-full">
+                  <div className="flex-1">
+                    <input
+                      type="number"
+                      placeholder="من"
+                      min={1980}
+                      value={minYear}
+                      onChange={(e) => {
+                        setMinYear(e.target.value);
+                        setCurrentPage(1);
+                      }}
+                      className="w-full h-11 text-center bg-white border border-gray-200 rounded-xl outline-none text-sm text-gray-800 placeholder:text-gray-400 font-mono"
+                    />
+                  </div>
+                  <span className="text-gray-400 font-bold">-</span>
+                  <div className="flex-1">
+                    <input
+                      type="number"
+                      placeholder="إلى"
+                      min={1980}
+                      value={maxYear}
+                      onChange={(e) => {
+                        setMaxYear(e.target.value);
+                        setCurrentPage(1);
+                      }}
+                      className="w-full h-11 text-center bg-white border border-gray-200 rounded-xl outline-none text-sm text-gray-800 placeholder:text-gray-400 font-mono"
+                    />
+                  </div>
+                </div>
+              </FilterAccordion>
 
-              {/* Mileage Filter */}
-              <div className="flex flex-col gap-3">
-                <label className="text-gray-900 text-sm font-semibold text-right">
-                  الكيلومترات
-                </label>
+              <FilterAccordion
+                title="الكيلومترات"
+                activeCount={
+                  minMileage !== min_mileage || maxMileage !== max_mileage
+                    ? 1
+                    : 0
+                }
+              >
                 <RangeInput
                   min={min_mileage}
                   max={max_mileage}
@@ -808,85 +1079,178 @@ const CarsFilter = ({ pageTitle }: { pageTitle: CarsFilterTitleType }) => {
                   to={maxMileage}
                   setTo={setMaxMileage}
                 />
-              </div>
+              </FilterAccordion>
 
-              <hr className="border-gray-100" />
-
-              {/* Condition Filter */}
-              <div className="flex flex-col gap-3">
-                <label className="text-gray-900 text-sm font-medium text-right leading-[100%]">
-                  الحالة
-                </label>
-                <div className="flex flex-col gap-2">
-                  {["جديد", "مستعملة"].map((cond) => {
-                    const isChecked = selectedConditions.includes(cond);
-                    return (
+              {transmissionOptions.length > 0 ? (
+                <FilterAccordion
+                  title="ناقل الحركة"
+                  activeCount={selectedSpecs.transmission ? 1 : 0}
+                >
+                  <div className="flex flex-col gap-2">
+                    {transmissionOptions.map((trans) => (
                       <Checkbox
-                        key={cond}
-                        label={cond}
-                        checked={isChecked}
-                        onChange={() => handleConditionToggle(cond)}
+                        key={trans.value}
+                        label={trans.label}
+                        checked={selectedSpecs.transmission === trans.value}
+                        onChange={() =>
+                          handleDedicatedSpecToggle("transmission", trans.value)
+                        }
                       />
-                    );
-                  })}
-                </div>
-              </div>
+                    ))}
+                  </div>
+                </FilterAccordion>
+              ) : null}
 
-              <hr className="border-gray-100" />
-
-              {/* Transmission Filter */}
-              <div className="flex flex-col gap-3">
-                <label className="text-gray-900 text-sm font-medium text-right leading-[100%]">
-                  ناقل الحركة
-                </label>
-                <div className="flex flex-col gap-2">
-                  {["أوتوماتيك", "مانيوال"].map((trans) => {
-                    const isChecked = selectedTransmissions.includes(trans);
-                    return (
-                      <Checkbox
-                        key={trans}
-                        label={trans}
-                        checked={isChecked}
-                        onChange={() => handleTransmissionToggle(trans)}
-                      />
-                    );
-                  })}
-                </div>
-              </div>
-
-              <hr className="border-gray-100" />
-
-              {/* Fuel Type Filter */}
-              <div className="flex flex-col gap-3">
-                <label className="text-gray-900 text-sm font-medium text-right leading-[100%]">
-                  نوع الوقود
-                </label>
-                <div className="flex gap-2">
-                  {["بنزين", "ديزل", "كهرباء", "هجين"].map((fuel) => {
-                    const isActive = selectedFuelTypes.includes(fuel);
-                    return (
-                      <button
-                        key={fuel}
-                        type="button"
-                        onClick={() => handleFuelToggle(fuel)}
-                        className={`h-10 rounded-xl text-xs px-[16px] py-[10.5px] font-semibold border transition-all cursor-pointer flex items-center justify-center
+              {fuelOptions.length > 0 ? (
+                <FilterAccordion
+                  title="نوع الوقود"
+                  activeCount={selectedSpecs.fuel ? 1 : 0}
+                >
+                  <div className="flex flex-wrap gap-2">
+                    {fuelOptions.map((fuel) => {
+                      const isActive = selectedSpecs.fuel === fuel.value;
+                      return (
+                        <button
+                          key={fuel.value}
+                          type="button"
+                          onClick={() =>
+                            handleDedicatedSpecToggle("fuel", fuel.value)
+                          }
+                          className={`h-10 rounded-xl text-xs px-[16px] py-[10.5px] font-semibold border transition-all cursor-pointer flex items-center justify-center
                           ${
                             isActive
                               ? "bg-primary-500 border-primary-500 text-white shadow-sm"
                               : "bg-white border-gray-200 text-gray-700 hover:bg-gray-50 hover:text-gray-900"
                           }`}
-                      >
-                        {fuel}
-                      </button>
-                    );
-                  })}
-                </div>
-              </div>
+                        >
+                          {fuel.label}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </FilterAccordion>
+              ) : null}
 
-              <hr className="border-gray-100 mt-2" />
+              {dynamicSpecTypes.map((specType) => (
+                <FilterAccordion
+                  key={specType.id}
+                  title={specType.name}
+                  activeCount={selectedSpecs[specType.key] ? 1 : 0}
+                >
+                  <div className="flex flex-wrap gap-2">
+                    {specType.options.map((option) => {
+                      const isActive =
+                        selectedSpecs[specType.key] === option.value;
+                      return (
+                        <button
+                          key={option.id}
+                          type="button"
+                          onClick={() =>
+                            handleDynamicSpecSelect(specType.key, option.value)
+                          }
+                          className={`h-10 rounded-xl text-xs px-[16px] py-[10.5px] font-semibold border transition-all cursor-pointer flex items-center justify-center
+                          ${
+                            isActive
+                              ? "bg-primary-500 border-primary-500 text-white shadow-sm"
+                              : "bg-white border-gray-200 text-gray-700 hover:bg-gray-50 hover:text-gray-900"
+                          }`}
+                        >
+                          {option.label}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </FilterAccordion>
+              ))}
 
-              {/* Reset Filters */}
-              <div>
+              {filteredFeatureSections.some((s) => s.items.length > 0) ? (
+                <FilterAccordion
+                  title="المميزات والخيارات"
+                  activeCount={selectedFeatures.length}
+                >
+                  <div className="relative bg-white border border-gray-200 rounded-xl h-10 flex items-center justify-between px-3">
+                    <input
+                      type="text"
+                      placeholder="ابحث في المميزات..."
+                      value={featureSearch}
+                      onChange={(e) => setFeatureSearch(e.target.value)}
+                      className="w-full h-full text-right outline-none text-xs font-light text-gray-800 pr-6 bg-transparent"
+                    />
+                    <Image
+                      src="/assets/search_normal.svg"
+                      alt="search"
+                      width={14}
+                      height={14}
+                      className="absolute right-3 opacity-50"
+                    />
+                  </div>
+
+                  <div className="flex flex-col gap-1">
+                    {filteredFeatureSections.map((section) => {
+                      if (section.items.length === 0) return null;
+
+                      const sectionActiveCount = section.items.filter((item) =>
+                        selectedFeatures.includes(item.id),
+                      ).length;
+                      const isSectionExpanded =
+                        expandedFeatureSections[section.id] ?? false;
+                      const collapsedItems = section.items.slice(
+                        0,
+                        FEATURE_VISIBLE_COUNT,
+                      );
+                      const selectedHiddenItems = section.items
+                        .slice(FEATURE_VISIBLE_COUNT)
+                        .filter((item) => selectedFeatures.includes(item.id));
+                      const visibleItems = isSectionExpanded
+                        ? section.items
+                        : [
+                            ...collapsedItems,
+                            ...selectedHiddenItems.filter(
+                              (item) =>
+                                !collapsedItems.some(
+                                  (visible) => visible.id === item.id,
+                                ),
+                            ),
+                          ];
+                      const hiddenFeatureCount = Math.max(
+                        0,
+                        section.items.length - FEATURE_VISIBLE_COUNT,
+                      );
+
+                      return (
+                        <FilterAccordion
+                          key={section.id}
+                          title={section.name}
+                          variant="nested"
+                          activeCount={sectionActiveCount}
+                        >
+                          <div className="flex flex-col gap-2">
+                            {visibleItems.map((item) => (
+                              <Checkbox
+                                key={item.id}
+                                label={item.name}
+                                checked={selectedFeatures.includes(item.id)}
+                                onChange={() => handleFeatureToggle(item.id)}
+                              />
+                            ))}
+                          </div>
+                          <ShowMoreToggle
+                            expanded={isSectionExpanded}
+                            onToggle={() =>
+                              toggleFeatureSectionExpanded(section.id)
+                            }
+                            hiddenCount={
+                              isSectionExpanded ? 0 : hiddenFeatureCount
+                            }
+                          />
+                        </FilterAccordion>
+                      );
+                    })}
+                  </div>
+                </FilterAccordion>
+              ) : null}
+
+              <div className="pt-2 shrink-0">
                 <Button
                   variant="primaryDark"
                   onClick={handleResetAll}
@@ -911,25 +1275,69 @@ const CarsFilter = ({ pageTitle }: { pageTitle: CarsFilterTitleType }) => {
             >
               <FilterToolbar
                 selectedModel={selectedModel}
-                setSelectedModel={(v) => setSelectedModel(v)}
+                setSelectedModel={(v) => {
+                  setSelectedModel(v);
+                  setSelectedModelsByBrand({});
+                  setCurrentPage(1);
+                }}
                 sortBy={sortBy}
-                setSortBy={(v) => setSortBy(v)}
+                setSortBy={(v) => {
+                  setSortBy(v);
+                  setCurrentPage(1);
+                }}
                 searchTerm={searchTerm}
                 setSearchTerm={(v) => setSearchTerm(v)}
                 searchAction={searchAction}
+                modelOptions={toolbarModelOptions}
                 isLeftCol={true}
-                isPending={isPending}
+                isPending={isLoading}
               />
             </form>
+
+            {activeFilterChips.length > 0 ? (
+              <ActiveFilterChips
+                chips={activeFilterChips}
+                onClearAll={handleResetAll}
+                className="max-lg:hidden"
+              />
+            ) : null}
 
             {/* Ad Banner */}
             <AdBannerCard pageTitle={pageTitle} />
 
             {/* Cars Grid */}
-            {filteredCars.length > 0 ? (
-              <div className="grid grid-cols-1 sm:grid-cols-2 2xl:grid-cols-3 gap-4 w-full">
-                {paginatedCars.map((car, idx) => (
-                  <CarCard key={idx} {...car} />
+            {error ? (
+              <div className="flex flex-col items-center justify-center min-h-[400px] gap-4 text-center">
+                <p className="text-red-500 font-medium">
+                  حدث خطأ أثناء تحميل السيارات
+                </p>
+                <button
+                  onClick={() => mutate()}
+                  className="bg-primary-500 hover:bg-primary-600 text-white font-semibold text-sm px-5 py-2.5 rounded-xl transition-colors"
+                >
+                  حاول مرة أخرى
+                </button>
+              </div>
+            ) : isLoading ? (
+              <div className="flex items-center justify-center min-h-[400px]">
+                <Spinner variant="primary" />
+              </div>
+            ) : filteredCars.length > 0 ? (
+              <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4 w-full">
+                {paginatedCars.map((car) => (
+                  <CarCard
+                    key={car.id}
+                    id={car.id}
+                    image={car.images[0]}
+                    brand={car.carBrand?.name ?? car.brand}
+                    model={car.carModel?.name ?? car.model}
+                    price={car.price}
+                    year={car.year}
+                    mileage={car.mileage}
+                    trim={car.trim}
+                    location={car.address}
+                    isFeatured={car.isFeatured}
+                  />
                 ))}
               </div>
             ) : (
@@ -951,5 +1359,21 @@ const CarsFilter = ({ pageTitle }: { pageTitle: CarsFilterTitleType }) => {
     </div>
   );
 };
+
+// `useSearchParams` requires a Suspense boundary during prerendering in
+// Next.js 16, otherwise the production build fails with a missing-
+// suspense-with-csr-bailout error. We wrap the inner component here so
+// the parent page can stay untouched.
+const CarsFilter = ({ pageTitle }: { pageTitle: CarsFilterTitleType }) => (
+  <Suspense
+    fallback={
+      <div className="flex items-center justify-center min-h-screen">
+        <Spinner variant="primary" />
+      </div>
+    }
+  >
+    <CarsFilterInner pageTitle={pageTitle} />
+  </Suspense>
+);
 
 export default CarsFilter;

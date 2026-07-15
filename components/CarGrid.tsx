@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import CarCard from "./CarCard";
 import MaxWidthWrapper from "./common/MaxWidthWrapper";
 import FilterToolbar from "./common/FilterToolbar";
@@ -25,6 +25,7 @@ export default function CarGrid({
 }: CarGridProps) {
   // Filter toolbar state — unchanged from the previous mock-data version.
   const [searchTerm, setSearchTerm] = useState("");
+  const [appliedSearch, setAppliedSearch] = useState("");
   const [sortBy, setSortBy] = useState("high-to-low");
   const [selectedModel, setSelectedModel] = useState("all");
   const [filteredCars, setFilteredCars] = useState<Car[]>([]);
@@ -49,27 +50,44 @@ export default function CarGrid({
         const modelLabel = car.carModel?.name ?? car.model;
         const trimLabel = car.trim ?? "";
 
+        const query = appliedSearch.trim();
         const matchesSearch =
-          brandLabel.includes(searchTerm) ||
-          modelLabel.includes(searchTerm) ||
-          trimLabel.includes(searchTerm);
+          query === "" ||
+          brandLabel.includes(query) ||
+          modelLabel.includes(query) ||
+          trimLabel.includes(query);
 
         const matchesModel =
-          selectedModel === "all" || brandLabel === selectedModel;
+          selectedModel === "all" || modelLabel === selectedModel;
 
         return matchesSearch && matchesModel;
       })
       .sort((a, b) => {
         if (sortBy === "high-to-low") return b.price - a.price;
-        return a.price - b.price;
+        if (sortBy === "low-to-high") return a.price - b.price;
+        if (sortBy === "newest") return b.year - a.year;
+        if (sortBy === "oldest") return a.year - b.year;
+        return 0;
       })
       .slice(0, DISPLAY_LIMIT);
   };
 
+  const modelOptions = useMemo(() => {
+    const allModels = cars.map((car) => car.carModel?.name ?? car.model);
+    return Array.from(new Set(allModels))
+      .filter(Boolean)
+      .sort()
+      .map((model) => ({ label: model, value: model }));
+  }, [cars]);
+
   useEffect(() => {
     setFilteredCars(getFilteredCars());
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [cars, selectedModel, sortBy]);
+  }, [cars, selectedModel, sortBy, appliedSearch]);
+
+  const searchAction = () => {
+    setAppliedSearch(searchTerm.trim());
+  };
 
   return (
     <section
@@ -95,7 +113,9 @@ export default function CarGrid({
           setSortBy={(v) => setSortBy(v)}
           searchTerm={searchTerm}
           setSearchTerm={(v) => setSearchTerm(v)}
-          searchAction={() => setFilteredCars(getFilteredCars())}
+          searchAction={searchAction}
+          modelOptions={modelOptions}
+          isPending={isLoading}
         />
 
         {/* Cars Grid / Loading / Error / Empty */}
@@ -130,7 +150,6 @@ export default function CarGrid({
                 trim={car.trim}
                 location={car.address}
                 isFeatured={car.isFeatured}
-                isCertified={car.inspectionPhotos.length > 0}
               />
             ))}
           </div>

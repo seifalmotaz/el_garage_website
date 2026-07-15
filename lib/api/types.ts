@@ -292,4 +292,81 @@ export const CarSchema = z.object({
 export type Car = z.infer<typeof CarSchema>;
 
 export const CarListSchema = z.array(CarSchema);
+
+// ===== Inspection report ===== //
+//
+// Mirrors the `inspectionReport` block returned by `GET /cars/:id`
+// (see `backend/src/cars/cars.service.ts` → `getCarById`). The endpoint
+// resolves the report from either the car-listing flow or a direct car
+// link and maps the Prisma `InspectionStatus` enum + per-question
+// responses into a flat shape suitable for the front-end.
+//
+// Nullability notes (matches the backend mapper exactly):
+//   - `completedAt` is `null` while the report is still in progress.
+//   - `pdfUrl` is `null` until the admin generates the PDF.
+//   - `answerValue` is non-null in the DB but the mapper always copies
+//     the column, so we model it as required `string` here.
+//   - `answerText`, `notes`, `section`, `sectionIcon` are all nullable.
+export const InspectionStatusSchema = z.enum([
+  "IN_PROGRESS",
+  "COMPLETED",
+  "CANCELLED",
+]);
+
+export type InspectionStatus = z.infer<typeof InspectionStatusSchema>;
+
+/**
+ * Semantic pass/warn/fail from the inspection option catalog.
+ * Backend resolves this from `answerOptions[].semanticType` because
+ * `answerValue` is often an option key (e.g. `no_scratches`), not GOOD/WARN/BAD.
+ */
+export const InspectionSemanticTypeSchema = z.enum(["GOOD", "WARN", "BAD"]);
+
+export type InspectionSemanticType = z.infer<
+  typeof InspectionSemanticTypeSchema
+>;
+
+export const InspectionReportResponseSchema = z.object({
+  id: z.string(),
+  status: InspectionStatusSchema,
+  completedAt: isoDateString.nullable(),
+  pdfUrl: z.string().nullable(),
+  responses: z.array(
+    z.object({
+      id: z.string(),
+      questionText: z.string(),
+      questionKey: z.string(),
+      answerValue: z.string(),
+      answerText: z.string().nullable(),
+      notes: z.string().nullable(),
+      section: z.string().nullable(),
+      sectionIcon: z.string().nullable(),
+      /** Optional for older API payloads; prefer when present. */
+      sectionOrder: z.number().int().optional(),
+      /** Resolved option semantic type — source of truth for ✓ / ! UI. */
+      semanticType: InspectionSemanticTypeSchema.optional(),
+    }),
+  ),
+});
+
+export type InspectionReportResponse = z.infer<
+  typeof InspectionReportResponseSchema
+>;
+// ===== Inspection report ===== //
+//
+//
+//
+// ===== Car detail ===== //
+//
+// Returned by `GET /cars/:id`. Same shape as the list item, plus an
+// optional `inspectionReport` block. We model the report as
+// `nullable().optional()` so the schema stays forward-compatible with
+// the list endpoint (which never returns it) — callers that know they
+// hit the detail endpoint can rely on the field being present.
+export const CarDetailSchema = CarSchema.extend({
+  inspectionReport: InspectionReportResponseSchema.nullable().optional(),
+});
+
+export type CarDetail = z.infer<typeof CarDetailSchema>;
+// ===== Car detail ===== //
 // ===== Car ===== //

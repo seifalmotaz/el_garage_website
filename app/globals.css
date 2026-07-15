@@ -100,3 +100,52 @@ body {
   animation: rotation 1s linear infinite;
 }
 /* spinner animation */
+
+/* dropdown scrollbars */
+.dropdown-scroll-dark {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, 0.32) rgba(255, 255, 255, 0.08);
+}
+
+.dropdown-scroll-dark::-webkit-scrollbar {
+  width: 6px;
+}
+
+.dropdown-scroll-dark::-webkit-scrollbar-track {
+  margin: 10px 4px;
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 999px;
+}
+
+.dropdown-scroll-dark::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.28);
+  border-radius: 999px;
+}
+
+.dropdown-scroll-dark::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.42);
+}
+
+.dropdown-scroll-light {
+  scrollbar-width: thin;
+  scrollbar-color: #c7d2e3 #f3f4f6;
+}
+
+.dropdown-scroll-light::-webkit-scrollbar {
+  width: 6px;
+}
+
+.dropdown-scroll-light::-webkit-scrollbar-track {
+  margin: 10px 4px;
+  background: #f3f4f6;
+  border-radius: 999px;
+}
+
+.dropdown-scroll-light::-webkit-scrollbar-thumb {
+  background: #c7d2e3;
+  border-radius: 999px;
+}
+
+.dropdown-scroll-light::-webkit-scrollbar-thumb:hover {
+  background: #9fb0cc;
+}

@@ -26,7 +26,6 @@ type CarCardProps = {
   trim: string | null;
   location: string;
   isFeatured?: boolean;
-  isCertified?: boolean;
   /** Optional monthly installment value rendered after the price. */
   installment?: number;
   /** Optional discount pill shown above the price. */
@@ -44,7 +43,6 @@ export default function CarCard({
   trim,
   location,
   isFeatured = false,
-  isCertified = false,
   installment,
   discountText,
 }: CarCardProps) {
@@ -203,33 +201,31 @@ export default function CarCard({
       </div>
 
       {/* Bottom Section: Certified Banner */}
-      {isCertified && (
-        <div className="bg-gradient-to-r from-[#002ec1] to-[#00165b] text-white px-4 py-2 flex items-center justify-between shadow-inner rounded-b-2xl h-11">
-          {/* Certified Label on Right in RTL */}
-          <div className="flex items-center gap-1.5">
-            <div className="relative w-4 h-4">
-              <Image
-                src="/assets/certified_shield.svg"
-                alt="certified"
-                fill
-                className="object-contain"
-              />
-            </div>
-            <span className="text-xs font-medium">معتمدة من جراج</span>
-          </div>
-
-          {/* Arrow on Left in RTL */}
-          <div className="flex items-center justify-center hover:opacity-80 transition-opacity cursor-pointer">
+      <div className="bg-gradient-to-r from-[#002ec1] to-[#00165b] text-white px-4 py-2 flex items-center justify-between shadow-inner rounded-b-2xl h-11">
+        {/* Certified Label on Right in RTL */}
+        <div className="flex items-center gap-1.5">
+          <div className="relative w-4 h-4">
             <Image
-              src="/assets/arrow_left_white.svg"
-              alt="view details"
-              width={16}
-              height={16}
-              className="w-4 h-4 rotate-45"
+              src="/assets/certified_shield.svg"
+              alt="certified"
+              fill
+              className="object-contain"
             />
           </div>
+          <span className="text-xs font-medium">معتمدة من جراج</span>
         </div>
-      )}
+
+        {/* Arrow on Left in RTL */}
+        <div className="flex items-center justify-center hover:opacity-80 transition-opacity cursor-pointer">
+          <Image
+            src="/assets/arrow_left_white.svg"
+            alt="view details"
+            width={16}
+            height={16}
+            className="w-4 h-4 rotate-45"
+          />
+        </div>
+      </div>
     </Link>
   );
 }
